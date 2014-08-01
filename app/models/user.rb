@@ -47,6 +47,7 @@ class User
   delegate :name, to: :public_profile, :allow_nil => true
   slug :name
 
+
   def sent_mail_for_approval(leave_application_id)
     notified_users = [
                       User.approved.where(role: 'HR').first.try(:email), User.approved.where(role: 'Admin').first.try(:email),

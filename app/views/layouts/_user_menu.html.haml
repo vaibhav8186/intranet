@@ -4,29 +4,31 @@
   
   - if current_user.role == "HR"
     %li
-      = link_to "Schedules", schedules_path
+      = link_to "Schedules", main_app.schedules_path
   - if can? :invite_user, User
     %li
-      = link_to "Invite Employee", invite_user_path
+      = link_to "Invite Employee", main_app.invite_user_path
     %li
-      = link_to "Projects", projects_path
+      = link_to "Projects", main_app.projects_path
     %li
-      = link_to "Vendors", vendors_path, data: { 'no-turbolink' => true }
+      = link_to "Vendors", main_app.vendors_path, data: { 'no-turbolink' => true }
   %li
-    = link_to "Profile", public_profile_user_path(current_user), data: {'no-turbolink' =>  true}
+    = link_to "Profile", main_app.public_profile_user_path(current_user), data: {'no-turbolink' =>  true}
   - if ["HR", "Admin", "Super Admin"].include?(current_user.role)
     %li
-      = link_to "Manage Leave", leave_applications_path
+      = link_to "Manage Leave", main_app.leave_applications_path
+    %li
+      = link_to "Newsletter", main_app.light_path
   %li
-    = link_to "Leave Applications", view_leaves_path 
+    = link_to "Leave Applications", main_app.view_leaves_path 
   - if ["Admin", "Super Admin"].include?(current_user.role)
     %li
-      = link_to "Contacts", site_contacts_path, data: { 'no-turbolink' => true }
+      = link_to "Contacts", main_app.site_contacts_path, data: { 'no-turbolink' => true }
   %li.hide
-    = link_to "Calendar", calendar_path
+    = link_to "Calendar", main_app.calendar_path
   %li.divider
   %li
-    = link_to 'Sign out', destroy_user_session_path, method: :delete
+    = link_to 'Sign out', main_app.destroy_user_session_path, method: :delete
 :css
   .img-rounded{width: 4%; position: absolute; top: 26px; z-index: 1; margin-left: 10px;height: 36px;}
   .user-name{position: relative; left: 40px;}

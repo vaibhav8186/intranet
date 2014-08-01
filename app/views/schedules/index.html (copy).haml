@@ -1,0 +1,32 @@
+- if user_signed_in? && current_user.role== 'HR'
+  .form-heading
+    %h2 LightAir
+
+  %div.tabbable
+    %ul.nav.nav-tabs
+      %li.active.all-tab
+        %a{data: {toggle: 'tab'}, href: "#news"} 
+          Add Newsletter
+      %li.today-tab
+        %a{data: {toggle: "tab"}, href: "#user" } 
+          Add Manually
+      %li.past-tab
+        %a{data: {toggle: "tab"}, href: "#spreadsheets"}
+          Google Spreadsheets
+      %li.future-tab
+        %a{data: {toggle: "tab"}, href: "#show"}
+          Show Users
+   .tab-content
+      .tab-pane.active#news
+        = render "newsletters/new"
+      .tab-pane#user
+        = render "user/new"
+      .tab-pane#spreadsheets
+        = render "spreadsheets/new"
+      .tab-pane#show
+        = render "users"
+
+    
+-else
+  YOU ARE NOT AUTHORIZED TO VIEW THIS PAGE. 
+  PLEASE SIGN IN AS HR

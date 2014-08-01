@@ -1,7 +1,7 @@
 .profile
   = image_tag(@user.public_profile.image.thumb.url)
   %h6.employee_id 
-    = "Id: #{@user.employee_detail.try(:employee_id)}" if @user.employee_detail.employee_id
+    = "Id: #{@user.employee_detail.try(:employee_id)}" if @user.employee_detail.try(:employee_id)
   .profile-title
     %h2.name
       = @user.public_profile.name

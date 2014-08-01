@@ -18,6 +18,7 @@
 /config/initializers/constants.rb
 /config/initializers/constants_dev.rb
 /config/rnotifier.yaml
+/config/environment.yml
 # Ignore bundler config
 /.bundle
 

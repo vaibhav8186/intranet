@@ -15,6 +15,7 @@
 //= require jquery_ujs
 //= require twitter/bootstrap
 //= require turbolinks
+//= require redactor-rails
 //= require bootstrap-datepicker/core
 //= require bootstrap-switch
 //= require jquery_nested_form

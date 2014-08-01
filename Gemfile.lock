@@ -22,16 +22,6 @@ GIT
     mina_extensions (0.0.2)
 
 GIT
-  remote: git://github.com/mongoid/mongoid.git
-  revision: a2586f039fe6c0a1b11ad3bbcf62a7b9f488e960
-  specs:
-    mongoid (4.0.0)
-      activemodel (~> 4.0)
-      moped (~> 2.0.0)
-      origin (~> 2.1)
-      tzinfo (>= 0.3.37)
-
-GIT
   remote: git://github.com/nadarei/mina.git
   revision: 2b80664bdafbe99245166655697c03d7710ddcdd
   specs:
@@ -55,6 +45,39 @@ GIT
       actionpack (>= 3.1)
       jquery-rails
       railties (>= 3.1)
+
+PATH
+  remote: ../light
+  specs:
+    light (0.0.1)
+      bootstrap-datepicker-rails
+      bootstrap-sass
+      carrierwave
+      carrierwave-mongoid
+      coffee-rails (~> 4.0.0)
+      devise_invitable
+      google-api-client
+      google_drive
+      haml
+      haml-rails
+      jbuilder (~> 2.0)
+      jquery-rails
+      mini_magick
+      mongoid
+      omniauth-google-oauth2
+      rails (~> 4.1.0)
+      redactor-rails
+      redis-namespace
+      redis-rails
+      rest_client
+      sass-rails (~> 4.0.3)
+      select2-rails
+      sendgrid
+      sidekiq
+      simple_form
+      spring
+      turbolinks
+      uglifier (>= 1.3.0)
 
 GEM
   remote: http://rubygems.org/
@@ -102,6 +125,8 @@ GEM
       debug_inspector (>= 0.0.1)
     bootstrap-datepicker-rails (1.3.0.2)
       railties (>= 3.0)
+    bootstrap-sass (3.2.0.1)
+      sass (~> 3.2)
     brakeman (2.6.1)
       erubis (~> 2.6)
       fastercsv (~> 1.5)
@@ -150,6 +175,9 @@ GEM
       railties (>= 3.2.6, < 5)
       thread_safe (~> 0.1)
       warden (~> 1.2.3)
+    devise_invitable (1.3.6)
+      actionmailer (>= 3.2.6, < 5)
+      devise (>= 3.2.0)
     diff-lcs (1.2.5)
     easy_diff (0.0.3)
     erubis (2.7.0)
@@ -192,9 +220,9 @@ GEM
     highline (1.6.21)
     hike (1.2.3)
     i18n (0.6.11)
-    jbuilder (1.5.3)
-      activesupport (>= 3.0.0)
-      multi_json (>= 1.2.0)
+    jbuilder (2.1.3)
+      activesupport (>= 3.0.0, < 5)
+      multi_json (~> 1.2)
     jquery-rails (3.1.1)
       railties (>= 3.0, < 5.0)
       thor (>= 0.14, < 2.0)
@@ -216,8 +244,15 @@ GEM
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     mime-types (1.25.1)
+    mini_magick (3.8.0)
+      subexec (~> 0.2.1)
     mini_portile (0.6.0)
     minitest (5.4.0)
+    mongoid (4.0.0)
+      activemodel (~> 4.0)
+      moped (~> 2.0.0)
+      origin (~> 2.1)
+      tzinfo (>= 0.3.37)
     mongoid-rspec (1.10.0)
       mongoid (>= 3.0.1)
       rake
@@ -233,6 +268,7 @@ GEM
     multi_xml (0.5.5)
     multipart-post (2.0.0)
     nested_form (0.3.2)
+    netrc (0.7.7)
     nokogiri (1.6.3.1)
       mini_portile (= 0.6.0)
     oauth (0.4.7)
@@ -282,10 +318,32 @@ GEM
     rake (10.3.2)
     rdoc (4.1.1)
       json (~> 1.4)
+    redactor-rails (0.4.5)
+      devise
+      mime-types
+      orm_adapter
     redis (3.1.0)
+    redis-actionpack (4.0.0)
+      actionpack (~> 4)
+      redis-rack (~> 1.5.0)
+      redis-store (~> 1.1.0)
+    redis-activesupport (4.0.0)
+      activesupport (~> 4)
+      redis-store (~> 1.1.0)
     redis-namespace (1.5.0)
       redis (~> 3.0, >= 3.0.4)
+    redis-rack (1.5.0)
+      rack (~> 1.5)
+      redis-store (~> 1.1.0)
+    redis-rails (4.0.0)
+      redis-actionpack (~> 4)
+      redis-activesupport (~> 4)
+      redis-store (~> 1.1.0)
+    redis-store (1.1.4)
+      redis (>= 2.2)
     ref (1.0.5)
+    rest_client (1.7.3)
+      netrc (~> 0.7.7)
     retriable (1.4.1)
     rmagick (2.13.2)
     rnotifier (0.1.5)
@@ -325,6 +383,11 @@ GEM
     sdoc (0.4.0)
       json (~> 1.8)
       rdoc (~> 4.0, < 5.0)
+    select2-rails (3.5.9)
+      thor (~> 0.14)
+    sendgrid (1.2.0)
+      json
+      json
     sexp_processor (4.4.3)
     shoulda-matchers (2.6.2)
       activesupport (>= 3.0.0)
@@ -350,6 +413,7 @@ GEM
     slim (2.0.3)
       temple (~> 0.6.6)
       tilt (>= 1.3.3, < 2.1)
+    spring (1.1.3)
     sprockets (2.11.0)
       hike (~> 1.2)
       multi_json (~> 1.0)
@@ -360,6 +424,7 @@ GEM
       activesupport (>= 3.0)
       sprockets (~> 2.8)
     stringex (2.5.2)
+    subexec (0.2.3)
     temple (0.6.8)
     terminal-table (1.4.5)
     therubyracer (0.12.1)
@@ -421,14 +486,15 @@ DEPENDENCIES
   google-api-client
   google_drive
   haml-rails
-  jbuilder (~> 1.2)
   jquery-rails
   jquery-timepicker-rails
   jquery-turbolinks
   kaminari
+  light!
   mina!
   mina_extensions!
-  mongoid!
+  mini_magick
+  mongoid (= 4.0.0)
   mongoid-grid_fs!
   mongoid-history!
   mongoid-rspec
@@ -436,6 +502,7 @@ DEPENDENCIES
   nested_form
   omniauth-google-oauth2
   rails (= 4.1.0)
+  redactor-rails
   rmagick
   rnotifier
   rspec-rails

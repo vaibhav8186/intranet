@@ -28,9 +28,9 @@
                     .media-body
                       Cras sit amet nibh libero, in gravida nulla. Nulla metus scelerisque ante sollicitudin commodo
             %li
-              = link_to "Employees", users_path
+              = link_to "Employees", main_app.users_path
             %li
-              = link_to "Documents", attachments_path, data: {'no-turbolink' =>  true}
+              = link_to "Documents", main_app.attachments_path, data: {'no-turbolink' =>  true}
             %li
               =# render 'layouts/project_menu'
             %li
@@ -40,7 +40,7 @@
               = render 'layouts/user_menu' 
           - else
             %li
-              = link_to "Sign in with Josh account", user_omniauth_authorize_path(:google_oauth2)
+              = link_to "Sign in with Josh account", main_app.user_omniauth_authorize_path(:google_oauth2)
   .container
     - flash.each do |key, msg|
       %div{class: flash_class(key), style: "margin-top: 15px;"}

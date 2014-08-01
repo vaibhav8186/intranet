@@ -12,6 +12,7 @@
  *= require bootstrap-datepicker
  *= require bootstrap-switch
  *= require select2
+ *= require redactor-rails
  *= require colorbox-rails
  *= require jquery.timepicker.css
  *= require_tree .

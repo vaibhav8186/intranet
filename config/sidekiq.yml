@@ -5,3 +5,5 @@
 :verbose: true
 :pidfile: ./tmp/pids/sidekiq.pid
 :concurrency: 25
+:queue:
+  - lightair
