@@ -105,4 +105,4 @@ gem 'authority'
 # gem 'debugger', group: [:development, :test]
 gem 'execjs'
 gem 'therubyracer', :platforms => :ruby
-gem 'light', path: '../light'
+gem 'light', github: 'kanhaiyasharma007/light'

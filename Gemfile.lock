@@ -16,38 +16,8 @@ GIT
       mongoid (>= 3.0)
 
 GIT
-  remote: git://github.com/marcosbeirigo/mina_extensions.git
-  revision: a363bb053bacc07d572da2b023bd3f04a0831934
-  specs:
-    mina_extensions (0.0.2)
-
-GIT
-  remote: git://github.com/nadarei/mina.git
-  revision: 2b80664bdafbe99245166655697c03d7710ddcdd
-  specs:
-    mina (0.3.0)
-      open4 (~> 1.3.4)
-      rake
-
-GIT
-  remote: git://github.com/plataformatec/simple_form.git
-  revision: ed3de1c2b566a962697529e824953f6b280e2867
-  specs:
-    simple_form (3.1.0.rc2)
-      actionpack (~> 4.0)
-      activemodel (~> 4.0)
-
-GIT
-  remote: git://github.com/yourabi/twitter-typeahead-rails.git
-  revision: b9e407f9a4224f0840b60a523a2df42eeca7dfe7
-  specs:
-    twitter-typeahead-rails (0.10.2)
-      actionpack (>= 3.1)
-      jquery-rails
-      railties (>= 3.1)
-
-PATH
-  remote: ../light
+  remote: git://github.com/kanhaiyasharma007/light.git
+  revision: 15aba10c88a3c82ae6d0bc7a304848e04be0014f
   specs:
     light (0.0.1)
       bootstrap-datepicker-rails
@@ -78,6 +48,37 @@ PATH
       spring
       turbolinks
       uglifier (>= 1.3.0)
+
+GIT
+  remote: git://github.com/marcosbeirigo/mina_extensions.git
+  revision: a363bb053bacc07d572da2b023bd3f04a0831934
+  specs:
+    mina_extensions (0.0.2)
+
+GIT
+  remote: git://github.com/nadarei/mina.git
+  revision: 2b80664bdafbe99245166655697c03d7710ddcdd
+  specs:
+    mina (0.3.0)
+      open4 (~> 1.3.4)
+      rake
+
+GIT
+  remote: git://github.com/plataformatec/simple_form.git
+  revision: ed3de1c2b566a962697529e824953f6b280e2867
+  specs:
+    simple_form (3.1.0.rc2)
+      actionpack (~> 4.0)
+      activemodel (~> 4.0)
+
+GIT
+  remote: git://github.com/yourabi/twitter-typeahead-rails.git
+  revision: b9e407f9a4224f0840b60a523a2df42eeca7dfe7
+  specs:
+    twitter-typeahead-rails (0.10.2)
+      actionpack (>= 3.1)
+      jquery-rails
+      railties (>= 3.1)
 
 GEM
   remote: http://rubygems.org/
