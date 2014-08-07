@@ -22,7 +22,6 @@ gem 'bootstrap-datepicker-rails'
 gem 'colorbox-rails'
 gem 'google_drive'
 gem 'redactor-rails'
-gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
 gem 'mini_magick'
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'
