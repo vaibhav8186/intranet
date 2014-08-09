@@ -13,6 +13,7 @@ class UsersController < ApplicationController
     else
      @users = User.all
     end
+    @users = @users.sort{|u1, u2| u1.name.to_s <=> u2.name.to_s} 
     respond_to do |format|  
       format.html # index.html.erb
       format.json { render json: @users }

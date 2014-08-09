@@ -17,7 +17,7 @@ module Api
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       response = http.get(@uri.path+"?access_token=#{@token}")
       begin 
-        @data = JSON.parse(JSON.parse(response.body)['result'])
+        @data = JSON.parse(response.body)['result']
       rescue
         @data = []
       end

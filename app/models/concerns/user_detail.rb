@@ -26,7 +26,9 @@ module UserDetail
       p auth[:credentials][:expires_at]
       p "TIME NOW"
       p Time.now.to_i
-      user.update_attributes(access_token: auth[:credentials][:token], expires_at: auth[:credentials][:expires_at], refresh_token: auth[:credentials][:refresh_token])
+      p user
+      user.update_attributes(access_token: auth[:credentials][:token], expires_at: auth[:credentials][:expires_at], refresh_token: auth[:credentials][:refresh_token]) if user.present?
+      user
     end
 
     def from_omniauth(auth)

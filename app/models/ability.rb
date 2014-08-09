@@ -54,6 +54,6 @@ class Ability
   def hr_abilities
     common_admin_hr
     can [:public_profile, :private_profile, :edit, :apply_leave], User
-    can [:index, :show, :edit, :delete, :create, :update], Schedule
+    can :manage, Schedule
   end
 end

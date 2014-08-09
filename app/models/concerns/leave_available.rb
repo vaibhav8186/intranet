@@ -36,14 +36,17 @@ module LeaveAvailable
   end
   
   def assign_monthly_leave
-    available_leave = self.leave_details.where(year: Date.today.year).first.monthly_paid_leave()
-    available_leave.save 
+    available_leave = leave_details.detect{|ld| ld.year == Date.today.year }
+    if available_leave.present?
+      available_leave.monthly_paid_leave()
+      available_leave.save 
+    end
   end 
-    
+
   def get_leave_detail(year)
     leave_details.where(year: year).first   
   end
- 
+
   def eligible_for_leave?
     !!(self.private_profile.try(:date_of_joining).try(:present?) && ['Admin', 'Intern'].exclude?(self.role))
   end  

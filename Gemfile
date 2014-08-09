@@ -2,9 +2,9 @@ source 'http://rubygems.org'
 
 ruby "2.1.0"
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.1.0'
+gem 'rails', '4.1.1'
 gem 'devise'
-gem 'mongoid', '4.0.0'
+gem 'mongoid'
 gem 'mongoid_slug'
 gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
 gem 'rmagick'
@@ -62,6 +62,7 @@ group :test do
   gem 'shoulda-matchers'
   gem 'database_cleaner'
   gem 'faker'
+  gem "codeclimate-test-reporter", require: nil
 end
 
 group :development do

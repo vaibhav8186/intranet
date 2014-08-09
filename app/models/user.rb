@@ -6,7 +6,7 @@ class User
   include LeaveAvailable
   include UserDetail 
 
-  devise :database_authenticatable, :registerable, :omniauthable,
+  devise :database_authenticatable, :omniauthable,
          :recoverable, :rememberable, :trackable, :validatable, :omniauth_providers => [:google_oauth2]
   ROLES = ['Super Admin', 'Admin', 'Manager', 'HR', 'Employee', 'Intern', 'Finance']
   ## Database authenticatable

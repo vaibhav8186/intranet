@@ -10,7 +10,7 @@ class ClientBuilder
   end
 
   def self.get_current_token(user)
-    if (user.expires_at >Time.now.to_i) 
+    if (DateTime.strptime(User.last.expires_at.to_s,"%s") < DateTime.now.utc || user.access_token == nil) 
      client= Google::APIClient.new
      client.authorization.client_id= GOOGLE_API_CLIENT_ID
      client.authorization.client_secret= GOOGLE_API_CLIENT_SECRET

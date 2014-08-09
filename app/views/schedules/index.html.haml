@@ -1,50 +1,54 @@
-- if user_signed_in? && current_user.role== 'HR'
-  .form-heading
-    %h2 Events
+.form-heading
+  %h2 
+    Events
+    = link_to "", new_schedule_path,data: {'no-turbolink' =>  true}, "data-toggle" => "tooltip", title: "Add Schedule" , class: "icon-plus" ,style: "float:right;"
+%br
+%br
+%div{:style => "float:right;"}
+  = form_tag schedules_path, :method => 'get' do
+    = date_field_tag :starts_at, "Start Date"
+    = date_field_tag :ends_at, "End Date"
+    = submit_tag "Search", class: "btn"
 
-  %div{:style => "float:right;"}
-    = form_tag schedules_path, :method => 'get' do
-      = date_field_tag :starts_at, "Start Date"
-      = date_field_tag :ends_at, "End Date"
-      = submit_tag "Search", class: "btn"
-
-
-  %div.tabbable
-    %ul.nav.nav-tabs
-      %li.active.all-tab
-        %a{data: {toggle: 'tab'}, href: "#future"} 
-          Future
-      %li.today-tab
-        %a{data: {toggle: "tab"}, href: "#today" } 
-          Today
-      %li.past-tab
-        %a{data: {toggle: "tab"}, href: "#past"}
-          Past
-      %li.future-tab
-        %a{data: {toggle: "tab"}, href: "#all"}
-          All
-
-    .tab-content
-      .tab-pane.active#future
-        = render "schedules/future"
-      .tab-pane#today
-        = render "schedules/today"
-      .tab-pane#past
-        = render "schedules/past"
-      .tab-pane#all
-        = render "schedules/index"
+%div.tabbable
+  %ul.nav.nav-tabs
+    %li.active.all-tab
+      %a{data: {toggle: 'tab'}, href: "#future"} 
+        Future
+    %li.today-tab
+      %a{data: {toggle: "tab"}, href: "#today" } 
+        Today
+    %li.past-tab
+      %a{data: {toggle: "tab"}, href: "#past"}
+        Past
+    %li.future-tab
+      %a{data: {toggle: "tab"}, href: "#all"}
+        All
 
 
-  :javascript
-    document.getElementById("starts_at").type= "textfield"
-    document.getElementById("ends_at").type= "textfield"
+  .tab-content
+    .tab-pane.active#future
+      - @events= @future_events
+      = render "schedules/future"
+    .tab-pane#today
+      - @events = @today_events
+      = render "schedules/future"
+    .tab-pane#past
+      - @events = @past_events
+      = render "schedules/future"
+    .tab-pane#all
+      - @events = @all_events
+      = render "schedules/future"
 
-    $(function() {
-      $( "#starts_at" ).datepicker();
-    })
-    $(function() {
-      $( "#ends_at" ).datepicker();
-    })
--else
-  YOU ARE NOT AUTHORIZED TO VIEW THIS PAGE. 
-  PLEASE SIGN IN AS HR
+
+:javascript
+  document.getElementById("starts_at").type= "textfield"
+  document.getElementById("ends_at").type= "textfield"
+
+  $(function() {
+    $( "#starts_at" ).datepicker();
+  })
+  $(function() {
+    $( "#ends_at" ).datepicker();
+  })
+

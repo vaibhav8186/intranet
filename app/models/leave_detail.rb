@@ -29,11 +29,11 @@ class LeaveDetail
   end 
 
   def validate_doj_year
-    self.user.private_profile.date_of_joining != Date.today.year
+    self.user.private_profile.date_of_joining.year != Date.today.year
   end
 
   def monthly_paid_leave
-    increament_monthly_paid_leave if validate_doj_month || validate_doj_days
+    increament_monthly_paid_leave if validate_doj_year || validate_doj_month || validate_doj_days
     self 
   end
 

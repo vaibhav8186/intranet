@@ -56,6 +56,16 @@ describe User do
     user.leave_details.this_year.first.available_leave["TotalPrivilege"].to_f.should eq(0.0)
   end
 
+  it "should increment user privilege leave monthly if previous month days > 15 and joining year is not current year " do
+    user = FactoryGirl.build(:user, private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year - 1, Date.today.month, 19).prev_month))
+    user.save!
+    user.assign_monthly_leave
+    user = User.last 
+    user.leave_details.this_year.first.available_leave["CurrentPrivilege"].to_f.should eq(1.5)
+    user.leave_details.this_year.first.available_leave["TotalPrivilege"].to_f.should eq(1.5)
+  end
+
+
   it "should reset yearly leave with previous year leave < 15" do
     user = FactoryGirl.build(:user, private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year - 1, Date.today.month, 19).prev_month))
     user.save

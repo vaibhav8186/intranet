@@ -1,5 +1,5 @@
 -#= image_tag current_user.public_profile.image.thumb.url, class: 'img-rounded'
-= link_to current_user.public_profile.name, '#', 'data-toggle' => "dropdown", class: "dropdown-toggle user-name"
+= link_to current_user.public_profile.try(:name), '#', 'data-toggle' => "dropdown", class: "dropdown-toggle user-name"
 %ul.dropdown-menu.drop
   
   - if current_user.role == "HR"

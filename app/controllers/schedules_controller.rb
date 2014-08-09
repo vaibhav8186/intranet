@@ -3,23 +3,27 @@ require 'date.rb'
 require 'schedule_helper.rb'
 
 class SchedulesController < ApplicationController
-
+	load_and_authorize_resource 
 	def index
 		if user_signed_in? && current_user.role == 'HR'
 				if (!params[:starts_at])
-					@events= CalendarApi.list_events(current_user)
+					@future_events = Schedule.where(:interview_date.gt => Date.today)
+					@past_events = Schedule.where(:interview_date.lt => Date.today)
+					@today_events = Schedule.where(interview_date: Date.today)
+					@all_events = Schedule.all
 				else
-					@events= CalendarApi.list_events_between_dates(current_user,params[:starts_at],params[:ends_at])
+
+					start_date = Date.strptime(params[:starts_at], "%m/%d/%Y")
+					end_date = Date.strptime(params[:ends_at], "%m/%d/%Y")
+					@future_events = Schedule.where(:interview_date.gt => Date.today).and(:interview_date.lte => end_date)
+					@today_events = Schedule.where(interview_date: Date.today).and(:interview_date.gte => start_date ).and(:interview_date.lte => end_date)
+					@past_events = Schedule.where(:interview_date.lt => Date.today).and(:interview_date.gte => start_date)
+					@all_events = Schedule.where(:interview_date.gte => start_date).and(:interview_date.lte => end_date)
 				end
 		end
 	end
 
-	def today
-		@events= CalendarApi.list_events_between_dates(current_user, Date.today.strftime("%m/%d/%Y"), Date.today.strftime("%m/%d/%Y"))
-	end
-
 	def new
-
 		@schedule= Schedule.new
 		@emails = User.all.collect {|p| [p.email]}
 	end
@@ -38,9 +42,10 @@ class SchedulesController < ApplicationController
 	def create
 		user= params[:user]
 		@schedule= Schedule.new(allow_params)
-		@schedule.status= "confirmed"
+		@schedule.status= "Scheduled"
 
 		interviewers= user["email"]
+		interviewers << "hr@joshsoftware.com"		
 		datetime= ScheduleHelper.convert_into_rfc3339(@schedule)
 		event= ScheduleHelper.make_event(@schedule, datetime)
 		event= get_interviewers(event, interviewers)
@@ -64,7 +69,6 @@ class SchedulesController < ApplicationController
 	end
 
 	def edit
-		
 		@schedule= Schedule.find(params[:id])
 		@emails = User.all.collect {|user| user.email}
 	end
