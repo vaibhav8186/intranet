@@ -16,8 +16,9 @@ GIT
       mongoid (>= 3.0)
 
 GIT
-  remote: git://github.com/kanhaiyasharma007/light.git
-  revision: 15aba10c88a3c82ae6d0bc7a304848e04be0014f
+  remote: git://github.com/joshsoftware/lightair.git
+  revision: 3a667e4695cd07db45f39cbee409076a4d405d6c
+  branch: engine
   specs:
     light (0.0.1)
       bootstrap-datepicker-rails

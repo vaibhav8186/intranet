@@ -1,5 +1,6 @@
 source 'http://rubygems.org'
-ruby "2.1.2"
+
+ruby "2.1.0"
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.1.0'
 gem 'devise'
@@ -104,4 +105,4 @@ gem 'authority'
 # gem 'debugger', group: [:development, :test]
 gem 'execjs'
 gem 'therubyracer', :platforms => :ruby
-gem 'light', github: 'kanhaiyasharma007/light'
+gem 'light', git: 'git@github.com:joshsoftware/lightair.git', branch: 'engine'
