@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
 
   before_filter :store_location
+  before_filter :check_for_light
 
   def store_location
     session[:previous_url] = request.fullpath if !INVALID_REDIRECTIONS.include?(request.fullpath) && !request.xhr? # don't store ajax calls
@@ -15,6 +16,12 @@ class ApplicationController < ActionController::Base
     session[:previous_url] || root_path
   end
 
+  def check_for_light
+    if request.url.include?('newsletter') and !current_user.try(:role).in?(['Admin', 'HR', 'Super Admin'])
+      flash[:error] = 'You are not authorized to access this page.'
+      redirect_to main_app.root_url and return 
+    end
+  end
 
 rescue_from CanCan::AccessDenied do |exception|
     redirect_to main_app.root_url, :alert => exception.message
