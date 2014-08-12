@@ -28,9 +28,14 @@ module Intranet
     config.autoload_paths += Dir["#{config.root}/lib", "#{config.root}/lib/**/"]
     config.before_configuration do
       env_file = File.join(Rails.root, 'config', 'environment.yml')
-      YAML.load(File.open(env_file)).each do |key,value|
-        ENV[key.to_s] = value
+      
+      environment_yml = YAML.load(File.open(env_file)).detect do |key, value| 
+        Rails.env == key.to_s
       end if File.exist?(env_file)
+
+      environment_yml.last.each do |key,value|
+        ENV[key.to_s] = value
+      end
     end
     # config.i18n.default_locale = :de
   end
