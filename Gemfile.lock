@@ -48,7 +48,7 @@ GIT
 
 GIT
   remote: git@github.com:joshsoftware/lightair.git
-  revision: bf5bef3375aca4149fd2d43b89f166982ff23144
+  revision: d5de257807c505f74d963618a87ba2bd48a164e5
   branch: engine
   specs:
     light (0.0.1)
@@ -461,7 +461,7 @@ GEM
       kgio (~> 2.6)
       rack
       raindrops (~> 0.7)
-    uuidtools (2.1.4)
+    uuidtools (2.1.5)
     warden (1.2.3)
       rack (>= 1.0)
     whenever (0.9.2)
