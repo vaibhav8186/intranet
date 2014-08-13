@@ -27,7 +27,7 @@ end
 set :term_mode, nil
 set :domain, ip
 set :user, 'deploy'
-set :identity_file, 'doc/id_intranet_rsa'
+set :identity_file, "#{ENV['HOME']}/.ssh/id_joshsite_rsa"
 set :deploy_to, "/home/deploy/projects/intranet/#{env}"
 set :repository, 'git@github.com:joshsoftware/intranet.git'
 set :branch, branch
@@ -37,7 +37,7 @@ set :rails_env, env
 # They will be linked in the 'deploy:link_shared_paths' step.
 set :shared_paths, ['config/mongoid.yml', 'log', 'tmp', 'public/system', 
 					'public/uploads', 'config/initializers/secret_token.rb', "config/initializers/smtp_gmail.rb", "db/seeds.rb",
-          "config/initializers/constants.rb", "config/rnotifier.yaml"]
+          "config/initializers/constants.rb", "config/rnotifier.yaml", "config/environment.yml"]
 
 # This task is the environment that is loaded for most commands, such as
 # `mina deploy` or `mina rake`.
