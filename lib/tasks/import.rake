@@ -3,7 +3,7 @@ require 'csv'
 desc "Import users from csv file"
 task :import => [:environment] do
 
-  file = "public/test.csv"
+  file = "tmp/newsletter_users.csv"
 
   CSV.foreach(file, :headers => true) do |row|
     user = Light::User.create(
@@ -14,7 +14,7 @@ task :import => [:environment] do
       source: "old data"
     )
     
-    p user.email_id unless user.valid?
+    p "#{user.email_id}- #{user.errors.messages}" unless user.valid?
   end
 end
 
