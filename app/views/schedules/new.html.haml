@@ -24,7 +24,7 @@
       .control-group
         = label_tag "Interviewer Emails", nil, class: 'control-label'
         .controls
-          = select_tag 'user[email]', options_for_select(@emails), class: 'emails', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple emails", :include_blank => false,:required => true
+          = select_tag 'interviewers', options_from_collection_for_select(@users, :id, :email), class: 'emails', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple emails", :include_blank => false,:required => true
   
   = schedule.submit :save, class: "btn"
 

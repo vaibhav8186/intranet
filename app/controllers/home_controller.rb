@@ -6,13 +6,10 @@ class HomeController < ApplicationController
     render stream: true
   end
 
-  def get_bonusly_updates
-    bonus = Api::Bonusly.new
-    messages = bonus.all_bonusly_messages
-    messages
-  end
+  private
 
-  def calendar
-    
+  def get_bonusly_updates
+    bonus = Api::Bonusly.new(BONUSLY_TOKEN)
+    bonus.bonusly_messages
   end
 end

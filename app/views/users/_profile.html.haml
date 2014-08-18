@@ -43,7 +43,7 @@
           %tr 
             %td= image_tag "rss_small.png", title: "Blog Url"
             %td
-              = link_to truncate(@user.public_profile.blog_url, length: 30), "#{@user.public_profile.blog_url}", target: '_blank'
+              = link_to truncate(@user.public_profile.blog_url, length: 30), "http://#{@user.public_profile.blog_url}", target: '_blank'
 :css
   .table{margin-top: 30px;}
   .table th { border-top: 1px solid #ffffff; }

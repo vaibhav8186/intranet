@@ -5,6 +5,7 @@
 #   git config --global core.excludesfile ~/.gitignore_global
 #ignore coverage 
 /coverage
+/config/service_account_key.p12
 
 #ignore seed file
 /db/seeds.rb

@@ -1,0 +1,20 @@
+- if bonusly_updates.kind_of? Array
+  .bonusly-updates
+    %ul.media-list
+      - bonusly_updates.each do |message|
+        %li.media
+          %a.pull-left
+            %li.media
+              %a.pull-left{href: '#'}
+                %img.media-object{src: "#{message["receiver"]["profile_pic_url"]}", 
+                                  alt: "#{message["receiver"]["short_name"]}"}
+        
+              %a.pull-right{href: '#'}
+                %img.media-object{src: "#{message["giver"]["profile_pic_url"]}", 
+                                  alt: "#{message["giver"]["short_name"]}"}
+
+              .media-body
+                %h5.media-heading
+                  #{message["receiver"]["short_name"]} received <span class='label label-info'>₹#{message["amount"]}</span> from #{message["giver"]["short_name"]} <span class='label label-warning'>#{message["value"]}</span>
+                %p
+                  = message['reason']

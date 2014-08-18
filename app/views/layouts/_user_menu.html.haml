@@ -2,7 +2,7 @@
 = link_to current_user.public_profile.try(:name), '#', 'data-toggle' => "dropdown", class: "dropdown-toggle user-name"
 %ul.dropdown-menu.drop
   
-  - if current_user.role == "HR"
+  - if can? :manage, Schedule
     %li
       = link_to "Schedules", main_app.schedules_path
   - if can? :invite_user, User

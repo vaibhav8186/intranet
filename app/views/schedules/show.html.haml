@@ -59,10 +59,9 @@
                                 %span.sr-only Close
                               %h4#myModalLabel.modal-title Feedback
                             .modal-body
-                              = form_tag schedule_feedback_path(params[:id]), :method => 'patch' do
+                              = form_tag schedule_feedback_path(@schedule), :method => 'patch' do
                                 = text_area_tag :comment
                                 = hidden_field_tag "attendee_name",attendee["displayName"]
-                                = hidden_field_tag "google_id", params[:id]
                                 = submit_tag "Submit"
 
 
@@ -112,10 +111,9 @@
                                 %span.sr-only Close
                               %h4#myModalLabel.modal-title Feedback
                             .modal-body
-                              = form_tag schedule_feedback_path(params[:id]), :method => 'patch' do
+                              = form_tag schedule_feedback_path(@schedule), :method => 'patch' do
                                 = text_area_tag :comment
                                 = hidden_field_tag "attendee_name",attendee["displayName"]
-                                = hidden_field_tag "google_id", params[:id]
                                 = submit_tag "Submit"
 
                             

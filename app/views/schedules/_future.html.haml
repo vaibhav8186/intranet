@@ -20,7 +20,7 @@
               - if (event.interview_type== "Face-to-Face")
                 %i.icon-user{style: "font-size:30px;"}
             %td.popper{"data-trigger" => "hover","data-placement"=>"bottom","data-original-title"=>"Interviewers"}
-              = link_to event.summary, schedule_path(event.google_id)
+              = link_to event.summary, schedule_path(event)
             %td.pop-over.hide
               %ul
                 - event.users.each do |user|
@@ -33,15 +33,15 @@
               = event.status
               %i.icon-edit.popper{"data-placement"=>"bottom","data-original-title"=>"Status"}
               %i.icon-edit.pop-over.hide
-                = form_tag schedule_get_event_status_path(event.id), :method => 'patch' do
+                = form_tag schedule_get_event_status_path(event), :method => 'patch' do
                   = select_tag "status", options_for_select([ "Scheduled", "Confirmed", "Rescheduled", "Rejected", "Next Round" ], "Scheduled")
                   = submit_tag "Submit"
               
             %td
               - if can? :edit, Schedule
-                = link_to "", edit_schedule_path(event.id), class: "icon-edit"
+                = link_to "", edit_schedule_path(event), class: "icon-edit"
               - if can? :delete, Schedule           
-                = link_to schedule_path(event.google_id), html_options= {method: :delete} do
+                = link_to schedule_path(event), data: {method: :delete} do
                   %i.icon-remove
 
 

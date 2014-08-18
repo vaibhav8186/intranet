@@ -1,5 +1,4 @@
-- a= @schedule.google_id
-= simple_nested_form_for @schedule, :url => schedule_path(a), :html => {multipart: true,id: "Form"} do |schedule|  
+= simple_nested_form_for @schedule, :html => {multipart: true,id: "Form"} do |schedule|  
   .row
     .span5.form-horizontal
       %h2 Interview Details
@@ -21,7 +20,11 @@
         = f.input :linkedin, :required => false
   .row
     .span10.form-horizontal
-      = schedule.input :user_ids, collection: @emails.collect{|email| [email, email]}, selected: @schedule.users.collect(&:email), input_html:{class: 'emails', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple emails", :include_blank => false,:required => true} ,label: "Interviewer Emails"
+      %h2 Interviewer Details
+      .control-group
+        = label_tag "Interviewer Emails", nil, class: 'control-label'
+        .controls
+          = select_tag 'interviewers', options_from_collection_for_select(@users, :id, :email, :selected => @schedule.users.collect(&:id)), class: 'emails', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple emails", :include_blank => false,:required => true
 
   = schedule.submit :save, class: "btn"
 

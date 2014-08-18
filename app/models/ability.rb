@@ -27,6 +27,7 @@ class Ability
     can :manage, Attachment
     can :manage, Vendor
     can :manage, LeaveApplication
+    can :manage, Schedule
   end
   
   def intern_abilities 
@@ -54,6 +55,5 @@ class Ability
   def hr_abilities
     common_admin_hr
     can [:public_profile, :private_profile, :edit, :apply_leave], User
-    can :manage, Schedule
   end
 end

@@ -1,71 +1,80 @@
 require 'spec_helper'
 
 describe CalendarApi do
-	context "It should create events" do
+  before(:each) do
+    @event = {
+      'summary'=> "Silly Event",
+      'start'=> {'dateTime' => DateTime.tomorrow.strftime("%Y-%m-%dT%H:%M:%S+05:30") },
+      'end'=>   {'dateTime' => DateTime.tomorrow.strftime("%Y-%m-%dT%H:%M:%S+05:30") },
+    }
+  end
 
-		it "returns nil if user is invalid" do
-	event = {
-			'summary'=> "Silly Event",
-			'start'=> {'dateTime' => "2011-06-03T10:00:00.000-07:00" },
-		}
-			hr1 = FactoryGirl.create(:user)
-	    op = CalendarApi.create_event(hr1, event)
-	    (op).should eq(nil)
-		end
+  context "#create_event" do
 
-		it "returns nil if event does not have a summary" do
-			event = {'location' => 'l1', 
-							'start'=> {'dateTime' => "2011-06-03T10:00:00.000-07:00" },}
-			hr1 = FactoryGirl.create(:user)
-	    op = CalendarApi.create_event(hr1, event)
-	    (op).should eq(nil)
-		end
+    context "create new event and check status as confirmed" do
+      before do
+        @result = CalendarApi.create_event(@event)
+        @event_body = JSON.load(@result.response.env.body)
+      end
 
-		it "returns nil if event is outdated" do
-			event = {
-			'summary'=> "Silly Event",
-			'start'=> {'dateTime' => "2011-06-03T10:00:00.000-07:00" },
-		}
-  		hr1 = FactoryGirl.create(:hr)
-  		id = ""
-  		op = CalendarApi.create_event(hr1, event)
-	    (op).should eq(nil)
-		end
-	end
+      it { expect(@event_body['status']).to eql('confirmed') }
 
-	context "It should delete event" do
+      after do
+        # Delete created evented from calendar
+        CalendarApi.delete_event(@event_body['id'])
+      end
+    end
 
-		it "returns nil user is invalid" do
-			id= ""
-			event= {'summary' => 'E1'}
-			hr1 = FactoryGirl.create(:user)
-	    op = CalendarApi.delete_event(hr1, id)
-	    (op).should eq(nil)
-		end
-	end
+    context "return error if end time is not present" do
+      before do
+        @event['end'] = nil
+        @result = CalendarApi.create_event(@event)
+        @event_body = JSON.load(@result.response.env.body)
+      end
 
-	context "It should update events" do
+      it { expect(@event_body['error']['message']).to eql("Missing end time.") }
+      it { expect(@result.response.env.status).to eql(400) }
+    end
 
-		it "returns nil if user is not valid" do
-			id = ""
-		event = {
-			'summary'=> "Silly Event",
-			'start'=> {'dateTime' => "2011-06-03T10:00:00.000-07:00" },
-		}
-			hr1 = FactoryGirl.create(:user)
-	    op = CalendarApi.update_event(hr1, id, event)
-	    (op).should eq(nil)
-		end
+    context "return nil if event is outdated" do
+      before do
+        @event['start']['dateTime'] = DateTime.yesterday.strftime("%Y-%m-%dT%H:%M:%S+05:30")
+        @result = CalendarApi.create_event(@event)
+      end
 
-		
-	end
+      it { expect(@result).to eql(nil) }
+    end
+  end
 
-	context "It should LIST events" do
-		it "returns nil if the user is invalid" do
-	    hr1 = FactoryGirl.create(:user)
-	    op = CalendarApi.list_events(hr1)
-	    (op).should eq(nil)
-		end
-	end
+  context "#delete_event" do
+    before do
+      result = CalendarApi.create_event(@event)
+      @event_id = JSON.load(result.response.env.body)['id']
+    end
 
+    # successfull request with empty response body
+    context "delete event for given id" do
+      it { expect(CalendarApi.delete_event(@event_id).response.env.status).to eql(204) }
+    end
+  end
+
+  context "#update_event" do
+    before do
+      result = CalendarApi.create_event(@event)
+      @event_id = JSON.load(result.response.env.body)['id']
+      
+      @event['summary'] = "Silly Event again"
+      @result = CalendarApi.update_event(@event_id, @event)
+      @event_body = JSON.load(@result.response.env.body)
+    end
+
+    context "update event summary gives its id" do
+      it { expect(@event_body['summary']).to eql("Silly Event again") }
+    end
+
+    after do  
+      # Delete created evented from calendar
+      CalendarApi.delete_event(@event_id)
+    end
+  end
 end

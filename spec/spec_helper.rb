@@ -5,7 +5,6 @@ CodeClimate::TestReporter.start
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
-require 'rspec/autorun'
 require 'database_cleaner'
 require 'simplecov'
 require 'sidekiq/testing'

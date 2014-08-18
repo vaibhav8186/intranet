@@ -22,6 +22,7 @@ class UsersController < ApplicationController
 
   def show
     @projects = @user.projects
+    @bonusly_updates = get_bonusly_messages
   end
 
   def update
@@ -137,5 +138,12 @@ class UsersController < ApplicationController
 
   def notify_document_download
     UserMailer.delay.download_notification(current_user.id, @attachment.name)
+  end
+
+  def get_bonusly_messages
+    bonusly = Api::Bonusly.new(BONUSLY_TOKEN)
+    bonusly.bonusly_messages(start_time: Date.today.strftime('%B+1st'), 
+                             end_time:   Date.today.end_of_month.strftime('%B+%dst'),
+                             user_email: @user.email)
   end
 end
