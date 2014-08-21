@@ -8,7 +8,7 @@ class Schedule
   field :public_profile,           :type => Hash
   field :summary, 								 :type => String
   field :description, 						 :type => String
-  field :status,                   :type => String
+  field :status,                   :type => String, :default => 'Scheduled'
   field :event_id,                 :type => String
   field :feedback,                 :type => Hash, :default=>{}
   field :sequence,                 :type => Integer, :default => 0

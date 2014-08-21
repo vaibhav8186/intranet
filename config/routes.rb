@@ -49,6 +49,8 @@ Intranet::Application.routes.draw do
     patch :get_event_status
     patch :feedback
   end
+
+  post '/blog_publish_hook' => 'application#blog_publish_hook', as: :blog_publish_hook
   # You can have the root of your site routed with "root"
   # root 'welcome#index'
   root 'home#index'

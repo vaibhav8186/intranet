@@ -63,21 +63,33 @@ class UserMailer < ActionMailer::Base
     @leaves = LeaveApplication.where(start_at: Date.today + 1, leave_status: "Approved")
     mail(to: @receiver_emails, subject: "Employees on leave tomorrow.") if @leaves.present?
   end
+
+  def new_blog_notification(params)
+    body = <<-body
+      #{params[:post_url]}
+
+      params : #{params}
+    body
+
+    mail(subject: "#{params[:post_author]} published a blog #{params[:post_title]}", body: body,
+         to: 'yogesh@joshsoftware.com, sethu@joshsoftware.com')
+  end
+
   private
-    
-    def get_user_years(users)
-      current_year = Date.today.year
-      @user_hash = {}
-      users.each do |user|
-        completion_year = current_year - user.private_profile.date_of_joining.year
-        if completion_year > 0
-          @user_hash[completion_year].nil? ? @user_hash[completion_year] = [user.name] : @user_hash[completion_year] << user.name 
-        end
+
+  def get_user_years(users)
+    current_year = Date.today.year
+    @user_hash = {}
+    users.each do |user|
+      completion_year = current_year - user.private_profile.date_of_joining.year
+      if completion_year > 0
+        @user_hash[completion_year].nil? ? @user_hash[completion_year] = [user.name] : @user_hash[completion_year] << user.name 
       end
     end
+  end
 
-    def get_leave(id)
-      @leave_application = LeaveApplication.where(id: id).first
-      @user = @leave_application.user
-    end
+  def get_leave(id)
+    @leave_application = LeaveApplication.where(id: id).first
+    @user = @leave_application.user
+  end
 end
