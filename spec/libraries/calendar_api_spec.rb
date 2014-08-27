@@ -14,7 +14,7 @@ describe CalendarApi do
     context "create new event and check status as confirmed" do
       before do
         @result = CalendarApi.create_event(@event)
-        @event_body = JSON.load(@result.response.env.body)
+        @event_body = JSON.load(@result.body)
       end
 
       it { expect(@event_body['status']).to eql('confirmed') }
@@ -29,11 +29,11 @@ describe CalendarApi do
       before do
         @event['end'] = nil
         @result = CalendarApi.create_event(@event)
-        @event_body = JSON.load(@result.response.env.body)
+        @event_body = JSON.load(@result.body)
       end
 
       it { expect(@event_body['error']['message']).to eql("Missing end time.") }
-      it { expect(@result.response.env.status).to eql(400) }
+      it { expect(@result.status).to eql(400) }
     end
 
     context "return nil if event is outdated" do
@@ -49,23 +49,23 @@ describe CalendarApi do
   context "#delete_event" do
     before do
       result = CalendarApi.create_event(@event)
-      @event_id = JSON.load(result.response.env.body)['id']
+      @event_id = JSON.load(result.body)['id']
     end
 
     # successfull request with empty response body
     context "delete event for given id" do
-      it { expect(CalendarApi.delete_event(@event_id).response.env.status).to eql(204) }
+      it { expect(CalendarApi.delete_event(@event_id).status).to eql(204) }
     end
   end
 
   context "#update_event" do
     before do
       result = CalendarApi.create_event(@event)
-      @event_id = JSON.load(result.response.env.body)['id']
+      @event_id = JSON.load(result.body)['id']
       
       @event['summary'] = "Silly Event again"
       @result = CalendarApi.update_event(@event_id, @event)
-      @event_body = JSON.load(@result.response.env.body)
+      @event_body = JSON.load(@result.body)
     end
 
     context "update event summary gives its id" do

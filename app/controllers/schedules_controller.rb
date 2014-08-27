@@ -5,13 +5,12 @@ class SchedulesController < ApplicationController
 	load_and_authorize_resource
 	
   def index
-    if (!params[:starts_at])
+    unless params[:starts_at]
       @future_events = Schedule.where(:interview_date.gt => Date.today)
       @past_events = Schedule.where(:interview_date.lt => Date.today)
       @today_events = Schedule.where(interview_date: Date.today)
       @all_events = Schedule.all
     else
-
       start_date = Date.strptime(params[:starts_at], "%m/%d/%Y")
       end_date = Date.strptime(params[:ends_at], "%m/%d/%Y")
       @future_events = Schedule.where(:interview_date.gt => Date.today).and(:interview_date.lte => end_date)
@@ -26,21 +25,21 @@ class SchedulesController < ApplicationController
   end
 
   def create
-    @schedule.status= "Scheduled"
     @users = User.all
-
     result = CalendarApi.create_event(generate_event_body)
-    event_body = JSON.load(result.response.env.body)
-    if result.response.env.status == 200
-      @schedule.event_id = event_body['id']
-      if @schedule.save
+
+    if result
+      event_body = JSON.load(result.body)
+      if result.status == 200
+        @schedule.event_id = event_body['id']
+        @schedule.save
         redirect_to schedules_path
       else
-        flash[:error] = "Failed to create event"
+        flash[:error] = "Failed due to : #{event_body['error']['message']}"
         render :new
       end
     else
-      flash[:error] = "Failed due to : #{event_body['error']['message']}"
+      flash[:error] = "Failed to create event"
       render :new
     end
   end
@@ -49,21 +48,22 @@ class SchedulesController < ApplicationController
     result = CalendarApi.delete_event(@schedule.event_id)
 
     # remove event or already deleted event in google calendar
-    if result.response.env.status == 204 || result.response.env.status == 410
+    if result.status == 204 || result.status == 410
       @schedule.delete
       redirect_to schedules_path
     else
-      flash[:error] = "Failed due to : #{JSON.load(result.response.env.body)['error']['message']}"
+      flash[:error] = "Failed due to : #{JSON.load(result.body)['error']['message']}"
       redirect_to action: 'index'
     end
   end
 
   def show
     result = CalendarApi.get_event(@schedule.event_id)
-    if result.response.env.status == 200
-      @event = JSON.load(result.response.env.body)
+    
+    if result.status == 200
+      @event = JSON.load(result.body)
     else
-      flash[:error] = "Failed due to : #{JSON.load(result.response.env.body)['error']['message']}"
+      flash[:error] = "Failed due to : #{JSON.load(result.body)['error']['message']}"
       redirect_to action: 'index'
     end
   end
@@ -77,12 +77,12 @@ class SchedulesController < ApplicationController
 
     if @schedule.update_attributes(schedule_params)
       result = CalendarApi.update_event(@schedule.event_id, generate_event_body)
-      event_body = JSON.load(result.response.env.body)
+      event_body = JSON.load(result.body)
       
-      if result.response.env.status == 200
+      if result.status == 200
         redirect_to schedules_path
       else
-        flash[:error] = "Failed due to : #{JSON.load(result.response.env.body)['error']['message']}"
+        flash[:error] = "Failed due to : #{JSON.load(result.body)['error']['message']}"
         render :edit
       end
     else

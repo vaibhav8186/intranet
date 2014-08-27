@@ -7,6 +7,7 @@ class ApplicationController < ActionController::Base
 
   before_filter :store_location
   before_filter :check_for_light
+  skip_before_filter :verify_authenticity_token, only: :blog_publish_hook
 
   def store_location
     session[:previous_url] = request.fullpath if !INVALID_REDIRECTIONS.include?(request.fullpath) && !request.xhr? # don't store ajax calls
@@ -21,6 +22,11 @@ class ApplicationController < ActionController::Base
       flash[:error] = 'You are not authorized to access this page.'
       redirect_to main_app.root_url and return 
     end
+  end
+
+  def blog_publish_hook
+    UserMailer.delay.new_blog_notification(params)
+    render nothing: true
   end
 
   rescue_from CanCan::AccessDenied do |exception|
