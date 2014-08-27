@@ -47,6 +47,10 @@ class User
   delegate :name, to: :public_profile, :allow_nil => true
   slug :name
 
+  # Hack for Devise as https://github.com/plataformatec/devise/issues/2949#issuecomment-40520236
+  def self.serialize_into_session(record)
+    [record.id.to_s, record.authenticatable_salt]
+  end
 
   def sent_mail_for_approval(leave_application_id)
     notified_users = [
