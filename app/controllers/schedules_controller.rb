@@ -21,11 +21,11 @@ class SchedulesController < ApplicationController
   end
 
   def new
-    @users = User.all
+    @users = User.approved
   end
 
   def create
-    @users = User.all
+    @users = User.approved
     result = CalendarApi.create_event(generate_event_body)
 
     if result
@@ -39,7 +39,7 @@ class SchedulesController < ApplicationController
         render :new
       end
     else
-      flash[:error] = "Failed to create event"
+      flash[:error] = "Date and Time should be in future"
       render :new
     end
   end
