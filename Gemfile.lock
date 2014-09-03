@@ -1,4 +1,11 @@
 GIT
+  remote: git://github.com/PerfectMemory/mongoid_rateable.git
+  revision: 56962d77eb03faf5764b7251fea078ebfd3e6f28
+  specs:
+    mongoid_rateable (0.4.0)
+      mongoid (~> 4.0.alpha)
+
+GIT
   remote: git://github.com/ahoward/mongoid-grid_fs.git
   revision: 9ab0ca49add11a276c87c3e5da15fb0e282fcff7
   specs:
@@ -81,6 +88,27 @@ GIT
       turbolinks
       uglifier (>= 1.3.0)
 
+GIT
+  remote: git@github.com:joshsoftware/screamout.git
+  revision: 7fa9ae67d065ef11aca4001390435ba139471368
+  branch: engine
+  specs:
+    screamout (0.0.1)
+      bson
+      haml-rails
+      imgkit
+      jquery-rails
+      jquery-ui-rails
+      mongoid-paperclip
+      mongoid-rspec
+      mongoid_rateable
+      mongoid_taggable
+      rails (= 4.1.1)
+      rspec-rails
+      sidekiq
+      simple_form
+      twitter-typeahead-rails
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -157,6 +185,10 @@ GEM
     celluloid (0.15.2)
       timers (~> 1.1.0)
     chronic (0.10.2)
+    climate_control (0.0.3)
+      activesupport (>= 3.0)
+    cocaine (0.5.4)
+      climate_control (>= 0.0.3, < 1.0)
     codeclimate-test-reporter (0.4.0)
       simplecov (>= 0.7.1, < 1.0.0)
     coderay (1.1.0)
@@ -225,6 +257,7 @@ GEM
     highline (1.6.21)
     hike (1.2.3)
     i18n (0.6.11)
+    imgkit (1.4.1)
     jbuilder (2.1.3)
       activesupport (>= 3.0.0, < 5)
       multi_json (~> 1.2)
@@ -236,6 +269,8 @@ GEM
     jquery-turbolinks (2.0.2)
       railties (>= 3.1.0)
       turbolinks
+    jquery-ui-rails (5.0.0)
+      railties (>= 3.2.16)
     json (1.8.1)
     jwt (1.0.0)
     kaminari (0.16.1)
@@ -258,6 +293,8 @@ GEM
       moped (~> 2.0.0)
       origin (~> 2.1)
       tzinfo (>= 0.3.37)
+    mongoid-paperclip (0.0.9)
+      paperclip (>= 2.3.6)
     mongoid-rspec (1.10.0)
       mongoid (>= 3.0.1)
       rake
@@ -265,6 +302,9 @@ GEM
     mongoid_slug (3.2.1)
       mongoid (> 3.0)
       stringex (~> 2.0)
+    mongoid_taggable (1.1.1)
+      mongoid (>= 3)
+      rake
     moped (2.0.0)
       bson (~> 2.2)
       connection_pool (~> 2.0)
@@ -298,6 +338,11 @@ GEM
     optionable (0.2.0)
     origin (2.1.1)
     orm_adapter (0.5.0)
+    paperclip (4.2.0)
+      activemodel (>= 3.0.0)
+      activesupport (>= 3.0.0)
+      cocaine (~> 0.5.3)
+      mime-types
     polyglot (0.3.5)
     rack (1.5.2)
     rack-protection (1.5.3)
@@ -504,6 +549,7 @@ DEPENDENCIES
   mongoid-grid_fs!
   mongoid-history!
   mongoid-rspec
+  mongoid_rateable!
   mongoid_slug
   nested_form
   omniauth-google-oauth2
@@ -513,6 +559,7 @@ DEPENDENCIES
   rnotifier
   rspec-rails
   sass-rails (~> 4.0.0)
+  screamout!
   sdoc
   shoulda-matchers
   sidekiq (= 3.1.3)

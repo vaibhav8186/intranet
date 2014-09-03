@@ -1,0 +1,22 @@
+- if not signed_in?
+  .iframeheading
+    %h4
+      %center
+        %strong Screamout
+  .content
+    .container-fluid{:style => "opacity:1;"}
+      .span8
+        .row
+        .row{align: 'center'}
+          Please sign-in to Josh Software Intranet to use this service.
+        %br
+        %br
+        .row{align: 'center'}
+          = link_to "Sign-in",main_app.root_url, class: 'btn btn-primary'
+          = link_to "Cancel","", class: 'btn btn-danger cancel'
+- else
+  = render :partial => 'new_content2'
+
+:javascript
+  $('a').attr('target','_blank');
+  $('.cancel').on ('click',function(){parent.window.postMessage("removetheiframe", "*");})
