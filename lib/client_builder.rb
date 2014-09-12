@@ -2,7 +2,11 @@ require 'google/api_client'
 
 class ClientBuilder
   def self.build_client
-    key_file = "#{Rails.root}/config/service_account_key.p12"
+    if Rails.env.test?
+      key_file = "#{Rails.root}/config/service_account_key_test.p12"
+    else
+      key_file = "#{Rails.root}/config/service_account_key.p12"
+    end
     key_secret = 'notasecret'
 
     @key = Google::APIClient::KeyUtils.load_from_pkcs12(key_file, key_secret)
