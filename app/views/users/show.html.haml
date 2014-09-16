@@ -3,4 +3,5 @@
   .projects
     %table.table
       = render partial: 'project', collection: @projects
-= render partial: 'home/bonusly_updates', object: @bonusly_updates
+- unless ( @user.role.eql?('Admin') || @not_found.eql?(true) )
+  = render partial: 'users/bonusly_updates', locals: {bonus_given: @bonus_given, bonus_received: @bonus_recieved, user: @user}

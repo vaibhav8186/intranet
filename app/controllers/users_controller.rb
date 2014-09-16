@@ -23,6 +23,12 @@ class UsersController < ApplicationController
   def show
     @projects = @user.projects
     @bonusly_updates = get_bonusly_messages
+    if @bonusly_updates.eql?('Not found')
+      @not_found = true
+    else
+      @bonus_recieved = @bonusly_updates.select{|message| message["receiver"]["email"] == @user.email}
+      @bonus_given = @bonusly_updates.select{|message| message["giver"]["email"] == @user.email}
+    end
   end
 
   def update
