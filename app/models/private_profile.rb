@@ -9,6 +9,7 @@ class PrivateProfile
   field :work_experience
   field :previous_company
   field :bonusly_auth_token
+  field :tshirt_size
 
   embedded_in :user
   embeds_many :contact_persons
