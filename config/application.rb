@@ -35,7 +35,7 @@ module Intranet
 
       environment_yml.last.each do |key,value|
         ENV[key.to_s] = value
-      end
+      end if environment_yml.present?
     end
     # config.i18n.default_locale = :de
   end
