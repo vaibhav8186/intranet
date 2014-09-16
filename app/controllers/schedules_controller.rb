@@ -2,8 +2,11 @@ require 'calendar_api'
 require 'schedule_helper'
 
 class SchedulesController < ApplicationController
-	load_and_authorize_resource
-	
+  
+  before_filter :permit_param_for_cancan, only: :create
+  load_and_authorize_resource
+
+
   def index
     unless params[:starts_at]
       @future_events = Schedule.where(:interview_date.gt => Date.today)
@@ -59,7 +62,7 @@ class SchedulesController < ApplicationController
 
   def show
     result = CalendarApi.get_event(@schedule.event_id)
-    
+
     if result.status == 200
       @event = JSON.load(result.body)
     else
@@ -78,7 +81,7 @@ class SchedulesController < ApplicationController
     if @schedule.update_attributes(schedule_params)
       result = CalendarApi.update_event(@schedule.event_id, generate_event_body)
       event_body = JSON.load(result.body)
-      
+
       if result.status == 200
         redirect_to schedules_path
       else
@@ -132,5 +135,11 @@ class SchedulesController < ApplicationController
       end
     end
     event
+  end
+
+  def permit_param_for_cancan
+    resource = controller_name.singularize.to_sym
+    method = "#{resource}_params"
+    params[resource] &&= send(method) if respond_to?(method, true)
   end
 end

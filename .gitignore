@@ -37,3 +37,5 @@
 *~
 
 .env
+/public/system/
+/public/snapshots/

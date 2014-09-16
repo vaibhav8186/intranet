@@ -5,16 +5,19 @@ Intranet::Application.routes.draw do
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
-  authenticate :user do
-    mount Sidekiq::Web => '/sidekiq'
-    mount Light::Engine => '/newsletter'
-  end
-  
+
   devise_scope :user do
     match :invite_user, to: 'users#invite_user', via: [:get, :post]
     match '/admin', to: 'devise/sessions#new', via: [:get]
+    match '/screamout/iframe_contents/new' => 'screamout/iframe_contents#new', via: [:get]
   end
 
+  authenticate :user do
+    mount Sidekiq::Web => '/sidekiq'
+    mount Light::Engine => '/newsletter'
+    mount Screamout::Engine => '/screamout'
+  end
+  
   get 'contacts' => 'admins#contacts_from_site', as: 'site_contacts'
 
   get 'calendar' => 'home#calendar', as: :calendar  
