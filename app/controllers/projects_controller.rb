@@ -4,7 +4,7 @@ class ProjectsController < ApplicationController
   skip_load_and_authorize_resource :only => :create
   before_action :authenticate_user!
   before_action :load_project, except: [:index, :new, :create]
-  
+
   include RestfulAction
   
   def index
@@ -17,7 +17,7 @@ class ProjectsController < ApplicationController
 
   def create
     @project = Project.new(safe_params)
-    if @project.save
+    if @project.save  
       flash[:notice] = "Project created Succesfully"
       redirect_to projects_path
     else
@@ -26,7 +26,7 @@ class ProjectsController < ApplicationController
   end
   
   def update
-    
+    @project.user_ids = [] if params[:user_ids].blank? 
     update_obj(@project, safe_params, projects_path)
   end
 
@@ -45,7 +45,7 @@ class ProjectsController < ApplicationController
 
   private
   def safe_params
-    params.require(:project).permit(:name, :code_climate_id, :code_climate_snippet, :code_climate_coverage_snippet, :is_active)
+    params.require(:project).permit(:name, :code_climate_id, :code_climate_snippet, :code_climate_coverage_snippet, :is_active, :user_ids => [])
   end
 
   def load_project

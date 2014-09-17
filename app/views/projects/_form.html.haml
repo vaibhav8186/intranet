@@ -7,6 +7,12 @@
     = f.input :code_climate_id, label: "Code climate id"
     = f.input :code_climate_snippet
     = f.input :code_climate_coverage_snippet
+    .control-group
+      = label_tag "Team Members", nil, class: 'control-label'
+      .controls
+        = select_tag :user_ids, options_from_collection_for_select(User.where(:role.nin => ['HR','Finance'], :status => STATUS[2]).to_a, :id, :name, @project.users.collect{|k| k.id}), class: 'members', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple team memebers", name: "project[user_ids][]"
     = f.submit :save, class: 'btn controls'
 :css
   .make-switch{ height: 29px; margin-left: 18px; margin-bottom: 10px;}
+:javascript
+  $(".members").select2();
