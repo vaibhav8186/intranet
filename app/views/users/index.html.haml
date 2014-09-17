@@ -1,5 +1,8 @@
 .form-heading
   %h2 Employees
+  - if can? :edit, User
+    %h5.btn{id: 'show'} Show All
+    %h5{id: 'show_text'} Showing approved users only.
 .form-horizontal
   %table.table.table-hover
     %thead
@@ -14,7 +17,7 @@
           %th Status
     %tbody
       - @users.each_with_index do |user, index|
-        %tr
+        %tr{hidden: (true if user.status != STATUS[2])}
           - if can? :edit, User
             %td= user.employee_detail.try(:employee_id) if user.employee_detail
             %td= image_tag(user.public_profile.image.thumb.url, class: 'img-polaroid') if user.public_profile
@@ -35,3 +38,14 @@
             %td= user.public_profile.try(:mobile_number)
 :css
   .table td{ vertical-align: middle; }
+:coffeescript
+  $('tr[hidden]').attr("hide", "true")
+  $('#show').click ->
+    if $(this).text() == 'Show All'
+      $(this).text('Show Approved')
+      $('tr[hide]').removeAttr('hidden')
+      $('#show_text').text('Showing all users.')
+    else
+      $(this).text('Show All')
+      $('tr[hide]').attr('hidden', 'true')
+      $('#show_text').text('Showing approved users only.')
