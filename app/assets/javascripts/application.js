@@ -25,5 +25,6 @@
 //= require jquery.timepicker.js
 //= require twitter/typeahead
 //= require jquery.validate.min.js
+//= require light/users.js
 //= require_tree .
 
