@@ -24,7 +24,7 @@
         = pri.input :bonusly_auth_token
     %tr
       %td
-        = pri.input :tshirt_size
+        = pri.input :tshirt_size, collection: TSHIRT_SIZE, prompt: 'Select'
   %h4 Emergency Contact Details
   %table{style: "width:100%;"}
     %tr

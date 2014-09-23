@@ -1,4 +1,6 @@
 %table.table.table-hover.table-striped
+  %h5.btn{id: 'show'} Show All
+  %h5{id: 'show_text'} Showing approved users only.
   %thead
     %tr
       %th
@@ -17,7 +19,7 @@
         Total Privilege Leave
   %tbody
     - @users.each do|user|
-      %tr
+      %tr{hidden: (true if user.status != STATUS[2])}
         %td
           = user.name
         - leave_detail = user.leave_details.last || user.leave_details.build
@@ -29,6 +31,18 @@
           = link_to leave_detail.available_leave["CurrentPrivilege"],  "#", {class: 'leave_type_current', id: "current_paid_#{leave_detail.id}", data:{pk: leave_detail.id.to_s, url: update_available_leave_path(id: leave_detail.id, type: 'CurrentPrivilege'), name: 'CurrentPrivilege'}}
         %td
           = link_to leave_detail.available_leave["TotalPrivilege"],  "#", {class: 'leave_type_paid', id: "paid_#{leave_detail.id}", data:{pk: leave_detail.id.to_s, url: update_available_leave_path(id: leave_detail.id, type: 'TotalPrivilege'), name: 'TotalPrivilege'}}
+:coffeescript
+  $('tr[hidden]').attr("hide", "true")
+  $('#show').click ->
+    if $(this).text() == 'Show All'
+      $(this).text('Show Approved')
+      $('tr[hide]').removeAttr('hidden')
+      $('#show_text').text('Showing all users.')
+    else
+      $(this).text('Show All')
+      $('tr[hide]').attr('hidden', 'true')
+      $('#show_text').text('Showing approved users only.')
+      
 :javascript
   $.fn.editable.defaults.ajaxOptions = {type: "PUT"}; 
   $('.leave_type_sick').editable({

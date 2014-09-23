@@ -67,12 +67,10 @@ class UserMailer < ActionMailer::Base
   def new_blog_notification(params)
     body = <<-body
       #{params[:post_url]}
-
-      params : #{params}
     body
 
-    mail(subject: "#{params[:post_author]} published a blog #{params[:post_title]}", body: body,
-         to: 'yogesh@joshsoftware.com, sethu@joshsoftware.com')
+    mail(subject: "New blog '#{params[:post_title]}' has been published", body: body,
+         to: 'all@joshsoftware.com')
   end
 
   private
