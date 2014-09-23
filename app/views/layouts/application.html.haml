@@ -3,49 +3,54 @@
     %title Josh Intranet
     = stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true
     = stylesheet_link_tag    "screamout/global", media: "all", "data-turbolinks-track" => true
-
+    
     = javascript_include_tag "application", "data-turbolinks-track" => true 
     = javascript_include_tag "screamout/filter", "data-turbolinks-track" => true
     = javascript_include_tag "screamout/global", "data-turbolinks-track" => true
-
+    
     = csrf_meta_tags
     = favicon_link_tag "/images/favicon.ico"
     :css
       .media.notification-menu, .media .media{ width: 430px; }
 %body
   #header
-    .wrap
-      .logo
-        =link_to(image_tag("Josh-Software-Logo.svg"), main_app.root_path, data: {'no-turbolink' =>  true})
-      .main-menu
-        %ul.nav.nav-pills
-          - if user_signed_in?
-            %li.dropdown.hide
-              = link_to "#", {:'data-toggle' => 'dropdown', class: 'dropdown-toggle'} do
-                Notifications
-                %span.badge.badge-important
+    - if params[:controller].eql?('light/users') and params[:action].eql?('subscribe')
+      .wrap
+        .logo
+          =link_to(image_tag("Josh-Software-Logo.svg"), "#", data: {'no-turbolink' =>  true})
+    - else
+      .wrap
+        .logo
+          =link_to(image_tag("Josh-Software-Logo.svg"), main_app.root_path, data: {'no-turbolink' =>  true})
+        .main-menu
+          %ul.nav.nav-pills
+            - if user_signed_in?
+              %li.dropdown.hide
+                = link_to "#", {:'data-toggle' => 'dropdown', class: 'dropdown-toggle'} do
+                  Notifications
+                  %span.badge.badge-important
                   
-              %ul.dropdown-menu
-                %li
-                  .media.notification-menu
-                    = link_to "#", {class: 'pull-left'} do
-                      //%img.media-object{src: "/uploads/public_profile/image/525e3cf541c90efd02000001/medium_naruto.jpeg", height: 64}
-                    .media-body
-                      Cras sit amet nibh libero, in gravida nulla. Nulla metus scelerisque ante sollicitudin commodo
-            %li
-              = link_to "Employees", main_app.users_path
-            %li
-              = link_to "Documents", main_app.attachments_path, data: {'no-turbolink' =>  true}
-            %li
-              =# render 'layouts/project_menu'
-            %li
-              =# render 'layouts/vendor_menu'
-            // Not this menu needs to be last in nav margin issues add any menu before this
-            %li
-              = render 'layouts/user_menu' 
-          - else
-            %li
-              = link_to "Sign in with Josh account", main_app.user_omniauth_authorize_path(:google_oauth2)
+                %ul.dropdown-menu
+                  %li
+                    .media.notification-menu
+                      = link_to "#", {class: 'pull-left'} do
+                        //%img.media-object{src: "/uploads/public_profile/image/525e3cf541c90efd02000001/medium_naruto.jpeg", height: 64}
+                      .media-body
+                        Cras sit amet nibh libero, in gravida nulla. Nulla metus scelerisque ante sollicitudin commodo
+              %li
+                = link_to "Employees", main_app.users_path
+              %li
+                = link_to "Documents", main_app.attachments_path, data: {'no-turbolink' =>  true}
+              %li
+                =# render 'layouts/project_menu'
+              %li
+                =# render 'layouts/vendor_menu'
+              // Not this menu needs to be last in nav margin issues add any menu before this
+              %li
+                = render 'layouts/user_menu' 
+            - else
+              %li
+                = link_to "Sign in with Josh account", main_app.user_omniauth_authorize_path(:google_oauth2)
   .container
     - flash.each do |key, msg|
       %div{class: flash_class(key), style: "margin-top: 15px;"}
