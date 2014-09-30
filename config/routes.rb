@@ -10,13 +10,13 @@ Intranet::Application.routes.draw do
   devise_scope :user do
     match :invite_user, to: 'users#invite_user', via: [:get, :post]
     match '/admin', to: 'devise/sessions#new', via: [:get]
-    match '/screamout/iframe_contents/new' => 'screamout/iframe_contents#new', via: [:get]
+    #match '/screamout/iframe_contents/new' => 'screamout/iframe_contents#new', via: [:get]
   end
 
   authenticate :user do
     mount Sidekiq::Web => '/sidekiq'
     mount Light::Engine => '/newsletter'
-    mount Screamout::Engine => '/screamout'
+    #mount Screamout::Engine => '/screamout'
   end
   
   get 'contacts' => 'admins#contacts_from_site', as: 'site_contacts'
