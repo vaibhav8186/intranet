@@ -13,7 +13,7 @@ require 'mina_extensions/sidekiq'
 
 env = ENV['on'] || 'production'
 nocron = ENV['nocron'] || false
-branch = ENV['branch'] || 'leave_application'
+branch = ENV['branch'] || 'master'
 #bkp = ENV['bkp'] || false #Backup will be used for actual production 
 index = ENV['index'] || false
 
