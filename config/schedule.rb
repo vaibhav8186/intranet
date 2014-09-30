@@ -57,11 +57,14 @@ every :day, :at => '10:00am' do
   rake "notification:year_of_completion"
 end
 
-
 every :day, :at => '06:00pm' do
   rake "leave_reminder:daily"
 end
 
 every '0 10 15 * *' do
   rake "light:remove_bounced_emails"
+end
+
+every :day, :at => '10:00pm' do
+  rake "database_backup"
 end
