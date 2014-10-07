@@ -6,17 +6,18 @@ Intranet::Application.routes.draw do
   # See how all your routes lay out with "rake routes".
 
 
-  get '/unsubscribe/:id' => 'light/users#subscribe', as: 'users/unsubscribe'
+  get '/unsubscribe/:id' => 'light/users#unsubscribe', as: 'users/unsubscribe'
+  match '/subscribe/:id' => 'light/users#subscribe', as: 'users/subscribe', via: [:get, :post]
   devise_scope :user do
     match :invite_user, to: 'users#invite_user', via: [:get, :post]
     match '/admin', to: 'devise/sessions#new', via: [:get]
-    #match '/screamout/iframe_contents/new' => 'screamout/iframe_contents#new', via: [:get]
+    match '/screamout/iframe_contents/new' => 'screamout/iframe_contents#new', via: [:get]
   end
 
   authenticate :user do
     mount Sidekiq::Web => '/sidekiq'
     mount Light::Engine => '/newsletter'
-    #mount Screamout::Engine => '/screamout'
+    mount Screamout::Engine => '/screamout'
   end
   
   get 'contacts' => 'admins#contacts_from_site', as: 'site_contacts'

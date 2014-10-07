@@ -14,7 +14,7 @@
       .media.notification-menu, .media .media{ width: 430px; }
 %body
   #header
-    - if params[:controller].eql?('light/users') and params[:action].eql?('subscribe')
+    - if params[:controller].eql?('light/users') and (params[:action].eql?('subscribe') or params[:action].eql?('unsubscribe'))
       .wrap
         .logo
           =link_to(image_tag("Josh-Software-Logo.svg"), "#", data: {'no-turbolink' =>  true})
