@@ -21,8 +21,8 @@
       = link_to "Newsletter", main_app.light_path
   %li
     = link_to "Leave Applications", main_app.view_leaves_path 
-  /%li
-  /= link_to "Screamout", screamout.contents_path, data: {'no-turbolink' =>  true}
+  %li
+    = link_to "Screamout", screamout.contents_path, data: {'no-turbolink' =>  true}
   - if ["Admin", "Super Admin"].include?(current_user.role)
     %li
       = link_to "Contacts", main_app.site_contacts_path, data: { 'no-turbolink' => true }

@@ -26,5 +26,6 @@
 //= require twitter/typeahead
 //= require jquery.validate.min.js
 //= require light/users.js
+//= require screamout/filter.js
+//= require screamout/global.js
 //= require_tree .
-
