@@ -30,7 +30,7 @@ $(document).ready ->
                         ].join(' ')  
                     
   }
-  
-  $("#vendor_stream_table").stream_table(options, data) if typeof data isnt "undefined"
+  if($('#vendor_stream_table').length) 
+    $("#vendor_stream_table").stream_table(options, data) if typeof data isnt "undefined"
 
 
