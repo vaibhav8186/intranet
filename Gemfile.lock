@@ -55,7 +55,7 @@ GIT
 
 GIT
   remote: git@github.com:joshsoftware/lightair.git
-  revision: c1f78e281839e08b9c78401ceaffd5794f0a6b42
+  revision: 476c5560b4d9fd91bba3292e781e09a4e317fc53
   branch: engine
   specs:
     light (0.0.1)
@@ -91,7 +91,7 @@ GIT
 
 GIT
   remote: git@github.com:joshsoftware/screamout.git
-  revision: 7c67c898f45a964ba1c85490f1984074be55ad0f
+  revision: e944acff3c3ac44148d442478471347ef49ce8dc
   branch: engine
   specs:
     screamout (0.0.1)
@@ -261,7 +261,7 @@ GEM
       json (~> 1.8)
       multi_xml (>= 0.5.2)
     i18n (0.6.11)
-    imgkit (1.4.1)
+    imgkit (1.5.0)
     jbuilder (2.2.2)
       activesupport (>= 3.0.0, < 5)
       multi_json (~> 1.2)
