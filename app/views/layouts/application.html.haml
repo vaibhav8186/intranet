@@ -42,8 +42,9 @@
               %li
                 = link_to "Documents", main_app.attachments_path, data: {'no-turbolink' =>  true}
               %li
+                = link_to "Screamout", screamout.contents_path, data: {'no-turbolink' =>  true}
+
                 =# render 'layouts/project_menu'
-              %li
                 =# render 'layouts/vendor_menu'
               // Not this menu needs to be last in nav margin issues add any menu before this
               %li
