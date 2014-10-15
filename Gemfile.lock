@@ -55,7 +55,7 @@ GIT
 
 GIT
   remote: git@github.com:joshsoftware/lightair.git
-  revision: 476c5560b4d9fd91bba3292e781e09a4e317fc53
+  revision: 9cf45906b7e3b383861c5fc38509b1de552908e1
   branch: engine
   specs:
     light (0.0.1)
@@ -273,7 +273,7 @@ GEM
     jquery-turbolinks (2.0.2)
       railties (>= 3.1.0)
       turbolinks
-    jquery-ui-rails (5.0.0)
+    jquery-ui-rails (5.0.1)
       railties (>= 3.2.16)
     json (1.8.1)
     jwt (1.0.0)
