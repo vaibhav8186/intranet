@@ -3,6 +3,8 @@ class HomeController < ApplicationController
   def index
     @projects = Project.all_active
     @bonusly_updates = get_bonusly_updates
+    feed = Feedjira::Feed.fetch_and_parse('http://blog.joshsoftware.com/feed/')
+    @blog = feed.entries
     render stream: true
   end
 
