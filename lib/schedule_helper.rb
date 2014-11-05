@@ -5,7 +5,6 @@ class ScheduleHelper
 			'description'=> schedule.description,
 			'start'=> {'dateTime' => datetime },
       'end' => {'dateTime' => datetime },
-      'sendNotifications' => true,
       'sequence' => schedule.sequence,
 
       'reminders' => {
