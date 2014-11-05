@@ -21,8 +21,9 @@
           %td.company_name{style: "width: auto;"}
             {{company}}
             .actions
-              %a{href: "/vendors/{{record._id.$oid}}/edit", class: "icon-edit", data: {'no-turbolink' =>  true}}
-              %a{href: "/vendors/{{record._id.$oid}}", "data-method" => :delete, "data-confirm" => "Are you sure?", class: "icon-trash"}
+              - if can? :manage, Vendor
+                %a{href: "/vendors/{{record._id.$oid}}/edit", class: "icon-edit", data: {'no-turbolink' =>  true}}
+                %a{href: "/vendors/{{record._id.$oid}}", "data-method" => :delete, "data-confirm" => "Are you sure?", class: "icon-trash"}
           %td {{category}}
           {{#first_contact}}
           %td {{role}}

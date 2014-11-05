@@ -10,8 +10,6 @@
       = link_to "Invite Employee", main_app.invite_user_path
     %li
       = link_to "Projects", main_app.projects_path
-    %li
-      = link_to "Vendors", main_app.vendors_path, data: { 'no-turbolink' => true }
   %li
     = link_to "Profile", main_app.public_profile_user_path(current_user), data: {'no-turbolink' =>  true}
   - if ["HR", "Admin", "Super Admin"].include?(current_user.role)

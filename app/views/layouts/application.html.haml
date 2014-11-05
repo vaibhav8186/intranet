@@ -43,6 +43,9 @@
                 = link_to "Documents", main_app.attachments_path, data: {'no-turbolink' =>  true}
               %li
                 = link_to "Screamout", screamout.contents_path, data: {'no-turbolink' =>  true}
+              %li
+                = link_to "Vendors", main_app.vendors_path, data: { 'no-turbolink' => true }
+
 
                 =# render 'layouts/project_menu'
                 =# render 'layouts/vendor_menu'
