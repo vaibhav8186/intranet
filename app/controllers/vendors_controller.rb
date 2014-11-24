@@ -2,6 +2,7 @@ require 'csv'
 class VendorsController < ApplicationController
   load_and_authorize_resource 
   skip_load_and_authorize_resource :only => :create
+  before_action :authenticate_user!
   before_action :load_vendor, except: [:index, :new, :create, :import_vendors]
   before_action :build_vendor_resource, only: :new
     
