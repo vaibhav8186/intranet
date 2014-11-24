@@ -10,7 +10,13 @@ class ApplicationController < ActionController::Base
   skip_before_filter :verify_authenticity_token, only: :blog_publish_hook
 
   def store_location
-    session[:previous_url] = request.fullpath if !INVALID_REDIRECTIONS.include?(request.fullpath) && !request.xhr? # don't store ajax calls
+    unless INVALID_REDIRECTIONS.include?(request.fullpath) && request.xhr?
+      if session[:previous_url].blank? || session[:previous_url] == '/'
+        session[:previous_url] = request.fullpath
+      end
+    end
+
+    return session[:previous_url]
   end
 
   def after_sign_in_path_for(resource)

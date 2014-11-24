@@ -14,6 +14,10 @@ Intranet::Application.routes.draw do
     match '/screamout/iframe_contents/new' => 'screamout/iframe_contents#new', via: [:get]
   end
 
+  unauthenticated :user do
+    match '/screamout/contents' => 'home#store_url', via: [:get]
+  end
+
   authenticate :user do
     mount Sidekiq::Web => '/sidekiq'
     mount Light::Engine => '/newsletter'

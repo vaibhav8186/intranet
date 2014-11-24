@@ -91,7 +91,7 @@ GIT
 
 GIT
   remote: git@github.com:joshsoftware/screamout.git
-  revision: ab6ac3f38714e68fa5982fcca4531d6c3165cb7e
+  revision: db9bbc8b2d6d934e073ef7fd70b5c3fb83a12745
   branch: engine
   specs:
     screamout (0.0.1)
@@ -278,7 +278,7 @@ GEM
     jquery-turbolinks (2.0.2)
       railties (>= 3.1.0)
       turbolinks
-    jquery-ui-rails (5.0.1)
+    jquery-ui-rails (5.0.2)
       railties (>= 3.2.16)
     json (1.8.1)
     jwt (1.0.0)
