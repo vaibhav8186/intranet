@@ -8,7 +8,7 @@ class Attachment
   field :document, type: String
   field :is_visible_to_all, type: Boolean, default: false
   field :document_type, type: String, default: "user"
-  before_save :check_visible_to_all
+  #before_save :check_visible_to_all
 
   slug :name
   

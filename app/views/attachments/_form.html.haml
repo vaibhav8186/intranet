@@ -6,7 +6,7 @@
   = f.hidden_field :document_type, value: "company"
   = f.label "Visible to all"
   .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "True", "data-off-label" => "False"}
-    = f.check_box :is_visible_to_all, {}, true, false
+    = f.check_box :is_visible_to_all, {}, 'true', 'false'
   %br
   = f.submit 'Save Document', class: "btn controls"
   = link_to 'Close', {}, class: "btn", data: {'dismiss' =>  'modal'}
