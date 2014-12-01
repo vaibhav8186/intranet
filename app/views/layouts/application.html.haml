@@ -14,7 +14,7 @@
       .media.notification-menu, .media .media{ width: 430px; }
 %body
   #header
-    - if params[:controller].eql?('light/users') and (params[:action].eql?('subscribe') or params[:action].eql?('unsubscribe'))
+    - if (params[:controller].eql?('light/users') and (params[:action].eql?('subscribe') or params[:action].eql?('unsubscribe'))) or (params[:controller].eql?('light/newsletters') and (params[:action].eql?('web_version')))
       .wrap
         .logo
           =link_to(image_tag("Josh-Software-Logo.svg"), "#", data: {'no-turbolink' =>  true})
@@ -39,8 +39,6 @@
                         Cras sit amet nibh libero, in gravida nulla. Nulla metus scelerisque ante sollicitudin commodo
               %li
                 = link_to "Employees", main_app.users_path
-              %li
-                = link_to "Documents", main_app.attachments_path, data: {'no-turbolink' =>  true}
               %li
                 = link_to "Screamout", screamout.contents_path, data: {'no-turbolink' =>  true}
               %li
