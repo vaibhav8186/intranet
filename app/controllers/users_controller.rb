@@ -61,7 +61,7 @@ class UsersController < ApplicationController
       #Need to change these permit only permit attributes which should be updated by user
       #In our application there are some attributes like joining date which will be only 
       #updated by hr of company
-      if user_profile.update_attributes(params.require(profile).permit!)
+      if @user.update_attributes(profile => params.require(profile).permit!)
         flash.notice = 'Profile Updated Succesfully'
         #UserMailer.delay.verification(@user.id)
         redirect_to public_profile_user_path(@user)
