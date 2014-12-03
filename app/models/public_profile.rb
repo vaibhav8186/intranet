@@ -30,6 +30,7 @@ class PublicProfile
     #We need to manually set the slug because user does not have field 'name' in its model and delegated to public_profile
     user.set_slug
     self.user.set_details("dob", self.date_of_birth) if self.date_of_birth_changed? #set the dob_day and dob_month
+    
   end
   
   def name
