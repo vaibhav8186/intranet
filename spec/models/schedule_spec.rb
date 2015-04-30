@@ -19,7 +19,7 @@ RSpec.describe Schedule, :type => :model do
 
   context "check date" do
     it "should have future date" do
-      schedule = FactoryGirl.create(:schedule)
+      schedule = FactoryGirl.create(:schedule, interview_date: Date.tomorrow)
       (schedule.interview_date < Date.today).should eq(false)
     end
 
