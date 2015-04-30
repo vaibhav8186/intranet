@@ -91,7 +91,7 @@ GIT
 
 GIT
   remote: git@github.com:joshsoftware/screamout.git
-  revision: c496e6bd2575c6d401acb9f9f9f57e0f157b1858
+  revision: 0b0f88a50039614b741f24611ceab3377efecd7d
   branch: engine
   specs:
     screamout (0.0.1)
@@ -189,7 +189,7 @@ GEM
     chronic (0.10.2)
     climate_control (0.0.3)
       activesupport (>= 3.0)
-    cocaine (0.5.5)
+    cocaine (0.5.7)
       climate_control (>= 0.0.3, < 1.0)
     codeclimate-test-reporter (0.4.0)
       simplecov (>= 0.7.1, < 1.0.0)
