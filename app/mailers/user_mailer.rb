@@ -46,9 +46,8 @@ class UserMailer < ActionMailer::Base
     mail(to: "all@joshsoftware.com", subject: "Happy Birthday #{@birthday_user.name}")
   end
 
-  def year_of_completion_wish(user_ids)
-    users = User.find(user_ids)
-    get_user_years(users)
+  def year_of_completion_wish(user_hash)
+    @user_hash = user_hash
     mail(to: "all@joshsoftware.com", subject: "Congratulations #{@user_hash.collect{|k, v| v }.flatten.join(", ")}") 
   end
 
@@ -75,17 +74,6 @@ class UserMailer < ActionMailer::Base
   end
 
   private
-
-  def get_user_years(users)
-    current_year = Date.today.year
-    @user_hash = {}
-    users.each do |user|
-      completion_year = current_year - user.private_profile.date_of_joining.year
-      if completion_year > 0
-        @user_hash[completion_year].nil? ? @user_hash[completion_year] = [user.name] : @user_hash[completion_year] << user.name 
-      end
-    end
-  end
 
   def get_leave(id)
     @leave_application = LeaveApplication.where(id: id).first

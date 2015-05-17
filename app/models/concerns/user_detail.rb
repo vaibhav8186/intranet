@@ -1,6 +1,6 @@
 module UserDetail
   extend ActiveSupport::Concern
-  
+
   included do
     field :dob_day, type: Integer
     field :dob_month, type: Integer   
@@ -10,12 +10,12 @@ module UserDetail
     embeds_one :public_profile, cascade_callbacks: true
     embeds_one :private_profile, cascade_callbacks: true
     embeds_one :employee_detail, cascade_callbacks: true
-     
+
     accepts_nested_attributes_for :private_profile, reject_if: :all_blank, allow_destroy: true 
     accepts_nested_attributes_for :public_profile, reject_if: :all_blank, allow_destroy: true
     accepts_nested_attributes_for :employee_detail, reject_if: :all_blank, :allow_destroy => true
   end
-  
+
   module ClassMethods    
 
     def save_access_token(auth, user)
@@ -57,9 +57,17 @@ module UserDetail
     end
 
     def send_year_of_completion
-      users = User.approved.where(doj_month: Date.today.month, doj_day: Date.today.day)
-      user_ids = users.map(&:id)
-      UserMailer.year_of_completion_wish(user_ids).deliver unless user_ids.blank?
+      users = User.approved.where(doj_month: Date.today.month, doj_day: Date.today.day, :role.ne => 'Intern')
+      current_year = Date.today.year
+      user_hash = {}
+      users.each do |user|
+        completion_year = current_year - user.private_profile.date_of_joining.year
+        if completion_year > 0
+          name = user.name.blank? ? user.email : user.name
+          user_hash[completion_year].nil? ? user_hash[completion_year] = [name] : user_hash[completion_year] << name
+        end
+      end
+      UserMailer.year_of_completion_wish(user_hash).deliver unless user_hash.blank?
     end
   end
-end 
+end
