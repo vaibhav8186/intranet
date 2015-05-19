@@ -9,7 +9,7 @@
 
 admin = User.new(email: "Administrator@joshsoftware.com", password: "josh123", role: "Admin", status: "approved")
 hr = User.new(email: "testhr@joshsoftware.com", password: "josh123", role: "HR", status: "approved")
-employee = User.new(email: "testemployee@joshsoftware.com", password: "josh123", role: "HR", status: "approved")
+employee = User.new(email: "testemployee@joshsoftware.com", password: "josh123", role: "Employee", status: "approved")
 admin.build_public_profile(first_name: "Josh", last_name: "Admin")
 hr.build_public_profile(first_name: "Josh", last_name: "HR")
 employee.build_public_profile(first_name: "Josh", last_name: "Emp")
