@@ -13,10 +13,10 @@ class LeaveApplication
   #field :approved_by,     type: Integer
   field :reason,          type: String
   field :reject_reason,   type: String
-  field :leave_status,    type: String, default: "Pending"
+  field :leave_status,    type: String, default: PENDING
   track_history
 
-  LEAVE_STATUS = ['Pending', 'Approved', 'Rejected']
+  #LEAVE_STATUS = ['Pending', 'Approved', 'Rejected']
 
   validates :start_at, :end_at, :contact_number, :reason, :number_of_days, :user_id , presence: true 
   validates :contact_number, numericality: {only_integer: true}, length: {is: 10}
@@ -28,15 +28,20 @@ class LeaveApplication
   after_create :deduct_available_leave_send_mail
   after_update :update_available_leave_send_mail, if: "pending?"
 
-  scope :pending, ->{where(leave_status: 'Pending')}
-  scope :processed, ->{where(:leave_status.ne => 'Pending')}
+  scope :pending, ->{where(leave_status: PENDING)}
+  scope :processed, ->{where(:leave_status.ne => PENDING)}
+  scope :unrejected, -> { where(:leave_status.ne => REJECTED )}
 
   def process_after_update(status)
     send("process_#{status}") 
   end
 
   def pending?
-    leave_status == 'Pending'
+    leave_status == PENDING
+  end
+
+  def processed?
+    leave_status != PENDING
   end
 
   def process_reject_application
@@ -61,7 +66,7 @@ class LeaveApplication
   end
 
   def self.get_leaves_for_sending_reminder(date) 
-    LeaveApplication.where(start_at: date, leave_status: "Approved")
+    LeaveApplication.where(start_at: date, leave_status: APPROVED)
   end
 
   private
@@ -89,7 +94,7 @@ class LeaveApplication
   end
 
   def validate_leave_status
-    if ["Rejected", "Approved"].include?(self.leave_status_was) && ["Rejected", "Approved"].include?(self.leave_status)
+    if [REJECTED, APPROVED].include?(self.leave_status_was) && [REJECTED, APPROVED].include?(self.leave_status)
       errors.add(:base, 'Leave is already processed')
     end  
   end
@@ -103,7 +108,7 @@ class LeaveApplication
   def validate_date
     if self.start_at_changed? or self.end_at_changed?
       # While updating leave application do not consider self.. 
-      leave_applications = self.user.leave_applications.ne(leave_status: LEAVE_STATUS[2]).ne(id: self.id)
+      leave_applications = self.user.leave_applications.unrejected.ne(id: self.id)
       leave_applications.each do |leave_application|
         errors.add(:base, "Already applied for leave on same date") and return if self.start_at.between?(leave_application.start_at, leave_application.end_at) or
           self.end_at.between?(leave_application.start_at, leave_application.end_at) or
