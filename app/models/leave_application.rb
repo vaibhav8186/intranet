@@ -59,8 +59,8 @@ class LeaveApplication
 
   def self.process_leave(id, leave_status, call_function, reject_reason = '')
     leave_application = LeaveApplication.where(id: id).first
-    reason = leave_application.reject_reason
-    reason = reason.empty? ? reject_reason : "#{leave_application.reject_reason}; #{reject_reason}"
+    reason ="#{leave_application.reject_reason}; #{reject_reason}" if leave_application.reject_reason.present? and reject_reason.present?
+    reason = reason.present? ? reason : (leave_application.reject_reason.present? ? leave_application.reject_reason : reject_reason)
     leave_application.update_attributes({leave_status: leave_status, reject_reason: reason})
     if leave_application.errors.blank?
       leave_application.send(call_function) 
