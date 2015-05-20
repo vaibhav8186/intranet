@@ -43,10 +43,10 @@ class LeaveApplicationsController < ApplicationController
   def view_leave_status
     if ["Admin", "HR", "Manager"].include? current_user.role
       @pending_leave = LeaveApplication.order_by(:created_at.desc).pending
-      @approved_leave = LeaveApplication.order_by(:created_at.desc).processed 
+      @processed_leave = LeaveApplication.order_by(:created_at.desc).processed 
     else
       @pending_leave = current_user.leave_applications.order_by(:created_at.desc).pending
-      @approved_leave = current_user.leave_applications.order_by(:created_at.desc).processed
+      @processed_leave = current_user.leave_applications.order_by(:created_at.desc).processed
     end
   end
 

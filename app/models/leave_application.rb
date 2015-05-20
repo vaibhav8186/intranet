@@ -16,16 +16,13 @@ class LeaveApplication
   field :leave_status,    type: String, default: PENDING
   track_history
 
-  #LEAVE_STATUS = ['Pending', 'Approved', 'Rejected']
-
   validates :start_at, :end_at, :contact_number, :reason, :number_of_days, :user_id , presence: true 
   validates :contact_number, numericality: {only_integer: true}, length: {is: 10}
   validate :validate_available_leaves, on: [:create, :update]
-  validate :validate_leave_status, on: :update
   validate :end_date_less_than_start_date, if: 'start_at.present?'
   validate :validate_date, on: [:create, :update]
 
-  after_create :deduct_available_leave_send_mail
+  before_save :deduct_available_leave_send_mail
   after_update :update_available_leave_send_mail, if: "pending?"
 
   scope :pending, ->{where(leave_status: PENDING)}
@@ -41,7 +38,13 @@ class LeaveApplication
   end
 
   def processed?
+    # Currently we have only three status (Approved, Rejected, Pending)
+    # so processed means !pending i.e. Approved or Rejected 
     leave_status != PENDING
+  end
+
+  def approved?
+    leave_status == APPROVED
   end
 
   def process_reject_application
@@ -56,7 +59,9 @@ class LeaveApplication
 
   def self.process_leave(id, leave_status, call_function, reject_reason = '')
     leave_application = LeaveApplication.where(id: id).first
-    leave_application.update_attributes({leave_status: leave_status, reject_reason: reject_reason})
+    reason = leave_application.reject_reason
+    reason = reason.empty? ? reject_reason : "#{leave_application.reject_reason}; #{reject_reason}"
+    leave_application.update_attributes({leave_status: leave_status, reject_reason: reason})
     if leave_application.errors.blank?
       leave_application.send(call_function) 
       return {type: :notice, text: "#{leave_status} Successfully"}
@@ -70,10 +75,15 @@ class LeaveApplication
   end
 
   private
+
   def deduct_available_leave_send_mail
-    user = self.user
-    user.employee_detail.deduct_available_leaves(number_of_days)    
-    user.sent_mail_for_approval(self.id) 
+    # Since leave has been deducted on creation, don't deduct leaves
+    # if changed from PENDING to APPROVED 
+    if (pending? and self.leave_status_was.nil?) or (approved? and self.leave_status_was == REJECTED)
+      user = self.user
+      user.employee_detail.deduct_available_leaves(number_of_days)
+      user.sent_mail_for_approval(self.id) 
+    end
   end
 
   def update_available_leave_send_mail

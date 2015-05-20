@@ -26,14 +26,19 @@
           %td.action
             %a{href: '#', class: 'btn btn-success approve_leave', data:{id: appr_leave.id.to_s, url: 'approve_leave_application', action: 'approve'}}
               Approve
-            %div{class: 'btn btn-danger cancel_leave'}
+            %div{class: 'btn btn-danger cancel_leave', div_id: "#{appr_leave.id}"}
               Reject
-          %td.leave_status
-            %a.reject_reason{data:{id: appr_leave.id.to_s, url: 'cancel_leave_application', action: 'cancel', value: '', type: :textarea}}
         - else
           %td= appr_leave.leave_status
-          - if !appr_leave.pending?
-            %td= appr_leave.reject_reason
+        %td.leave_status
+          %a.reject_reason{data:{id: appr_leave.id.to_s, url: 'cancel_leave_application', action: 'cancel', value: '', type: :textarea}, class: "reject_reason_#{appr_leave.id}"} #{appr_leave.reject_reason}
         %td= appr_leave.user.employee_detail.available_leaves
-        - if can? :edit, appr_leave
-          %td= link_to 'Edit', edit_leave_application_path(appr_leave)
+        - if appr_leave.pending? and can? :edit, appr_leave
+          %td
+            .btn= link_to 'Edit', edit_leave_application_path(appr_leave)
+        - if !appr_leave.pending? and  (can? :manage, appr_leave)
+          %td
+            - if appr_leave.leave_status == REJECTED
+              %a{href: '#', class: 'btn btn-success approve_leave', data:{id: appr_leave.id.to_s, url: 'approve_leave_application', action: 'approve'}} Approve
+            - if appr_leave.leave_status == APPROVED
+              %div{class: 'btn btn-danger cancel_leave', div_id: "#{appr_leave.id}"} Reject

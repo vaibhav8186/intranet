@@ -34,9 +34,14 @@ describe LeaveApplication do
 
   end
 
-  context 'Leave can not be update ' do
+  context 'If leave status changed from' do
 
-    it 'if already proccessed i.e Approved/Rejected'
+    it 'nil to pending'
+    it 'pending to approved'
+    #it 'approved to pending'
+    it 'approved to rejected'
+    it 'rejected to approved'
+    #it 'rejected to pending'
     
   end
 

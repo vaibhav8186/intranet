@@ -11,12 +11,12 @@
     %a#pending_link{data:{toggle: 'tab', leave_count: @pending_leave.count}, href: '#unapproved_leave'}
       Pending (#{@pending_leave.count})
   %li
-    %a#leave_history_link{data:{toggle: "tab"}, href: '#approved_leave'}
+    %a#leave_history_link{data:{toggle: "tab"}, href: '#processed_leave'}
       Leave History
    
 .leave_application_tab_content.tab-content
-  #approved_leave.tab-pane.fade
-    = render 'leave_applications/leave_view', leave_data: @approved_leave
+  #processed_leave.tab-pane.fade
+    = render 'leave_applications/leave_view', leave_data: @processed_leave
   #unapproved_leave.tab-pane.fade.in.active
     = render 'leave_applications/leave_view', leave_data: @pending_leave
 :javascript
@@ -40,7 +40,7 @@
 
   $('.cancel_leave').click(function(e){
     e.stopPropagation();
-    $(this).parent('td').next('td').children('.reject_reason').editable('toggle')
+    $('.reject_reason_' + $(this).attr('div_id')).editable('toggle')
   });
 
   function update_leave(option){
@@ -68,7 +68,7 @@
         b.children('.spinner').hide()
         b.children('.action').text(l_status)
         b.children('.leave_status').text(reject_reason)
-        $('#approved_leave table tbody').append(b);
+        $('#processed_leave table tbody').append(b);
         $('.alert-message').alert({txt: message, type: 'success'});  
         leave_count = $('#pending_link').data('leave-count') - 1
         ls = "Pending (" + leave_count + ")";
