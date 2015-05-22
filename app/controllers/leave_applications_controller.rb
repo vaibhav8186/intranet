@@ -42,11 +42,11 @@ class LeaveApplicationsController < ApplicationController
 
   def view_leave_status
     if ["Admin", "HR", "Manager"].include? current_user.role
-      @pending_leave = LeaveApplication.order_by(:created_at.desc).pending
-      @processed_leave = LeaveApplication.order_by(:created_at.desc).processed 
+      @pending_leaves = LeaveApplication.order_by(:created_at.desc).pending
+      @processed_leaves = LeaveApplication.order_by(:created_at.desc).processed 
     else
-      @pending_leave = current_user.leave_applications.order_by(:created_at.desc).pending
-      @processed_leave = current_user.leave_applications.order_by(:created_at.desc).processed
+      @pending_leaves = current_user.leave_applications.order_by(:created_at.desc).pending
+      @processed_leaves = current_user.leave_applications.order_by(:created_at.desc).processed
     end
   end
 
@@ -71,14 +71,10 @@ class LeaveApplicationsController < ApplicationController
   private
 
     def process_leave(id, leave_status, call_function, reject_reason = '')
+      @pending_leaves = LeaveApplication.order_by(:created_at.desc).pending
       message = LeaveApplication.process_leave(id, leave_status, call_function, reject_reason)
-      
       respond_to do|format|
-        format.html do
-          flash[message[:type]] = message[:text]
-          redirect_to root_path 
-        end
-        format.js{ render :nothing => true}
+        format.js{ render nothing: true }
       end
     end
     
