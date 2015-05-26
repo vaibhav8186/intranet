@@ -49,8 +49,9 @@ Intranet::Application.routes.draw do
 
   put 'available_leave/:id' => 'users#update_available_leave', as: :update_available_leave 
   get 'view/leave_applications' => 'leave_applications#view_leave_status', as: :view_leaves 
-  get 'cancel_leave_application' => 'leave_applications#cancel_leave', as: :cancel_leave 
-  get 'approve_leave_application' => 'leave_applications#approve_leave', as: :approve_leave
+  #get 'cancel_leave_application' => 'leave_applications#cancel_leave', as: :cancel_leave 
+  #get 'approve_leave_application' => 'leave_applications#approve_leave', as: :approve_leave
+  get 'process_leave_application' => 'leave_applications#process_leave', as: :process_leave
   resources :projects
   resources :attachments do 
     member do

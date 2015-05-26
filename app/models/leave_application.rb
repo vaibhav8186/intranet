@@ -12,7 +12,14 @@ class LeaveApplication
   field :number_of_days,  type: Integer
   #field :approved_by,     type: Integer
   field :reason,          type: String
+
+  # We were accepting reason only on rejection so field named as reject_reason
+  # but now we accept reason 1) For rejection and 2) For approval after rejection
+  # If we wish to change field name add another field 
+  # copy values from reject_reason to this new field on production and once run successfully 
+  # Remove this field
   field :reject_reason,   type: String
+
   field :leave_status,    type: String, default: PENDING
   track_history
 
@@ -79,7 +86,8 @@ class LeaveApplication
 
   def deduct_available_leave_send_mail
     # Since leave has been deducted on creation, don't deduct leaves
-    # if changed from PENDING to APPROVED 
+    # if changed from PENDING to APPROVED
+    # Deduct on creation and changed from 'Rejected' to 'Approved'
     if (pending? and self.leave_status_was.nil?) or (approved? and self.leave_status_was == REJECTED)
       user = self.user
       user.employee_detail.deduct_available_leaves(number_of_days)
@@ -97,17 +105,11 @@ class LeaveApplication
 
 
   def validate_available_leaves
-    if number_of_days_changed?  
+    if number_of_days_changed? or (self.leave_status_was == REJECTED and self.leave_status == APPROVED)
       available_leaves = self.user.employee_detail.available_leaves
-      available_leaves += number_of_days_change[0].to_i unless number_of_days_change[1].blank?
-      errors.add(:base, 'Not Sufficient Leave! Contact Administrator ') if available_leaves < number_of_days
+      available_leaves += number_of_days_change[0].to_i if number_of_days_change.present? and number_of_days_change[1].present?
+      errors.add(:base, 'Not Sufficient Leave!') if available_leaves < number_of_days
     end
-  end
-
-  def validate_leave_status
-    if [REJECTED, APPROVED].include?(self.leave_status_was) && [REJECTED, APPROVED].include?(self.leave_status)
-      errors.add(:base, 'Leave is already processed')
-    end  
   end
 
   def end_date_less_than_start_date
