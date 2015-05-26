@@ -15,7 +15,6 @@ var movies = new Bloodhound({
 // initialize the bloodhound suggestion engine
 
 movies.initialize();
-console.log('-------------');
 $(document).on('nested:fieldAdded', function(event){
   $('.typeahead').typeahead(null, {
     displayKey: function(user) {
