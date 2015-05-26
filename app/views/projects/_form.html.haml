@@ -1,18 +1,13 @@
-= simple_form_for @project, :html => {class: "form-horizontal"} do |f|
-  .control-group
-    = f.input :name, required: false
-    = f.label "Is Active"
-    .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "True", "data-off-label" => "False"}
-      = f.check_box :is_active, {}, 'true', 'false'
-    = f.input :code_climate_id, label: "Code climate id"
-    = f.input :code_climate_snippet
-    = f.input :code_climate_coverage_snippet
-    .control-group
-      = label_tag "Team Members", nil, class: 'control-label'
-      .controls
-        = select_tag :user_ids, options_from_collection_for_select(User.where(:role.nin => ['HR','Finance'], :status => STATUS[2]).to_a, :id, :name, @project.users.collect{|k| k.id}), class: 'members', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple team memebers", name: "project[user_ids][]"
-    = f.submit :save, class: 'btn controls'
-:css
-  .make-switch{ height: 29px; margin-left: 18px; margin-bottom: 10px;}
-:javascript
-  $(".members").select2();
+%ul.nav.nav-tabs
+  %li.active
+    %a{data:{toggle: 'tab'}, href: '#project_form'}
+      #{@project.persisted? ? 'Update' : 'Create'} Project
+  %li
+    %a{data:{toggle: "tab"}, href: '#project_info'}
+      Add More Details
+.project_tab_content.tab-content
+  #project_form.tab-pane.fade.in.active
+    = render 'projects/project_form'
+  #project_info.tab-pane.fade
+    = render 'projects/project_info_form'
+    

@@ -1,0 +1,22 @@
+= simple_form_for @project, :html => {class: "form-horizontal"} do |f|
+  .row
+    .span5
+      = f.input :ruby_version
+      = f.input :rails_version
+      = f.input :database, placeholder: "mongo, mysql, postgres, etc."
+      = f.input :database_version 
+      = f.input :deployment_server, placeholder: "AWS, digital ocean, heroku etc."
+      = f.input :deployment_script, placeholder: "ey, mina, etc." 
+      = f.input :web_server, placeholder: "nginx, apache etc."
+      = f.input :app_server, placeholder: "thin, passanger, etc" 
+    .span5
+      = f.input :payment_gateway
+      = f.input :image_store, placeholder: "S3, cloudinary etc."
+      = f.input :index_server, placeholder: "redis, elastic search, etc." 
+      = f.input :background_jobs, placeholder: "sidekiq, delayed job, etc"
+      = f.input :sms_gateway
+      = f.input :other_frameworks, placeholder: "angular.js, node.js, etc." 
+      = f.input :other_details, as: :text
+  .row
+    .span8.pull-right= f.submit :save, class: 'btn controls'
+
