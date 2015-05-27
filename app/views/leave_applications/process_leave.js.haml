@@ -27,6 +27,8 @@ $('.alert-message').alert({txt: "#{@message[:text]}", type: 'success'});
 ls = "Pending (#{@pending_leaves.count})";
 $('#pending_link').text(ls);
 
+$("div[data-id="+leave_application_id+"]").click(process_btn_click)
+
 // FIRST IF ENDS
 }else{ 
 

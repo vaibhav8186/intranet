@@ -50,9 +50,6 @@
       url: '/process_leave_application',
       type: 'GET',
       data: {id: leave_application_id, leave_action: action, reject_reason: reject_reason},
-      success: function(value){
-        $("div[data-id="+leave_application_id+"]").click(process_btn_click)
-      },
       error: function(e){
         $('.alert-message').alert({txt: 'Internal Server Error! Please contact web sysadmin', type: 'error'});  
       }
