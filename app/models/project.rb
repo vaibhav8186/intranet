@@ -6,6 +6,9 @@ class Project
   field :code_climate_snippet
   field :code_climate_coverage_snippet
   field :is_active, type: Boolean, default: true
+  field :start_date, type: Date
+  field :end_date, type: Date
+  field :managed_by
 
   # More Details
   field :ruby_version

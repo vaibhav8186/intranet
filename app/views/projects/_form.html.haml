@@ -3,11 +3,16 @@
     %a{data:{toggle: 'tab'}, href: '#project_form'}
       #{@project.persisted? ? 'Update' : 'Create'} Project
   %li
-    %a{data:{toggle: "tab"}, href: '#project_info'}
-      Add More Details
+    .tech_details= link_to 'Tech Details', '#project_info', data:{toggle: ('tab' if @project.persisted?)}
+      
 .project_tab_content.tab-content
   #project_form.tab-pane.fade.in.active
     = render 'projects/project_form'
   #project_info.tab-pane.fade
     = render 'projects/project_info_form'
-    
+
+
+:javascript
+  $('.tech_details').click(function(){
+    alert('Please first create project to fill technical details.')
+  })

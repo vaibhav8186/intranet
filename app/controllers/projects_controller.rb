@@ -18,7 +18,7 @@ class ProjectsController < ApplicationController
   def create
     @project = Project.new(safe_params)
     if @project.save  
-      flash[:notice] = "Project created Succesfully"
+      flash[:success] = "Project created Succesfully"
       redirect_to projects_path
     else
       render 'new'
@@ -45,7 +45,7 @@ class ProjectsController < ApplicationController
 
   private
   def safe_params
-    params.require(:project).permit(:name, :code_climate_id, :code_climate_snippet, :code_climate_coverage_snippet, :is_active, :ruby_version, :rails_version, :database, :database_version, :deployment_server, :deployment_script, :web_server, :app_server, :payment_gateway, :image_store, :index_server, :background_jobs, :sms_gateway, :other_frameworks, :other_details, :user_ids => [])
+    params.require(:project).permit(:name, :start_date, :end_date, :managed_by, :code_climate_id, :code_climate_snippet, :code_climate_coverage_snippet, :is_active, :ruby_version, :rails_version, :database, :database_version, :deployment_server, :deployment_script, :web_server, :app_server, :payment_gateway, :image_store, :index_server, :background_jobs, :sms_gateway, :other_frameworks, :other_details, :user_ids => [])
 
   end
 
