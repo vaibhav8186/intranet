@@ -66,15 +66,19 @@ class LeaveApplication
 
   def self.process_leave(id, leave_status, call_function, reject_reason = '')
     leave_application = LeaveApplication.where(id: id).first
-    
-    reason = [leave_application.reject_reason, reject_reason].select(&:present?).join(';') if leave_application.reject_reason.present? or reject_reason.present?
 
-    leave_application.update_attributes({leave_status: leave_status, reject_reason: reason})
-    if leave_application.errors.blank?
-      leave_application.send(call_function) 
-      return {type: :notice, text: "#{leave_status} Successfully"}
+    if leave_application.leave_status != leave_status   
+      reason = [leave_application.reject_reason, reject_reason].select(&:present?).join(';') if leave_application.reject_reason.present? or reject_reason.present?
+
+      leave_application.update_attributes({leave_status: leave_status, reject_reason: reason})
+      if leave_application.errors.blank?
+        leave_application.send(call_function) 
+        return {type: :notice, text: "#{leave_status} Successfully"}
+      else
+        return {type: :error, text: leave_application.errors.full_messages.join(" ")}
+      end
     else
-      return {type: :error, text: leave_application.errors.full_messages.join(" ")}
+      return {type: :error, text: "Leave is already #{leave_status}"}
     end
   end
 
