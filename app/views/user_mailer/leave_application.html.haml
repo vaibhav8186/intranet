@@ -81,9 +81,9 @@
                                                       %br/
                                                       Remaining leaves: #{User.find(@leave_application.user_id).employee_detail.available_leaves}
                                                       %br
-                                                      = link_to "Approve", approve_leave_url(id: @leave_application.id), class: 'btn btn-success'
+                                                      = link_to "Approve", process_leave_url(id: @leave_application.id, leave_action: 'approve'), class: 'btn btn-success'
                                                       |
-                                                      = link_to "Reject", cancel_leave_url(id: @leave_application.id), class: 'btn btn-danger'
+                                                      = link_to "Reject", process_leave_url(id: @leave_application.id, leave_action: 'reject'), class: 'btn btn-danger'
                                                       |
                                                       = link_to "View Details", view_leaves_url
                                                     %p{:style => "margin:0;padding-bottom:0"}
