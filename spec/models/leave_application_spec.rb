@@ -14,7 +14,6 @@ describe LeaveApplication do
   context 'Validate date - Cross date validation - ' do
 
     before do
-      @user = FactoryGirl.create(:user, role: 'Employee')
       @user = FactoryGirl.create(:user, private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01))) 
     end
 
@@ -34,18 +33,7 @@ describe LeaveApplication do
 
   end
 
-  context 'If leave status changed from' do
-
-    it 'nil to pending'
-    it 'pending to approved'
-    #it 'approved to pending'
-    it 'approved to rejected'
-    it 'rejected to approved'
-    #it 'rejected to pending'
-    
-  end
-
-  context 'Method specs' do
+  context 'Method specs ' do
 
     before do
       @user = FactoryGirl.create(:user, role: 'Employee')
@@ -78,5 +66,18 @@ describe LeaveApplication do
       leave_application.update_attributes(number_of_days: 1)
       Sidekiq::Extensions::DelayedMailer.jobs.size.should eq(1)
     end
+
+    context 'self.process_leave ' do
+      context 'should deduct leaves if status changed from' do
+        it 'nil to pending'
+        it 'approved to rejected'
+        it 'rejected to approved'
+      end
+      context 'should not deduct leaves if status ' do
+        it 'changed from pending to approved'
+        it 'does not change'
+      end
+    end
+
   end
 end
