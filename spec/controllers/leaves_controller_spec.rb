@@ -34,14 +34,14 @@ describe LeaveApplicationsController do
 
       it "should show only his leaves if user is not admin" do
         get :view_leave_status
-        assigns(:pending_leave).count.should eq(1)
+        assigns(:pending_leaves).count.should eq(1)
       end
 
       it "user is admin he could see all leaves" do
         sign_out @user
         sign_in @admin
         get :view_leave_status
-        assigns(:pending_leave).count.should eq(2) 
+        assigns(:pending_leaves).count.should eq(2) 
       end
     end
 
@@ -101,7 +101,7 @@ describe LeaveApplicationsController do
 
     it "Admin as a role should accept leaves " do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
-      get :approve_leave, {id: leave_application.id}
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :approve}
       leave_application = LeaveApplication.last
       expect(leave_application.leave_status).to eq "Approved" 
     end
@@ -109,19 +109,31 @@ describe LeaveApplicationsController do
     it "Only single mail to employee should get sent on leave appproval" do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
       Sidekiq::Extensions::DelayedMailer.jobs.clear
-      get :approve_leave, {id: leave_application.id}
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :approve}
       Sidekiq::Extensions::DelayedMailer.jobs.size.should eq(1)
     end
 
-    it "Admin as a role should to able perform accept(or reject) only one time" do
-      leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
-      get :approve_leave, {id: leave_application.id}
+    it "Admin as a role should to able perform accept(or reject) as many times as he wants" do
+      available_leaves = @user.employee_detail.available_leaves
+      number_of_days = 2
+      leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: number_of_days)
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :approve}
       leave_application = LeaveApplication.last
       expect(leave_application.leave_status).to eq("Approved")
+      @user.reload
+      expect(@user.employee_detail.available_leaves).to eq(available_leaves-number_of_days)
 
-      get :cancel_leave, {id: leave_application.id}
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :reject}
+      leave_application = LeaveApplication.last
+      expect(leave_application.leave_status).to eq("Rejected")
+      @user.reload
+      expect(@user.employee_detail.available_leaves).to eq(available_leaves)
+
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :approve}
       leave_application = LeaveApplication.last
       expect(leave_application.leave_status).to eq("Approved")
+      @user.reload
+      expect(@user.employee_detail.available_leaves).to eq(available_leaves-number_of_days)
     end 
 
     it "should be able to apply leave" do
@@ -130,7 +142,7 @@ describe LeaveApplicationsController do
       should render_template(:new)
     end
 
-    it "should be able to view all leave" do
+    it "should be able to view all leaves" do
       leave_application_count = LeaveApplication.count
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
       get :index
@@ -162,12 +174,12 @@ describe LeaveApplicationsController do
 
     it ' Approve leave' do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
-      get :approve_leave, {id: leave_application.id}
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :approve}
     end
 
     it ' Reject leave' do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
-      get :cancel_leave, {id: leave_application.id}
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :reject}
     end
 
   end
@@ -181,10 +193,24 @@ describe LeaveApplicationsController do
       sign_in @admin
     end
 
+    it "Reason should get append on approval after rejection " do
+      leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
+      reason = 'Invalid Reason'
+      xhr :get, :process_leave, {id: leave_application.id, reject_reason: reason, leave_action: :reject}
+      leave_application = LeaveApplication.last
+      expect(leave_application.leave_status).to eq "Rejected"
+      expect(leave_application.reject_reason).to eq reason
+      
+      xhr :get, :process_leave, {id: leave_application.id, reject_reason: reason, leave_action: :approve}
+      leave_application = LeaveApplication.last
+      expect(leave_application.leave_status).to eq "Approved"
+      expect(leave_application.reject_reason).to eq "#{reason};#{reason}"
+    end
+
     it "Reason should get updated on rejection " do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
       reason = 'Invalid Reason'
-      get :cancel_leave, {id: leave_application.id, reject_reason: reason}
+      xhr :get, :process_leave, {id: leave_application.id, reject_reason: reason, leave_action: :reject}
       leave_application = LeaveApplication.last
       expect(leave_application.leave_status).to eq "Rejected"
       expect(leave_application.reject_reason).to eq reason
@@ -193,19 +219,27 @@ describe LeaveApplicationsController do
     it "Only single mail to employee should get sent on leave rejection" do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
       Sidekiq::Extensions::DelayedMailer.jobs.clear
-      get :cancel_leave, {id: leave_application.id}
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :reject}
       Sidekiq::Extensions::DelayedMailer.jobs.size.should eq(1)
     end
 
-    it "should not able to revert to accept status once rejected" do
-      leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
-      get :cancel_leave, {id: leave_application.id}
+    it "should not deduct leaves if rejected already rejected leave" do
+      available_leaves = @user.employee_detail.available_leaves
+      number_of_days = 2
+      leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: number_of_days)
+      @user.reload
+      expect(@user.employee_detail.available_leaves).to eq(available_leaves-number_of_days)
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :reject}
       leave_application = LeaveApplication.last
       expect(leave_application.leave_status).to eq "Rejected" 
+      @user.reload
+      expect(@user.employee_detail.available_leaves).to eq(available_leaves)
 
-      get :approve_leave, {id: leave_application.id}
+      xhr :get, :process_leave, {id: leave_application.id, leave_action: :reject}
       leave_application = LeaveApplication.last
       expect(leave_application.leave_status).to eq "Rejected" 
+      @user.reload
+      expect(@user.employee_detail.available_leaves).to eq(available_leaves)
     end 
   end
 
