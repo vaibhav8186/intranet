@@ -1,11 +1,12 @@
 - if can? :manage, Project
   .remove_underline
-    =link_to '', new_project_path, data: {'no-turbolink' =>  true}, "data-toggle" => "tooltip", title: "Add Project",  
+    = link_to '', new_project_path, data: {'no-turbolink' =>  true}, "data-toggle" => "tooltip", title: "Add Project",
                  class: "icon-plus" unless (params[:action] == "new" || params[:action] == "show")
-    =link_to '', edit_project_path, data: {'no-turbolink' =>  true}, "data-toggle" => "tooltip", title: "Edit Project",  
+    = link_to '', edit_project_path, data: {'no-turbolink' =>  true}, "data-toggle" => "tooltip", title: "Edit Project",
                  class: "icon-edit" if params[:action] == "show"
-    =params[:action] == "show" || params[:action] == "edit" ? "|" : ''
-    =link_to '', projects_path, "data-toggle" => "tooltip", title: "All Projects", 
+    = params[:action] == "show" || params[:action] == "edit" ? "|" : ''
+    = link_to '', projects_path, "data-toggle" => "tooltip", title: "All Projects",
                  class: " icon-th-list" unless params[:action] == "index"
+    = link_to "", projects_path(format: "csv"), class: 'icon-download-alt' if params[:action] == 'index'
 
 

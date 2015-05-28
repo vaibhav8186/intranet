@@ -38,4 +38,15 @@ class Project
   def self.get_all_sorted_by_name
     Project.all.asc(:name)
   end
+
+  def self.to_csv(options = {})
+    column_names = ['name', 'code_climate_id', 'code_climate_snippet', 'code_climate_coverage_snippet', 'is_active', 'start_date', 'end_date', 'managed_by', 'ruby_version', 'rails_version', 'database', 'database_version', 'deployment_server', 'deployment_script', 'web_server', 'app_server', 'payment_gateway', 'image_store', 'index_server', 'background_jobs', 'sms_gateway', 'other_frameworks', 'other_details']
+    CSV.generate(options) do |csv|
+      csv << column_names.collect(&:titleize)
+      all.each do |project|
+        csv << project.attributes.values_at(*column_names)
+      end
+    end
+  end
+
 end

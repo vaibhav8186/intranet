@@ -9,6 +9,10 @@ class ProjectsController < ApplicationController
   
   def index
     @projects = Project.get_all_sorted_by_name
+    respond_to do |format|
+      format.html
+      format.csv { send_data @projects.to_csv }
+    end
   end
 
   def new

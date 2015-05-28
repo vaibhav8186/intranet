@@ -1,9 +1,10 @@
+- new_project = !@project.persisted?
 %ul.nav.nav-tabs
   %li.active
     %a{data:{toggle: 'tab'}, href: '#project_form'}
-      #{@project.persisted? ? 'Update' : 'Create'} Project
+      #{new_project ? 'Create' : 'Update'} Project
   %li
-    .tech_details= link_to 'Tech Details', '#project_info', data:{toggle: ('tab' if @project.persisted?)}
+    = link_to 'Tech Details', '#project_info', data:{toggle: ('tab' unless new_project )}, class: :tech_details
       
 .project_tab_content.tab-content
   #project_form.tab-pane.fade.in.active
@@ -14,5 +15,7 @@
 
 :javascript
   $('.tech_details').click(function(){
-    alert('Please first create project to fill technical details.')
+    if(#{new_project}){
+      alert('Please first create project to fill technical details.')
+    }
   })
