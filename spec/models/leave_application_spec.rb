@@ -68,14 +68,81 @@ describe LeaveApplication do
     end
 
     context 'self.process_leave ' do
-      context 'should deduct leaves if status changed from' do
-        it 'nil to pending'
-        it 'approved to rejected'
-        it 'rejected to approved'
+    
+      before do
+        @user = FactoryGirl.create(:user, role: 'Employee')
+        @user = FactoryGirl.create(:user, private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01))) 
+        @available_leaves = @user.employee_detail.available_leaves
+        @number_of_days = 2
       end
+
+      it 'should add leaves back if status changed from approved to rejected' do
+        leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: @number_of_days)
+        @user.reload
+        expect(@user.employee_detail.available_leaves).to eq(@available_leaves-@number_of_days)
+        @message = LeaveApplication.process_leave(leave_application.id, APPROVED, :process_accept_application, '')
+        @user.reload
+        expect(@user.employee_detail.available_leaves).to eq(@available_leaves-@number_of_days)
+
+        @message.should eq({type: :notice, text: "Approved Successfully"})
+
+        @message = LeaveApplication.process_leave(leave_application.id, REJECTED, :process_reject_application, '')
+        @message.should eq({type: :notice, text: "Rejected Successfully"})
+        @user.reload
+        expect(@user.employee_detail.available_leaves).to eq(@available_leaves)
+      end
+
+      context 'should deduct leaves if status changed from' do
+        it 'nil to pending' do
+          leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: @number_of_days)
+          @user.reload
+          expect(@user.employee_detail.available_leaves).to eq(@available_leaves-@number_of_days)
+        end
+
+        it 'rejected to approved' do
+          leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: @number_of_days)
+          @user.reload
+          expect(@user.employee_detail.available_leaves).to eq(@available_leaves-@number_of_days)
+
+          @message = LeaveApplication.process_leave(leave_application.id, REJECTED, :process_reject_application, '')
+          @message.should eq({type: :notice, text: "Rejected Successfully"})
+          @user.reload
+          expect(@user.employee_detail.available_leaves).to eq(@available_leaves)
+
+          @message = LeaveApplication.process_leave(leave_application.id, APPROVED, :process_accept_application, '')
+          @user.reload
+          expect(@user.employee_detail.available_leaves).to eq(@available_leaves-@number_of_days)
+
+          @message.should eq({type: :notice, text: "Approved Successfully"})
+        end
+      end
+
       context 'should not deduct leaves if status ' do
-        it 'changed from pending to approved'
-        it 'does not change'
+        
+        it 'changed from pending to approved' do
+          leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: @number_of_days)
+          @user.reload
+          available_leaves = @user.employee_detail.available_leaves
+
+          @message = LeaveApplication.process_leave(leave_application.id, APPROVED, :process_accept_application, '')
+          @user.reload
+          expect(@user.employee_detail.available_leaves).to eq(available_leaves)
+
+          @message.should eq({type: :notice, text: "Approved Successfully"})
+        end
+
+        it 'does not change' do
+          leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: @number_of_days)
+          LeaveApplication.process_leave(leave_application.id, APPROVED, :process_accept_application, '')
+          @user.reload
+          available_leaves = @user.employee_detail.available_leaves
+
+          @message = LeaveApplication.process_leave(leave_application.id, APPROVED, :process_accept_application, '')
+          @user.reload
+          expect(@user.employee_detail.available_leaves).to eq(available_leaves)
+
+          @message.should eq({type: :error, text: "Leave is already Approved"})
+        end
       end
     end
 
