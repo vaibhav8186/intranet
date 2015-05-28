@@ -26,6 +26,7 @@
               = p.is_active
           %td
             - if can? :manage, Project
-              =link_to '', edit_project_path(p), class: "icon-edit", data: {'no-turbolink' =>  true} 
+              =link_to '', edit_project_path(p), class: "icon-edit", data: {'no-turbolink' =>  true}
+              |
               =link_to '', project_path(p), method: :delete, "data-confirm" => "Are you sure?", class: "icon-trash"
         
