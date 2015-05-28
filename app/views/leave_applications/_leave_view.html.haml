@@ -8,7 +8,7 @@
     %th Applied On
     %th Status
     - if (leave_data.present? and !leave_data.first.pending?) or can? :manage, LeaveApplication
-      %th Reason for rejecting
+      %th Note
     - if (leave_data.present? and leave_data.first.pending?) or can? :manage, LeaveApplication
       %th Action
   %tbody
