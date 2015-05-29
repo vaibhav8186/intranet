@@ -81,11 +81,15 @@
                                                           %th Name
                                                           %th Number of days
                                                           %th Reason
+                                                          %th Start Date
+                                                          %th End Date
                                                         -@leaves.each do |leave|
                                                           %tr
                                                             %td #{User.find(leave.user_id).name} 
                                                             %td{ class: "center panel", style: "margin-left:10px;"} #{leave.number_of_days}
                                                             %td #{leave.reason}
+                                                            %td #{leave.start_at}
+                                                            %td #{leave.end_at}
                                                     %p{:style => "margin:0;padding-bottom:0"}
                                                       Regards,
                                                       %br/
