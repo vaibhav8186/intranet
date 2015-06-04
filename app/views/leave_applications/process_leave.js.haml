@@ -1,0 +1,38 @@
+if("#{@message[:type]}" != 'error'){
+// FIRST IF
+tr_id = "#leave_application_" + leave_application_id;
+pending_leave = ($(tr_id).attr('pending') == 'true')
+
+row = pending_leave ? $(tr_id).detach() : $(tr_id)
+
+if("#{@status}" == "#{REJECTED}"){
+// LEAVE REJECTED
+message = 'Leave Cancelled'
+row.children('.action').html("<div class='process_btn btn btn-mini btn-success' data-action='approve' data-id="+leave_application_id+">Approve</div>")
+}else{
+//LEAVE ACCEPTED
+message = 'Leave Approved'
+row.children('.action').html("<div class='btn btn-danger btn-mini process_btn' data-action='reject' data-id="+ leave_application_id +">Reject</div>")
+}
+
+tds = row.children('td')
+tds.children('.prev_reason').html("#{@leave_application.reject_reason}")
+row.children('.status').text("#{@status}")
+
+if(pending_leave){
+$('#processed_leave table tbody').append(row);
+}
+
+$('.alert-message').alert({txt: "#{@message[:text]}", type: 'success'});  
+ls = "Pending (#{@pending_leaves.count})";
+$('#pending_link').text(ls);
+
+$("div[data-id="+leave_application_id+"]").click(process_btn_click)
+
+// FIRST IF ENDS
+}else{ 
+
+$('.alert-message').alert({txt: "#{@message[:text]}", type: 'error'});  
+
+}
+
