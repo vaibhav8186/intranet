@@ -82,11 +82,10 @@ describe LeaveApplicationsController do
       should render_template(:new)
     end
 
-    it "should be able to view all leave" do
+    it "should not be able to view all leave" do
       get :index
       expect(LeaveApplication.count).to eq(1)
-      should respond_with(:success)
-      should render_template(:index)
+      should_not render_template(:index)
     end
 
   end
