@@ -17,14 +17,14 @@
 
   - if ["HR", "Admin", "Super Admin"].include?(current_user.role)
     %li
-      = link_to "Manage Leave", main_app.leave_applications_path
-    %li
       = link_to "Newsletter", main_app.light_path
   %li
     = link_to "Leave Applications", main_app.view_leaves_path 
   - if ["Admin", "Super Admin"].include?(current_user.role)
     %li
       = link_to "Contacts", main_app.site_contacts_path, data: { 'no-turbolink' => true }
+    %li
+      = link_to "Manage Leave", main_app.leave_applications_path
   %li.hide
     = link_to "Calendar", main_app.calendar_path
   %li.divider

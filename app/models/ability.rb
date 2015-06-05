@@ -38,7 +38,7 @@ class Ability
   
   def employee_abilities(user_id)
     can [:public_profile, :private_profile, :apply_leave], User, id: user_id
-    can [:index, :download_document], Attachment
+    can [:index, :download_document], Attachment, user_id: user_id
     can :read, Policy
     can :read, Project
     cannot :manage, LeaveApplication
@@ -57,5 +57,7 @@ class Ability
   def hr_abilities
     common_admin_hr
     can [:public_profile, :private_profile, :edit, :apply_leave], User
+    cannot :index, LeaveApplication
+    cannot :update, LeaveApplication
   end
 end
