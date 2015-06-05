@@ -30,3 +30,12 @@
 //= require screamout/global.js
 //= require redactor-rails
 //= require_tree .
+
+
+
+$(document).ready(function(){
+$('.datepicker').datepicker({
+  format: "dd-mm-yyyy",
+  autoclose: true
+})
+})

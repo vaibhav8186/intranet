@@ -8,76 +8,50 @@
   =link_to "Apply Leave", new_user_leave_application_path(current_user)
 %ul.leave_applicationTab.nav.nav-tabs
   %li.active
-    %a#pending_link{data:{toggle: 'tab', leave_count: @pending_leave.count}, href: '#unapproved_leave'}
-      Pending (#{@pending_leave.count})
+    %a#pending_link{data:{toggle: 'tab', leave_count: @pending_leaves.count}, href: '#pending_leave'}
+      Pending (#{@pending_leaves.count})
   %li
-    %a#leave_history_link{data:{toggle: "tab"}, href: '#approved_leave'}
+    %a#leave_history_link{data:{toggle: "tab"}, href: '#processed_leave'}
       Leave History
    
 .leave_application_tab_content.tab-content
-  #approved_leave.tab-pane.fade
-    = render 'leave_applications/leave_view', leave_data: @approved_leave
-  #unapproved_leave.tab-pane.fade.in.active
-    = render 'leave_applications/leave_view', leave_data: @pending_leave
+  #processed_leave.tab-pane.fade
+    = render 'leave_applications/leave_view', leave_data: @processed_leaves
+  #pending_leave.tab-pane.fade.in.active
+    = render 'leave_applications/leave_view', leave_data: @pending_leaves
 :javascript
-  var reject_reason = ''
   
-  $('.reject_reason').editable({
-    validate: function(value){
-      reject_reason = value
-      update_leave($(this))
-      td = $(this).parent('td')
-      action_div = td.parent().children('.action')
-      spinner_div = td.parent().children('.spinner')
-      action_div.hide()
-      spinner_div.show()
-    }
-  });
+  var reject_reason = ''
 
-  $('.approve_leave').click(function(){
-    update_leave($(this))
-  });
-
-  $('.cancel_leave').click(function(e){
+  function process_btn_click(e){
     e.stopPropagation();
-    $(this).parent('td').next('td').children('.reject_reason').editable('toggle')
+    app_id = $(this).parent('td').attr('id')
+    reason_div = $('.reason_'+app_id)
+    $('.reason_'+app_id).editable('toggle')
+    reason_div.attr('action', $(this).data('action'))
+  }
+
+  function make_editable(value){
+    reject_reason = value
+    update_leave($(this))
+  }
+
+  $('.reason').editable({
+    validate: make_editable
   });
-
-  function update_leave(option){
-    leave_application_id = option.data('id');
-    url = "/" + option.data('url');
-    action = option.data('action');
- 
+  
+  $('.process_btn').click(process_btn_click);
+    
+  function update_leave(div){
+    action = div.attr('action')
+    leave_application_id = div.attr('id')
+    
     $.ajax({
-      url: url,
+      url: '/process_leave_application',
       type: 'GET',
-      data: {id: leave_application_id, action: action, reject_reason: reject_reason},
-      success: function(){
-        tr_id = "#leave_application_" + leave_application_id;
-        b = $(tr_id).detach();
-
-        if(action == 'cancel'){
-          l_status = 'Rejected'
-          message = 'Leave Cancelled'
-        }else{
-          l_status = 'Approved'
-          message = 'Leave Approved'
-        }
-
-        b.children('.action').show()
-        b.children('.spinner').hide()
-        b.children('.action').text(l_status)
-        b.children('.leave_status').text(reject_reason)
-        $('#approved_leave table tbody').append(b);
-        $('.alert-message').alert({txt: message, type: 'success'});  
-        leave_count = $('#pending_link').data('leave-count') - 1
-        ls = "Pending (" + leave_count + ")";
-        $('#pending_link').text(ls);
-        reject_reason = ''
-      },
-      error: function(){
+      data: {id: leave_application_id, leave_action: action, reject_reason: reject_reason},
+      error: function(e){
         $('.alert-message').alert({txt: 'Internal Server Error! Please contact web sysadmin', type: 'error'});  
       }
-    });  
-    return false;
+    });
   }

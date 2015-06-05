@@ -1,8 +1,8 @@
 class LeaveApplicationsController < ApplicationController
    
   before_action :authenticate_user!
-  load_and_authorize_resource except: [:create, :view_leave_status, :approve_leave, :cancel_leave]
-  before_action :authorization_for_admin, only: [:approve_leave, :cancel_leave]   
+  load_and_authorize_resource except: [:create, :view_leave_status, :process_leave]
+  before_action :authorization_for_admin, only: [:process_leave]
  
   def new
     @leave_application = LeaveApplication.new(user_id: current_user.id)
@@ -18,6 +18,7 @@ class LeaveApplicationsController < ApplicationController
     if @leave_application.save
       flash[:error] = "Leave applied successfully. Please wait for leave to be approved!!!"
     else
+      @available_leaves = current_user.employee_detail.try(:available_leaves)
       flash[:error] = @leave_application.errors.full_messages.join("\n")
       render 'new' and return
     end
@@ -42,11 +43,11 @@ class LeaveApplicationsController < ApplicationController
 
   def view_leave_status
     if ["Admin", "HR", "Manager"].include? current_user.role
-      @pending_leave = LeaveApplication.order_by(:created_at.desc).pending
-      @approved_leave = LeaveApplication.order_by(:created_at.desc).processed 
+      @pending_leaves = LeaveApplication.order_by(:created_at.desc).pending
+      @processed_leaves = LeaveApplication.order_by(:created_at.desc).processed 
     else
-      @pending_leave = current_user.leave_applications.order_by(:created_at.desc).pending
-      @approved_leave = current_user.leave_applications.order_by(:created_at.desc).processed
+      @pending_leaves = current_user.leave_applications.order_by(:created_at.desc).pending
+      @processed_leaves = current_user.leave_applications.order_by(:created_at.desc).processed
     end
   end
 
@@ -59,6 +60,7 @@ class LeaveApplicationsController < ApplicationController
     params.require(:leave_application).permit(*safe_params) 
   end
 
+=begin Commented on 26th may 2015. Added common method process_leave
   def cancel_leave
     reject_reason = params[:reject_reason] || ''
     process_leave(params[:id], 'Rejected', :process_reject_application, reject_reason)
@@ -67,27 +69,36 @@ class LeaveApplicationsController < ApplicationController
   def approve_leave
     process_leave(params[:id], 'Approved', :process_accept_application)
   end 
+=end
+
+  def process_leave
+    @leave_action = params[:leave_action]
+    if params[:leave_action] == 'approve'
+      @status = APPROVED
+      call_function = :process_accept_application
+    else
+      @status = REJECTED
+      call_function = :process_reject_application
+    end
+
+    @message = LeaveApplication.process_leave(params[:id], @status, call_function, params[:reject_reason])
+    @leave_application = LeaveApplication.find(params[:id])
+    @pending_leaves = LeaveApplication.order_by(:created_at.desc).pending
+    
+
+    respond_to do|format|
+      format.js{ }
+    end
+  end
 
   private
 
-    def process_leave(id, leave_status, call_function, reject_reason = '')
-      message = LeaveApplication.process_leave(id, leave_status, call_function, reject_reason)
-      
-      respond_to do|format|
-        format.html do
-          flash[message[:type]] = message[:text]
-          redirect_to root_path 
-        end
-        format.js{ render :nothing => true}
-      end
+  def authorization_for_admin
+    if !current_user.role?("Admin")
+      flash[:error] = 'Unauthorize access'
+      redirect_to root_path
+    else
+      return true
     end
-    
-    def authorization_for_admin
-      if !current_user.role?("Admin")
-        flash[:error] = 'Unauthorize access'
-        redirect_to root_path
-      else
-        return true
-      end
-    end 
+  end 
 end

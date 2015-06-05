@@ -31,7 +31,7 @@ describe ProjectsController do
   describe "GET create" do
     it "should create new project" do
       post :create, {project: {name: "Intranet", code_climate_id: "12345", code_climate_snippet: "Intranet"}}
-      flash.notice.should eql("Project created Succesfully")
+      flash[:success].should eql("Project created Succesfully")
       should redirect_to projects_path
     end
 
