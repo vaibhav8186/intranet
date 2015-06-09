@@ -30,7 +30,7 @@ class ProjectsController < ApplicationController
   end
   
   def update
-    @project.user_ids = [] if params[:user_ids].blank? 
+    @project.user_ids = [] if params[:user_ids].blank? and params['tech_details'].nil?
     update_obj(@project, safe_params, projects_path)
   end
 
