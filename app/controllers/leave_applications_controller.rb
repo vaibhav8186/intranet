@@ -87,7 +87,8 @@ class LeaveApplicationsController < ApplicationController
     
 
     respond_to do|format|
-      format.js{ }
+      format.js{}
+      format.html{ redirect_to view_leaves_path}
     end
   end
 
