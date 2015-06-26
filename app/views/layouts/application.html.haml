@@ -57,4 +57,5 @@
     - flash.each do |key, msg|
       %div{class: flash_class(key), style: "margin-top: 15px;"}
         = msg
+    - flash.clear
     = yield
