@@ -1,5 +1,6 @@
 class UserMailer < ActionMailer::Base
-  default :from => 'intranet@joshsoftware.com' 
+  default :from => 'intranet@joshsoftware.com',
+          :reply_to => 'hr@joshsoftware.com'
  
   def invitation(sender_id, receiver_id)
     @sender = User.where(id: sender_id).first
