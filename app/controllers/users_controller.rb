@@ -13,8 +13,8 @@ class UsersController < ApplicationController
     else
       @users = User.all
     end
-    @users = @users.sort{|u1, u2| u1.name.to_s <=> u2.name.to_s} 
-    respond_to do |format|  
+    @users = @users.sort{|u1, u2| u1.name.to_s <=> u2.name.to_s}
+    respond_to do |format|
       format.html # index.html.erb
       format.json { render json: @users }
     end
@@ -52,10 +52,10 @@ class UsersController < ApplicationController
     user_profile = (profile == "private_profile") ? @private_profile : @public_profile
     if request.put?
       #Need to change these permit only permit attributes which should be updated by user
-      #In our application there are some attributes like joining date which will be only 
+      #In our application there are some attributes like joining date which will be only
       #updated by hr of company
       #
-      #update_attribute was getting called on embedded_document so slug which is defined in parent was not getting updated so 
+      #update_attribute was getting called on embedded_document so slug which is defined in parent was not getting updated so
       #update_attributes is caaled on user insted of public_profile/private_profile
       if @user.update_attributes(profile => params.require(profile).permit!)
         flash.notice = 'Profile Updated Succesfully'
@@ -69,7 +69,7 @@ class UsersController < ApplicationController
 
   def invite_user
     if request.get?
-      @user = User.new 
+      @user = User.new
     else
       @user = User.new(params[:user].permit(:email, :role))
       @user.password = Devise.friendly_token[0,20]
@@ -119,11 +119,11 @@ class UsersController < ApplicationController
   end
 
   def user_params
-    safe_params = [] 
+    safe_params = []
     if params[:user][:employee_detail_attributes].present?
       safe_params = [ employee_detail_attributes: [:id, :employee_id, :date_of_relieving,:notification_emails => [] ], :project_ids => [] ]
     elsif params[:user][:attachments_attributes].present?
-      safe_params = [attachments_attributes: [:id, :name, :document, :_destroy]] 
+      safe_params = [attachments_attributes: [:id, :name, :document, :_destroy]]
     else
       safe_params = [:status, :role]
     end
@@ -147,8 +147,8 @@ class UsersController < ApplicationController
   def load_emails_and_projects
     @emails = User.approved.collect(&:email)
     @projects = Project.all.collect { |p| [p.name, p.id] }
-    notification_emails = @user.employee_detail.try(:notification_emails) 
-    @notify_users = User.where(:email.in => notification_emails || []) 
+    notification_emails = @user.employee_detail.try(:notification_emails)
+    @notify_users = User.where(:email.in => notification_emails || [])
   end
 
   def authorize
@@ -169,7 +169,7 @@ class UsersController < ApplicationController
 
   def get_bonusly_messages
     bonusly = Api::Bonusly.new(BONUSLY_TOKEN)
-    bonusly.bonusly_messages(start_time: Date.today.strftime('%B+1st'), 
+    bonusly.bonusly_messages(start_time: Date.today.strftime('%B+1st'),
                              end_time:   Date.today.end_of_month.strftime('%B+%dst'),
                              user_email: @user.email)
   end
@@ -177,10 +177,11 @@ class UsersController < ApplicationController
   def get_github_feed
     handle = @user.public_profile.github_handle
     return nil if handle.blank?
-    
-    github_feed = Feedjira::Feed.fetch_and_parse "https://github.com/#{handle}.atom"
-    
-    return nil if github_feed.eql?(404) or github_feed.try(:enries).try(:blank?)
+
+    xml_feed = Feedjira::Feed.fetch_raw "https://github.com/#{handle}.atom"
+    github_feed = Feedjira::Feed.parse xml_feed
+
+    return nil if github_feed.eql?(404) or github_feed.try(:entries).try(:blank?)
     if github_feed != 200
       github_commits = []
       github_feed.entries.each do |entry|
@@ -196,7 +197,10 @@ class UsersController < ApplicationController
   def get_blog_feed
     blog_url = @user.public_profile.blog_url
     return if blog_url.blank?
-    blog_feed = Feedjira::Feed.fetch_and_parse "#{blog_url}/feed"
+
+    xml_feed = Feedjira::Feed.fetch_raw "#{blog_url}/feed"
+    blog_feed = Feedjira::Feed.parse xml_feed
+
     return nil if blog_feed.try(:entries).try(:blank?)
     if blog_feed != 0
       blog_feed.entries[0..9]
