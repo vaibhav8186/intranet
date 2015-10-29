@@ -41,7 +41,7 @@ end
 
 set :output, {error: 'log/cron_error.log', standard: 'log/cron.log'}
 
-every :year, :at => '12:30am' do
+every '30 0 1 1 *' do
   rake "leave:reset_leave_yearly"
 end
 
