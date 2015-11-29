@@ -8,5 +8,7 @@ FactoryGirl.define do
     mobile_number "1234567890"
     blood_group "A+"
     date_of_birth Date.today
+    github_handle "abhishekbose87"
+    blog_url "rishionrails.wordpress.com"
   end
 end
