@@ -1,0 +1,827 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+  xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+  xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+  >
+
+<channel>
+  <title>Learning shall never stop..!!!</title>
+  <atom:link href="https://rishionrails.wordpress.com/feed/" rel="self" type="application/rss+xml" />
+  <link>https://rishionrails.wordpress.com</link>
+  <description>Ruby, Javascript and fun</description>
+  <lastBuildDate>Tue, 25 Aug 2015 12:13:23 +0000</lastBuildDate>
+  <language>en</language>
+  <sy:updatePeriod>hourly</sy:updatePeriod>
+  <sy:updateFrequency>1</sy:updateFrequency>
+  <generator>http://wordpress.com/</generator>
+<cloud domain='rishionrails.wordpress.com' port='80' path='/?rsscloud=notify' registerProcedure='' protocol='http-post' />
+<image>
+    <url>https://s2.wp.com/i/buttonw-com.png</url>
+    <title>Learning shall never stop..!!!</title>
+    <link>https://rishionrails.wordpress.com</link>
+  </image>
+  <atom:link rel="search" type="application/opensearchdescription+xml" href="https://rishionrails.wordpress.com/osd.xml" title="Learning shall never stop..!!!" />
+  <atom:link rel='hub' href='https://rishionrails.wordpress.com/?pushpress=hub'/>
+  <item>
+    <title>Using Null Object Pattern in Rails to improve code quality</title>
+    <link>https://rishionrails.wordpress.com/2015/05/25/using-null-object-pattern-in-rails-to-improve-code-quality/</link>
+    <comments>https://rishionrails.wordpress.com/2015/05/25/using-null-object-pattern-in-rails-to-improve-code-quality/#comments</comments>
+    <pubDate>Mon, 25 May 2015 10:51:40 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[code quality]]></category>
+    <category><![CDATA[null object pattern]]></category>
+    <category><![CDATA[rails]]></category>
+    <category><![CDATA[refactoring]]></category>
+    <category><![CDATA[ruby]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=422</guid>
+    <description><![CDATA[If you have not read my previous post I wrote about Service classes, I would suggest to read that first as it is in continuation to the previous post. This is the link to previous post. In this post we are going to look at another pattern that helps us in refactoring code, especially helps [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=422&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>If you have not read my previous post I wrote about Service classes, I would suggest to read that first as it is in continuation to the previous post. <a href="https://rishionrails.wordpress.com/2015/04/27/using-service-classes-to-improve-code-quality/" target="_blank">This is the link</a> to previous post.</p>
+<p>In this post we are going to look at another pattern that helps us in refactoring code, especially helps us in removing conditions. It is called <strong>Null Object Pattern</strong>.</p>
+<p>This code is used to download the data dump based on some rules as always. But here is my 2 cents, <strong>do not even try to understand the code</strong>.</p>
+<pre class="brush: ruby; title: ; notranslate">
+   def download_measurements
+    specification = @inspection.specification
+    serial_numbers = @inspection.get_serial_numbers
+    inspection_results = @inspection.inspection_results.includes(:inspection_serial_number)
+    row_list = []
+
+    row_list &lt;&lt; ['unit number', 'serial number', 'gage id', 
+                 'inspected by', 'inspected on yyyy-mm-dd', 
+                 'place', 'measurement', 'bonus tolerance', 
+                 'actual measurement', 'text', 'remark', 
+                 'non-conformance number']
+
+    serial_numbers.each_with_index do |serial_number, index|
+      specification.feature_repeats.times do |place_index|
+        place_number = place_index + 1
+        ir = inspection_results.collect{|i| 
+             i if i.serial_number.number == serial_number}.
+             uniq.compact.first
+
+        specification.readings_required.times do |measurement_index|
+          measurement_number = measurement_index + 1
+          rm = ir.nil? ? nil : 
+            ir.result_measurements.where(:place_number =&gt; place_number, 
+            :measurement_number =&gt; measurement_number).first
+          
+          inspected_on_date = ir.nil? ? nil : ir.inspected_on.nil? ?
+          nil : ir.inspected_on.strftime('%Y-%m-%d') 
+          
+          measurement_value = rm.try(:actual_measurement).nil? ? 
+          nil : rm.try(:actual_measurement)
+         
+          measurement_value = rm.try(:measurement_result) == 'P' ? 'PASS' : rm.try(:measurement_result) == 'F' ? 'FAIL' : nil if specification.result_type == 'Attr'
+          row_list &lt;&lt; [index+1, serial_number, ir.try(:gage_serial_number), 
+                       ir.try(:inspected_by), inspected_on_date, place_number, 
+                       measurement_number, nil, measurement_value, rm.try(:information),
+                       ir.try(:remarks), ir.try(:non_conformance_number)]
+        end
+      end
+    end
+    file_name = &quot;Template&quot; + &quot;-&quot; + @inspection.balloon + &quot;_#{Time.now.to_i}.xlsx&quot;
+    file_path = &quot;#{Rails.root}/tmp/#{file_name}&quot;
+    XlsxHelper.generate(row_list, file_path)
+     send_file(File.open(file_path), :type =&gt; 'application/vnd.ms-excel', :filename =&gt; file_name)
+   end
+</pre>
+<p>We clearly need to refactor because this code is difficult to understand even for  the person who has written the code, forget the team who is working on the same project. And since this code is difficult to understand, it is difficult to debug and it is difficult to change as changes will come as they always do.</p>
+<p>As I can see that this whole code first of all should not be a part of a controller method. Since the purpose of this code is to generate a sort of data dump in a csv file, I would make it a service class and call the methods of that class as explained in the <a href="https://rishionrails.wordpress.com/2015/04/27/using-service-classes-to-improve-code-quality/" target="_blank">previous post</a>.</p>
+<p>By just glancing at the code, I can understand that there is a header added somewhere in there and then there is some logic to add the data. So I will start by making a service class. And make these empty methods. </p>
+<pre class="brush: ruby; title: ; notranslate">
+class ExportIdeData
+  def initialize(inspection)
+    @inspection = inspection
+  end
+
+  def run!
+  end
+
+  private
+
+  def header
+  end
+
+  def add_data
+  end
+end
+</pre>
+<p>And my aim is to make controller code look like this:</p>
+<pre class="brush: ruby; title: ; notranslate">
+
+  def download_measurements
+    ide_data_runner = ExportIdeData.new(@inspection)
+    ide_data_runner.run!
+    generate_file(ide_data_runner)
+  end
+
+</pre>
+<p>Now that we have defined a service class and has added methods to it, lets focus on this line of the old code:</p>
+<pre class="brush: ruby; title: ; notranslate">
+  inspected_on_date = ir.nil? ? nil : ir.inspected_on.nil? 
+    ? nil : ir.inspected_on.strftime('%Y-%m-%d') 
+</pre>
+<p>In this code, we see a complex logic of conditions which decide what value to return. If ir object does not exist, we want the value nil, if ir object exists but no value for attribute inspected_on exists in db, then we want nil. And if the value exists in db, we want to change the format of the date and then return that value.</p>
+<blockquote><p>If I have to apply such conditions to lets say only 1 attribute of the model, I wont mind adding all the conditions for once. But in our use case, when we have to apply such logic to multiple attributes of a model, it won&#8217;t just make sense to compromise on the code quality. And thus, <strong>Null Object Pattern</strong> helps us in cleaning our code.</p></blockquote>
+<p>So these are some of the changes that we make to our new service class.</p>
+<pre class="brush: ruby; title: ; notranslate">
+  def header
+    @rows = [['unit number', 'serial number', 'gage id',
+              'inspected by', 'inspected on yyyy-mm-dd',
+              'place',  'measurement', 'bonus tolerance',
+              'actual measurement', 'text', 'remark', 
+              'non-conformance number']]
+  end
+
+  def add_data(sheet)
+    @serial_numbers.each_with_index do |sn, index|
+      @place_measurements.each do |pc|
+        ir = find_inspection_result(sn)
+        rm = find_result_measurement(ir, pc[0], pc[1])
+        data = [index+1, sn.number, 
+                ir.serial_number, ir.inspected_by, 
+                ir.inspected_on_rep, pc[0], pc[1], nil, 
+                rm.measurement_value, ir.remarks, 
+                ir.non_conformance_number]
+
+        add_row_with(sheet, data, @header_values, 
+                     height=27.571428571428573)
+      end
+    end
+  end
+</pre>
+<p>Now do not get too much into the code. Just have a quick look at it, this code looks clean.The whole code is not important for you to understand for what we are trying to achieve here, pay attention to these lines:</p>
+<pre class="brush: ruby; title: ; notranslate">
+  ir = find_inspection_result(sn)
+  rm = find_result_measurement(ir, pc[0], pc[1])
+</pre>
+<p>These are some of the methods that that we need to define:</p>
+<pre class="brush: ruby; title: ; notranslate">
+  def find_inspection_result(serial_number)
+    ir = @inspection.results.where(:serial_number_id =&gt; serial_number.id).first
+         || NilInspectionResult.new
+    ir
+  end
+</pre>
+<p>In the above code, I find the inspection result object and if it fails to find such object in database, then we initialize a new object of the class NilInspectionResult.<br />
+Keep in mind these are classes that do have a corresponding database table. It is just a plain ruby class which happen to be created under models folder.</p>
+<p>This is how it looks:</p>
+<pre class="brush: ruby; title: ; notranslate">
+class NilInspectionResult
+    
+  def gage_serial_number
+    nil
+  end
+    
+  def inspected_by
+    nil
+  end 
+    
+  def inspected_on_rep
+    nil
+  end
+  
+  def remarks
+    nil
+  end
+              
+  def non_conformance_number
+    nil
+  end 
+end 
+</pre>
+<p>So, when we do not find an result object in database, a new object of our newly defined class NilInspectionResult has access to these methods defined above which a valid result object would have.<br />
+What I mean here is that remarks, non_conformance_number etc are attributes or methods defined in InspectionResult model and so we define the same methods in our new class also with values we expect them to return.</p>
+<p>This also helps us in keeping our code clean but also easy to change. For ex: In future if client wants that instead of returning nil as the date for the case when result object does not exist, return the current date. So I just have to change the method in NilInspectionResult class to return current date and not nil.</p>
+<p>Similarly look at this code:</p>
+<pre class="brush: ruby; title: ; notranslate">
+measurement_value = rm.try(:actual_measurement).nil? 
+  ? nil : rm.try(:actual_measurement)
+</pre>
+<p>&#8216;try&#8217; is just a fancy way to write if else conditions. And it is suggested to avoid such conditions whenever possible. So I would change the code to something like this:</p>
+<pre class="brush: ruby; title: ; notranslate">
+def find_result_measurement(ir, pn, pm)
+  rm = ir.result_measurements.where(:place_number =&gt; pn, :measurement_number =&gt; mn).first 
+       rescue NilResultMeasurement.new
+  rm
+end
+</pre>
+<p>Here we find the result measurement object which also depends on the ir object. And in our previous method we have found the result object ir, and it could contain the actual inspection result object or a nil template of it(NilInspectionResult.new).</p>
+<p>So in code to find the result measurement object, I use rescue to initialize a NilResultMeasurement object. And I add a class like this:</p>
+<pre class="brush: ruby; title: ; notranslate">
+class NilResultMeasurement
+  def measurement_value
+    nil 
+  end
+
+  def pass_fail_result
+    'N/A'
+  end 
+end
+</pre>
+<p>Now I think I do not need to explain why this above code is what it is. But one of the most important thing to remember when using Null Object Pattern is not to overuse it.</p>
+<p>So I hope this helps you in avoiding conditional blocks whenever and wherever feasible to use this pattern. And I will say this again, we have not reduced the number of lines of code, we have infact increased the number of lines of code. But we have made our code looks much cleaner, easier to change and understand.</p><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/422/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/422/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=422&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2015/05/25/using-null-object-pattern-in-rails-to-improve-code-quality/feed/</wfw:commentRss>
+    <slash:comments>4</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+  </item>
+    <item>
+    <title>The last lecture by Randy Pausch</title>
+    <link>https://rishionrails.wordpress.com/2015/05/12/the-last-lecture-by-randy-pausch/</link>
+    <comments>https://rishionrails.wordpress.com/2015/05/12/the-last-lecture-by-randy-pausch/#comments</comments>
+    <pubDate>Tue, 12 May 2015 20:12:07 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[#newyearresolutions]]></category>
+    <category><![CDATA[books]]></category>
+    <category><![CDATA[books reviews]]></category>
+    <category><![CDATA[book reviews]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=416</guid>
+    <description><![CDATA[This book is part of my new years resolution . It is second in the series. It is not a fiction novel. It is as true as it gets out there. It will change the way you look at life and if it will not bring out such radical changes in your life, it will [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=416&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>This book is part of my <a href="https://rishionrails.wordpress.com/2014/11/20/my-new-year-resolutions-in-november/" target="_blank">new years resolution </a>. It is second in the series.</p>
+<p>It is not a fiction novel. It is as true as it gets out there. It will change the way you look at life and if it will not bring out such radical changes in your life, it will at least make you re-think of what you have been doing with your life until now. And if this does not bring any of these things to your mind, I do not know what will.</p>
+<p>It is the story of Randy Pausch who was a professor at Carnegie Mellon University. He was also many other things. In 2006, he was diagnosed with pancreatic cancer. And he died in 2008. But he did gave a &#8216;last lecture&#8217; at Carnegie Mellon. And boy that lecture was something. And he said that this lecture was the last fake-head he gave. Go ahead and find out what the term fake-head means by reading the book. I am not going to spoil it for you. This lecture was not meant for the audience inside the auditorium but for his three kids who were so young at that time to really understand or remember any of this. So, he wanted to leave something for his kids to look upto to find out about their dad. And he also said if he was a painter, he would paint something for them. And since he was a professor, so he lectured for them.</p>
+<p>Now I am not going to give out any more details about the book. But I am going to tell you my favourite lines from the book or stories from it as this book is full of amazing quotes and awesome stories. Here goes:</p>
+<p>1.</p>
+<blockquote><p>Brick walls are there for a reason, it gives us a chance to show how badly we want something</p></blockquote>
+<p>Brick walls here are the obstacles you face when you want to achieve something. And if you really want to do it, you will find a way to do it.</p>
+<p>2.</p>
+<blockquote><p>Time is all you have. And one day you may find that you have less than what you think.</p></blockquote>
+<p>This one he learnt the hard way when he was diagnosed with pancreatic cancer and was given a 3-6 months of healthy life. And I have read it time and time again, people who suffer from such diseases or somebody who have near death experience, they all have same thing to see. That life is precious, do not cry about petty things in life and do what you gotta do.</p>
+<p>3.</p>
+<blockquote><p>Experience is what you get when you do not get what you wanted</p></blockquote>
+<p>This is a great advice. We all get disappointed when we fail at something after we have worked so hard to achieve it. But I will remember this one that I have just found out a way to fail at something and I am not going to repeat the same mistakes.<br />
+I read this in an article about entrepreneurs. It said that companies are more inclined to hire people who have failed at something, specially at the level of CEO&#8217;s as they are lot less likely to fail than someone who has never tasted failure.</p>
+<p>4. On when people complain about government or an organisation spend billions of dollars to achieve something like trying to land people on the moon. When that money could be used to serve the hungry and try and solve the hunger problems in the country and the world.</p>
+<blockquote><p>When you use money to fight poverty, you are working at the margins. But when you&#8217;re spending billions to put people on the moon, you are inspiring all of us.</p></blockquote>
+<p>True indeed ..!!</p>
+<p>5.</p>
+<blockquote><p>Complaining does not work as a strategy. We all have finite time and energy. Any time we spend whining is unlikely to help us achieve our goals. And it won&#8217;t make us happier.</p></blockquote>
+<p>6. And a story for the last.<br />
+Randy said this is a lesson for the folks at management.<br />
+When Randy and his sister( who is 2 years older than him ) were kids. They went to Disneyland. And they went to one of the gift shops. And they bought a salt and pepper bottle from the shop. And when they went out of the shop, it fell from their hands, hit the ground and broke.<br />
+A man who saw this happen told Randy to go back to the shop and ask them to replace the gift. And Randy said why would they do that. It is not their fault. I broke it. I should have been careful.<br />
+Then the man said, there is no harm in trying. So the kids went back to the shop and told the guys working at the shop about how exactly it broke. And the shopkeeper replaced the broken one with a new one and did not ask them to pay for it again. And he also said that it was probably our mistake that we did not package it good enough to not brake when it accidentally fells on the ground. So the kids were obviously happy. They went back home and told this story to their parents and they always remembered this little gesture from the shopkeeper. And over the years it was a tradition sort of to visit Disneyland and Randy&#8217;s parents spent more than 100,000$ in tickets and souvenirs. So all in all it was good investment of $10 by the Disney shopkeeper which evaluated to $100K over the years.</p>
+<p>I think this is crucial to every one as it not only tells us how we should treat our customers, but also tells us how we should treat each other. How there should be humility, forgiveness and willingness to help each other and it is only then we can help to make this world a better place to live.</p>
+<p>I hope you will read the book and get inspired. And this is the <a href="https://www.youtube.com/watch?v=ji5_MqicxSo" target="_blank">youtube link</a> to the video of the last lecture by Randy Pausch.</p><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/416/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/416/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=416&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2015/05/12/the-last-lecture-by-randy-pausch/feed/</wfw:commentRss>
+    <slash:comments>0</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+  </item>
+    <item>
+    <title>Using Service Classes to improve code-quality</title>
+    <link>https://rishionrails.wordpress.com/2015/04/27/using-service-classes-to-improve-code-quality/</link>
+    <comments>https://rishionrails.wordpress.com/2015/04/27/using-service-classes-to-improve-code-quality/#comments</comments>
+    <pubDate>Mon, 27 Apr 2015 07:33:23 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[oop]]></category>
+    <category><![CDATA[rails]]></category>
+    <category><![CDATA[refactoring]]></category>
+    <category><![CDATA[ruby]]></category>
+    <category><![CDATA[service classes]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=396</guid>
+    <description><![CDATA[ServiceClasses are nothing but plain old ruby classes. But they go a long way to keep your controllers thin and models thin. To show what I mean by this, lets look at some code. This is the code in controller to download data following some set of rules. This is bad. The controller should not [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=396&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>ServiceClasses are nothing but plain old ruby classes. But they go a long way to keep your controllers thin and models thin. To show what I mean by this, lets look at some code. This is the code in controller to download data following some set of rules.</p>
+<pre class="brush: ruby; title: ; notranslate">
+class ImportExportsController &lt; ApplicationController
+
+  def multi_column_download_template
+    rows = []
+    header = ['Spec Number', 'place', 'measurement',
+              'measurement number']
+
+    file_name = &quot;multi-column-template&quot; + &quot;_#{Time.now.to_i}.xlsx&quot;
+    file_path = &quot;#{Rails.root}/tmp/#{file_name}&quot;
+
+    specs = @inspection_master.row_no_wise_specs
+    specs.each do |spec|
+      header &lt;&lt; spec.id.to_s + &quot;#&quot; + spec.characteristic
+    end
+    rows &lt;&lt; header
+
+    feature_repeat = specs.collect(&amp;:feature_repeats).max
+    measurement    = specs.collect(&amp;:minimum_readings_required).max
+
+    inspection = Inspections::Inspection.new(
+                   :feature_repeats =&gt; feature_repeat, 
+                   :minimum_readings_required =&gt; measurement)
+    place_cols = inspection.calculate_records
+
+    @inspection_master.inspection_serial_numbers.each_with_index do |d, index|
+      rows &lt;&lt; [index+1, d.place, d.measurement, d.serial_number]      
+    end
+  
+    generate_and_download_file(rows, file_path, file_name)
+  end
+
+  def generate_and_download_file(rows, file_path, file_name)
+    #code which generate a xls file and send it as response
+  end
+
+end
+</pre>
+<p>This is bad. The controller should not look like this. It is not thin. It is difficult to understand. And the bigger problem which is difficult to see the moment we write code is that things will change. Believe me change is the only constant. And the cost of those changes will be much more higher. So comes in Service classes.</p>
+<blockquote><p>The ideology behind service classes is that it should have only one purpose to serve and nothing else.</p></blockquote>
+<p>And I can clearly see a purpose which our new service class should serve and that is to provide the data for our template download and nothing else. I keep the service classes under app/services folder. Also I do not think I need to iterate much on the importance of the name of the service class you choose. It goes without saying that the name should tell the purpose it is going to serve. I will name my service class MultiColumnDownload and I put it under app/services folder. This is how the service class looks like:</p>
+<pre class="brush: ruby; title: ; notranslate">
+
+class MultiColumnDownload
+
+  def initialize(inspection_master_id)
+    @inspection_master = InspectionMaster.find inspection_master_id
+    @file_name = &quot;Multi-column-template-&quot; + &quot;_#{Time.now.to_i}.xlsx&quot;
+  end
+
+  def file_name
+    @file_name
+  end
+
+  def file_path
+    &quot;#{Rails.root}/tmp/#{@file_name}&quot;
+  end
+
+  def run!
+    initialize_header
+    find_specs
+    insert_data
+    @rows
+  end
+
+  private
+
+  def initialize_header
+    header = ['Spec Number', 'place', 'measurement', 'measurement number']
+    specs = @inspection_master.row_no_wise_specs
+    specs.each do |spec|
+      header &lt;&lt; spec.id.to_s + &quot;#&quot; + spec.characteristic
+    end
+    @rows = [header]
+  end
+
+  def find_specs
+    @specs = @inspection_master.specifications
+  end
+
+  def find_feature_repeats
+    @specs.collect(&amp;:feature_repeats).max
+  end
+
+  def find_minimum_readings_required
+    @specs.collect(&amp;:minimum_readings_required).max
+  end
+
+  def insert_data
+    @inspection_master.inspection_serial_numbers.each_with_index do |d, index|
+      @rows &lt;&lt; [index+1, d.place, 
+                d.measurement, d.serial_number]
+    end
+  end
+
+end
+
+</pre>
+<p>And now our controller looks like this:</p>
+<pre class="brush: ruby; title: ; notranslate">
+
+class ImportExportsController &lt; ApplicationController
+
+  def multi_column_download_template
+    download_object = MultiColumnDownload.new(@inspection_master.id)
+    rows = download_object.run!
+    generate_and_download_file(rows, download_object.file_path, download_object.file_name)
+  end
+
+  def generate_and_download_file(rows, file_path, file_name)
+    #code which generate a xls file and send it as response
+  end
+end
+</pre>
+<p>In the controller, I just have to instantiate an object for our newly created service class  and we call this object service object. And call the run! method. Keeping our controller code very thin just the way it should be.</p>
+<p>Now this is the code I like and proud of. Not the earlier one. Now in future if I want to change the formatting of this template or add or remove some data, I know where to look for the code and where to make changes. Also I do not have to change anything in my controller code as long as the service class returns data. </p>
+<p>Have we reduced the number of lines of code? <strong>NO</strong>. In fact we have increased the lines of code by at least one and half times. </p>
+<p>Have we reduced the complexity of code? <strong>YES</strong>. Now the code is easier to understand and maintain over long term. </p>
+<p>I can only hope that you find this useful and make service objects without any fear of increasing code complexity or number of lines of code. I certainly do..!!! </p>
+<p>(p.s. I have reduced the complexity of the controller to not deviate away from what we are trying to understand here.)</p><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/396/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/396/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=396&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2015/04/27/using-service-classes-to-improve-code-quality/feed/</wfw:commentRss>
+    <slash:comments>5</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+  </item>
+    <item>
+    <title>Whats new in Rails 5 ?</title>
+    <link>https://rishionrails.wordpress.com/2015/04/22/whats-new-in-rails-5/</link>
+    <comments>https://rishionrails.wordpress.com/2015/04/22/whats-new-in-rails-5/#comments</comments>
+    <pubDate>Wed, 22 Apr 2015 04:17:34 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[actioncable]]></category>
+    <category><![CDATA[rails5]]></category>
+    <category><![CDATA[turbolinks3]]></category>
+    <category><![CDATA[dhh]]></category>
+    <category><![CDATA[railsconf2015]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=385</guid>
+    <description><![CDATA[I watched the live stream of DHH&#8217;s Railsconf 2015 keynote yesterday and he was talking about Rails 5. Here is a quick look at the new things I found out thats coming in Rails 5. 1. Turbolinks 3 Consider you have a simple blogging application where you can add posts and comments. So there are [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=385&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>I watched the live stream of DHH&#8217;s Railsconf 2015 keynote yesterday and he was talking about Rails 5. Here is a quick look at the new things I found out thats coming in Rails 5.</p>
+<p>1. <strong>Turbolinks 3 </strong></p>
+<p>Consider you have a simple blogging application where you can add posts and comments. So there are basically 2 important sections of  a blog page. One the blog post self and second are the comments. Section one is not going to change frequently. But section two which is comments will keep changing. So in turbolinks 3, you can tell the server to just update the comment section and keep the rest of the page as it is, as there is no need to refresh the whole page. This is an attempt  to reduce the page load time even further and improve the experience for the user. </p>
+<p>You can specify that this part of the page will not change by mentioning something like this &#8220;turbolink-permanent&#8221; in HTML.</p>
+<p>2. <strong>ActionCable</strong></p>
+<p>This sounds interesting. This is an attempt to implement WebSockets the Rails way. Making it super easy to subscribe to a channel, sending and receiving messages over the channel. </p>
+<p><a href="https://rishionrails.files.wordpress.com/2015/04/screen-shot-2015-04-21-at-8-06-09-pm.png"><img src="https://rishionrails.files.wordpress.com/2015/04/screen-shot-2015-04-21-at-8-06-09-pm-e1429674764796.png?w=1024&#038;h=785" alt="Screen Shot 2015-04-21 at 8.06.09 pm"   class="alignnone size-large wp-image-386" /></a></p>
+<p><a href="https://rishionrails.files.wordpress.com/2015/04/screen-shot-2015-04-21-at-8-06-58-pm.png"><img src="https://rishionrails.files.wordpress.com/2015/04/screen-shot-2015-04-21-at-8-06-58-pm-e1429674893146.png?w=1024&#038;h=791" alt="Screen Shot 2015-04-21 at 8.06.58 pm"   class="alignnone size-large wp-image-387" /></a></p>
+<p>The code looks like a controller code, so I think before_filters should also work with classes inheriting from ActionCable::Channel::Base.</p>
+<p>P.S.<br />
+1. Code snippets are screenshots from DHH&#8217;s keynote live streaming.<br />
+2. This is just glimpse of what I took away from his keynote. I did not see the whole thing from the start, so I am not sure what else he talked about.</p><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/385/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/385/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=385&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2015/04/22/whats-new-in-rails-5/feed/</wfw:commentRss>
+    <slash:comments>0</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2015/04/screen-shot-2015-04-21-at-8-06-09-pm-e1429674764796.png?w=660" medium="image">
+      <media:title type="html">Screen Shot 2015-04-21 at 8.06.09 pm</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2015/04/screen-shot-2015-04-21-at-8-06-58-pm-e1429674893146.png?w=660" medium="image">
+      <media:title type="html">Screen Shot 2015-04-21 at 8.06.58 pm</media:title>
+    </media:content>
+  </item>
+    <item>
+    <title>At a happy place</title>
+    <link>https://rishionrails.wordpress.com/2015/03/25/at-a-happy-place/</link>
+    <comments>https://rishionrails.wordpress.com/2015/03/25/at-a-happy-place/#comments</comments>
+    <pubDate>Wed, 25 Mar 2015 13:06:54 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[Uncategorized]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=374</guid>
+    <description><![CDATA[For the past 3 months I have been working on a side project. It is called &#8216;At a happy place&#8216;. Here is the link to it, athappyplace. The story behind this project goes on to my love for travelling and strangely more so of reading about travelling. I wanted to build a platform where folks [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=374&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>For the past 3 months I have been working on a side project. It is called &#8216;<strong>At a happy place</strong>&#8216;. Here is the link to it, <strong><a href="http://www.athappyplace.com" title="athappyplace" target="_blank">athappyplace</a></strong>.</p>
+<p>The story behind this project goes on to my love for travelling and strangely more so of reading about travelling. I wanted to build a platform where folks who like writing can share their stories and who like reading can enjoy these stories.</p>
+<p>But then there are already tons of blogs out there with this information. Yes, there are. And that is the problem. All those blogs and &#8217;10 places to see in India&#8217; kind-ish posts are not enjoyable to read. </p>
+<p>I want people to write about the places they loved, the one they never wanted to leave. I want people to write about their &#8216;Happy Places&#8217; which genuinely made them happy, and not because it was one of the must visit place. And such posts make for a good reading too. </p>
+<p>I wanted to build a product which is obviously dead simple to use, but also which reflects all those things I have mentioned and I think I have achieved that with <strong><a href="http://www.athappyplace.com" title="athappyplace" target="_blank">athappyplace</a></strong>.</p>
+<p>The project is open-source. Here is the <a href="http://github.com/rishijain/oneplaceaday" target="_blank">codebase</a>.<br />
+Would love to hear your thoughts&#8230;!!!</p>
+<blockquote><p>Happiness quite unshared can scarcely be called happiness; it has no taste.<br />
+― Charlotte Brontë</p></blockquote><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/374/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/374/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=374&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2015/03/25/at-a-happy-place/feed/</wfw:commentRss>
+    <slash:comments>0</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+  </item>
+    <item>
+    <title>Nested module definitions</title>
+    <link>https://rishionrails.wordpress.com/2015/01/29/nested-module-definitions/</link>
+    <comments>https://rishionrails.wordpress.com/2015/01/29/nested-module-definitions/#comments</comments>
+    <pubDate>Thu, 29 Jan 2015 20:33:14 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[modules]]></category>
+    <category><![CDATA[rails]]></category>
+    <category><![CDATA[ruby]]></category>
+    <category><![CDATA[autoloading]]></category>
+    <category><![CDATA[nestedmodules]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=357</guid>
+    <description><![CDATA[When we define nested modules like this: and when we do like this: Even though both method calls to print_const looks same, and should return same result. But it returns different values of the constant. Reason: When you do this in first case: and this gives: So ruby looks for the constant X in the [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=357&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>When we define nested modules like this:</p>
+<pre class="brush: ruby; title: ; notranslate">
+module A
+  X = 1
+  module B
+    X = 2
+    module C
+      def self.print_const
+        puts X
+      end
+    end
+  end
+end
+</pre>
+<pre class="brush: ruby; title: ; notranslate">
+  A::B::C.print_const  =&gt; 2
+</pre>
+<p>and when we do like this:</p>
+<pre class="brush: ruby; title: ; notranslate">
+module A
+  X = 1
+  module B
+    X = 2
+  end
+end
+
+module A
+  module B::C
+    def self.print_const
+      puts X
+    end
+  end
+end
+</pre>
+<pre class="brush: ruby; title: ; notranslate">
+  A::B::C.print_const  =&gt; 1
+</pre>
+<p>Even though both method calls to print_const looks same, and should return same result. But it returns different values of the constant.</p>
+<p><strong>Reason:</strong><br />
+When you do this in first case:</p>
+<pre class="brush: ruby; title: ; notranslate">
+module A
+  X = 1
+  module B
+    X = 2
+    module C
+      puts Module.nesting
+    end
+  end
+end
+</pre>
+<p>and this gives:</p>
+<pre class="brush: ruby; title: ; notranslate">
+[A::B::C, A::B, A]
+</pre>
+<p>So ruby looks for the constant X in the order as A::B::C, A::B, A. and it loads wherever it finds first, and as in our scenario, under module B.</p>
+<p>And in second scenario:</p>
+<pre class="brush: ruby; title: ; notranslate">
+module A
+  X = 1
+  module B
+    X = 2
+  end
+end
+
+module A
+  module B::C
+    puts Module.nesting
+  end
+end
+</pre>
+<p>and this gives:</p>
+<pre class="brush: ruby; title: ; notranslate">
+[A::B::C, A]
+</pre>
+<p>Here since the nesting of the module is different, it only search in A::B::C and A, skipping A::B. So it finds constant X under module A.</p><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/357/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/357/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=357&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2015/01/29/nested-module-definitions/feed/</wfw:commentRss>
+    <slash:comments>1</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+  </item>
+    <item>
+    <title>Blocks, Procs &#038; Lambdas revisited</title>
+    <link>https://rishionrails.wordpress.com/2015/01/11/blocks-procs-lambdas-revisited/</link>
+    <comments>https://rishionrails.wordpress.com/2015/01/11/blocks-procs-lambdas-revisited/#comments</comments>
+    <pubDate>Sun, 11 Jan 2015 19:52:09 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[blocks]]></category>
+    <category><![CDATA[lambdas]]></category>
+    <category><![CDATA[procs]]></category>
+    <category><![CDATA[ruby]]></category>
+    <category><![CDATA[lambda]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=341</guid>
+    <description><![CDATA[Blocks, Procs &#38; Lambdas are one of the most fun things in ruby but also very difficult to understand. This is my attempt to make these things a little simple for you. What are blocks? A piece of ruby code within a do..end or within curly braces {} is a block. For ex: or We [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=341&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>Blocks, Procs &amp; Lambdas are one of the most fun things in ruby but also very difficult to understand. This is my attempt to make these things a little simple for you.</p>
+<p><strong>What are blocks?</strong></p>
+<p>A piece of ruby code within a do..end or within curly braces {} is a block. For ex:</p>
+<pre class="brush: plain; title: ; notranslate">
+[1,2,3,'a'].select do |d|
+  d.is_a?Integer
+end
+</pre>
+<p>or</p>
+<pre class="brush: plain; title: ; notranslate">
+[1,2,3,'a'].select {|d| d.is_a?Integer}
+</pre>
+<blockquote><p>We should also notice here that blocks breaks one of the most basic and yet powerful fundamentals of ruby that everything in ruby is an object. Well blocks are not objects. They are just piece of ruby code.</p></blockquote>
+<p>Now imagine when we have more than 1 array to select only the integer values. Ex:</p>
+<pre class="brush: plain; title: ; notranslate">
+[1, 2, 3, 'a'].select {|d| d.is_a?Integer}
+['b', 'c', 5].select {|d| d.is_a?Integer}
+['a', nil, 4 ].select {|d| d.is_a?Integer}
+</pre>
+<p>This is not very ruby like. We clearly breaks the DRY(Do not repeat yourself) rule. We are repeatedly writing the same block of code again and again. Now only if we could somehow save the block of code in a variable. Enter Proc.</p>
+<p><strong>What is a Proc?</strong><br />
+In most simple way, Procs are named blocks. For ex:</p>
+<pre class="brush: plain; title: ; notranslate">
+p = Proc.new {|d| d.is_a?Integer}</pre>
+<pre class="brush: plain; title: ; notranslate">
+puts p.class =&gt; Proc
+</pre>
+<p>So p is an object of class Proc unlike blocks.<br />
+Now we know how to save a block of code in a variable, lets use that knowledge to make our code dry.</p>
+<pre class="brush: plain; title: ; notranslate">
+[1, 2, 3, 'a'].select(&amp;p)
+['b', 'c', 5].select(&amp;p)
+['a', nil, 4 ].select(&amp;p)
+</pre>
+<p>Then, what about lambda.</p>
+<p><strong>What is a lambda?</strong><br />
+Lambda is just like a proc with very subtle differences between them. But before we get there, lets see how do we declare a lambda and how to use it. Ex:</p>
+<pre class="brush: plain; title: ; notranslate">
+p = lambda {|d| d.is_a?Integer}
+puts p.class =&gt; Proc
+</pre>
+<pre class="brush: plain; title: ; notranslate">
+[1, 2, 3, 'a'].select(&amp;p)
+['b', 'c', 5].select(&amp;p)
+['a', nil, 4 ].select(&amp;p)
+</pre>
+<p>Yes, lambda and proc both belong to class Proc.</p>
+<p>Then, is there any difference between them?</p>
+<p><strong>Difference between proc and lambda:</strong></p>
+<p>1. Proc do not care about the number of arguments passed. It assigns nil to any missing argument.<br />
+Ex:</p>
+<pre class="brush: plain; title: ; notranslate">
+p = Proc.new {|d| p d.class}
+p.call =&gt; NilClass
+p.call(3) =&gt; Fixnum
+</pre>
+<p>But had it been a lambda,</p>
+<pre class="brush: plain; title: ; notranslate">
+p = lambda {|d| p d.class}
+p.call would raise
+ArgumentError: wrong number of arguments (0 for 1)
+</pre>
+<p>, as it cares about its arguments unlike Procs.</p>
+<p>2. when lambda is called, it returns control back to the calling method. Whereas Proc does not go back to the calling method. Ex:</p>
+<pre class="brush: plain; title: ; notranslate">
+def test_proc
+  p = Proc.new {return 'In proc'}
+  p.call
+  'In test_proc method'
+end
+</pre>
+<pre class="brush: plain; title: ; notranslate">
+test_proc=&gt; 'In proc'
+</pre>
+<pre class="brush: plain; title: ; notranslate">
+def test_lambda
+  p = lambda {return 'In lambda'}
+  p.call
+  'In test_lambda method'
+end
+</pre>
+<pre class="brush: plain; title: ; notranslate">
+test_lambda=&gt; 'In test_lambda method'
+</pre>
+<p>I hope this would make understanding these concepts a little bit easier.</p><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/341/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/341/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=341&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2015/01/11/blocks-procs-lambdas-revisited/feed/</wfw:commentRss>
+    <slash:comments>1</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+  </item>
+    <item>
+    <title>Recap of 2014</title>
+    <link>https://rishionrails.wordpress.com/2014/12/31/recap-of-2014/</link>
+    <comments>https://rishionrails.wordpress.com/2014/12/31/recap-of-2014/#comments</comments>
+    <pubDate>Wed, 31 Dec 2014 15:52:53 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[#2015]]></category>
+    <category><![CDATA[#newyearresolutions]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=330</guid>
+    <description><![CDATA[As I am writing this, MS Dhoni fans all over are still recovering from his sudden but timely announcement from test cricket. It has not been good few years for MS test cricket wise. But 2014 has been kind to me if not the best ever. On professional front, I have spoken at 4 conferences. [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=330&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>As I am writing this, MS Dhoni fans all over are still recovering from his sudden but timely announcement from test cricket. It has not been good few years for MS test cricket wise. But 2014 has been kind to me if not the best ever.</p>
+<p>On professional front, I have spoken at 4 conferences. These conferences took me to Goa, Pune, Sau Paulo, Rio De Janeiro, Chicago and San Francisco. I almost made it to Argentina also, but only the sloppiness of the conference organisers stopped that from happening. But never the less, it is a decent start for someone who has never spoken at conference before. I truly realised the value of open source software. My work involves around open source, but I never appreciated the efforts of all those developers so much before. I do now. And not only this, I made it to the list of <a href="http://contributors.rubyonrails.org/releases/4-2-0/contributors" target="_blank">Rails contributors</a>. I have also contributed to few other projects. And it was not just about work at office. We have had some fun moments here. Also, not a big deal, but I am the FIFA champion until the next tournament happens at Josh(yeahh&#8230; I have the bragging rights until then).</p>
+<p><a href="https://rishionrails.files.wordpress.com/2014/12/josh.jpg"><img class="  wp-image-336 aligncenter" src="https://rishionrails.files.wordpress.com/2014/12/josh.jpg?w=621&#038;h=419" alt="josh" width="621" height="419" /></a></p>
+<p>On personal front, It has been full of ups and downs. I got a chance to stay with my sister for almost 2 months. That was the most special moment for me in 2014. We have not lived that long together for almost 8 years. Also had super fun with my brother-in-law. All of these made my parents really happy. I must admit, I had never thought highly of Chicago. But I like Chicago now, though San Francisco is still my favourite.</p>
+<p><a href="https://rishionrails.files.wordpress.com/2014/12/img_0342.jpg"><img class="  wp-image-333 aligncenter" src="https://rishionrails.files.wordpress.com/2014/12/img_0342.jpg?w=356&#038;h=341" alt="IMG_0342" width="356" height="341" /></a></p>
+<p>As a child I always wanted to see the Golden Gate. I went to San Francisco this year. So there was no way I could have missed the golden opportunity. And I was so amazed by the beauty of it that I spent good 3-4 hours there.</p>
+<p><a href="https://rishionrails.files.wordpress.com/2014/12/img_20140916_145146.jpg"><img class="  wp-image-331 aligncenter" src="https://rishionrails.files.wordpress.com/2014/12/img_20140916_145146.jpg?w=642&#038;h=488" alt="IMG_20140916_145146" width="642" height="488" /></a></p>
+<p>So all in all, 2014 was a good year. Travelled, made some friends along the way. But there is a lot that I am looking forward to in 2015. Looking forward to a new special member joining the family, sticking to my <a href="https://rishionrails.wordpress.com/2014/11/20/my-new-year-resolutions-in-november/" target="_blank">new year resolutions</a>, and a very successful year for India.</p>
+<p>A very Happy New Year to everyone <span class='wp-smiley wp-emoji wp-emoji-smile' title=':)'>:)</span></p>
+<p>Cheers.!!</p><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/330/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/330/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=330&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2014/12/31/recap-of-2014/feed/</wfw:commentRss>
+    <slash:comments>0</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2014/12/josh.jpg?w=300" medium="image">
+      <media:title type="html">josh</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2014/12/img_0342.jpg?w=300" medium="image">
+      <media:title type="html">IMG_0342</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2014/12/img_20140916_145146.jpg?w=300" medium="image">
+      <media:title type="html">IMG_20140916_145146</media:title>
+    </media:content>
+  </item>
+    <item>
+    <title>My New Year Resolutions in November.</title>
+    <link>https://rishionrails.wordpress.com/2014/11/20/my-new-year-resolutions-in-november/</link>
+    <comments>https://rishionrails.wordpress.com/2014/11/20/my-new-year-resolutions-in-november/#comments</comments>
+    <pubDate>Thu, 20 Nov 2014 07:22:41 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[#2015]]></category>
+    <category><![CDATA[#newyearresolutions]]></category>
+    <category><![CDATA[learning]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=323</guid>
+    <description><![CDATA[It is just November. And I want to make my new year resolutions today. And I do not want to wait for new years to do things I want to do. And I want to stick to them. So here goes: 1. Understand computer networks. 2. Stick to one side-project. 3. Do more open-source contributions. [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=323&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>It is just November. And I want to make my new year resolutions today. And I do not want to wait for new years to do things I want to do. And I want to stick to them.  So here goes:</p>
+<p>1. Understand computer networks.<br />
+2. Stick to one side-project.<br />
+3. Do more open-source contributions.<br />
+4. Read at least 4 books and at max 6 books(has to be non-technincal) until my next birthday (i.e Nov 15, 2015).</p>
+<p>I will spend the next few days to research about the best books to read for understanding computer networks. I will also find out the first book(1st of the 4) which I want to start with. And will also decide on a side project. I already have an idea, I just have to find out if it will really solve a problem. Lets just say it is in stealth mode.<br />
+And for open-source contributions, I already know few projects I want to contribute to.<br />
+If you have any suggestions for books to read, please mention them in comments. I will be grateful.</p>
+<p>This all sounds too much to pull-off, but if I could, it will turn out to be an awesome year.</p><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/323/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/323/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=323&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2014/11/20/my-new-year-resolutions-in-november/feed/</wfw:commentRss>
+    <slash:comments>11</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+  </item>
+    <item>
+    <title>Contributing to Open-Source Projects</title>
+    <link>https://rishionrails.wordpress.com/2014/11/09/contributing-to-open-source-projects/</link>
+    <comments>https://rishionrails.wordpress.com/2014/11/09/contributing-to-open-source-projects/#comments</comments>
+    <pubDate>Sun, 09 Nov 2014 08:59:40 +0000</pubDate>
+    <dc:creator><![CDATA[Rishi]]></dc:creator>
+        <category><![CDATA[opensource]]></category>
+    <category><![CDATA[rails]]></category>
+    <category><![CDATA[ruby]]></category>
+    <category><![CDATA[rubyonrails]]></category>
+
+    <guid isPermaLink="false">http://rishionrails.wordpress.com/?p=294</guid>
+    <description><![CDATA[Today I would like to share what I have learned from the very little open-source contributions I have made so far. But before I do that, I would like to write a little bit about myself. I am ruby on rails developer at JoshSoftware for the past 3 years. Before that I was studying Electronics [&#8230;]<img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=294&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></description>
+        <content:encoded><![CDATA[<p>Today I would like to share what I have learned from the very little open-source contributions I have made so far. But before I do that, I would like to write a little bit about myself. I am ruby on rails developer at <a href="http://www.joshsoftware.com" target="_blank">JoshSoftware</a> for the past 3 years. Before that I was studying Electronics in Pune Institute of Computer Technology, Pune. Yes.. you read that right. I was an electronics student in computers college. The reason I am laying out the details is, I do not want you to think that I am some big shot who has been working for a decade. I am just a guy who likes to write programs and do web development.</p>
+<p>So, here is the list of hurdles I came across until I made my first open-source contribution:</p>
+<p><strong>1. Which projects should I contribute to?</strong><br />
+Thats a valid question. There are tons of projects out there. How do I find out about these projects? In my case I have been very fortunate to work on open-source technologies, and at a company that promotes doing contributions. My daily work tool involves ruby which is an open-sourced language and rails an open-source framework. Starting with ruby, when I say I code in ruby, it also heavily involves using gems (aka libraries). As of today, there are 91,349 gems hosted on <a href="https://rubygems.org" target="_blank">rubgems.org</a>. That means I have at least 91,349 open-source projects to contribute on. And rails, I think contributing to rails is so easy, not because the code is simple to understand, it is not. But because of the community. Everyone helps you out if you are stuck at something. Here is an example:<br />
+I had sent a pull request with different commits. I had added example for squish method, remove method and a test case for that.<br />
+<a href="https://rishionrails.files.wordpress.com/2014/11/os1.png"><img class="alignnone size-full wp-image-296" src="https://rishionrails.files.wordpress.com/2014/11/os1.png?w=1120" alt="os1"   /></a><br />
+In my diff, you can see there is an extra line added which is not needed. And <a href="https://twitter.com/_zzak" target="_blank">Zachary Scott</a> , a member of rails core team, asks me to remove that extra line.</p>
+<p>Now, I also saw that extra line while submitting the pull request, but I just ignored it. Because I did not knew why that line came even after I have not added it. So I send him a screenshot of the code at my end that I have no extra line break.<br />
+<a href="https://rishionrails.files.wordpress.com/2014/11/os2.png"><img class="alignnone size-full wp-image-297" src="https://rishionrails.files.wordpress.com/2014/11/os2.png?w=1120" alt="os2"   /></a></p>
+<p>And then <a href="https://github.com/eileencodes" target="_blank">Eileen M. Uchitelle</a> came to my rescue, who I have never met in person and she has nothing to do with the pull request that I have sent, but she still helped me out. See it here:<br />
+<a href="https://rishionrails.files.wordpress.com/2014/11/os3.png"><img class="alignnone size-full wp-image-298" src="https://rishionrails.files.wordpress.com/2014/11/os3.png?w=1120" alt="os3"   /></a><br />
+So it was not a new line, but an extra space or a tab.</p>
+<p>Now, another rails committer <a href="https://github.com/vijaydev" target="_blank">Vijay Dev</a> gets involved with the PR, and asks me to squash all commits into 1 big commit. I did that and I sent a new PR with squashed commits. And then <a href="https://github.com/seuros" target="_blank">Abdelkader Boudih</a>, who is also part of the rails core team, asks me to force push it. It is exactly the reason I sent a new PR because I wanted to avoid force push.<br />
+<a href="https://rishionrails.files.wordpress.com/2014/11/os4.png"><img class="alignnone size-full wp-image-299" src="https://rishionrails.files.wordpress.com/2014/11/os4.png?w=1120" alt="os4"   /></a><br />
+And then he asks me to remove the &#8220;[ci skip]&#8221; tag from the commit. Because I have added a new test case. In case you do not know, if you have made changes like changing documentation, then there is no need to run the test cases for such PR. But I have a new test case, so I had to remove the ci skip tag.<br />
+<a href="https://rishionrails.files.wordpress.com/2014/11/os5.png"><img class="alignnone size-full wp-image-300" src="https://rishionrails.files.wordpress.com/2014/11/os5.png?w=1120" alt="os5"   /></a></p>
+<p>So, you can clearly see the mistakes I have made, and how everyone helped out. Here is the <a href="https://github.com/rails/rails/pull/17526" target="_blank">PR</a>.</p>
+<p><strong>2. Am I good enough?</strong><br />
+It is something that I still ask to myself. Am I good enough to contribute to somebody else&#8217;s project, may be I should work for 5 more years and then I will make contributions. But believe me, you are good enough to contribute to any project you like from the day you start writing that &#8220;hello world&#8221; program in your favourite language. The only regret that I have is why did I start so late &#8230; why it took me at least 2 years to make that first contribution. Because contributing to open-source projects is not just about sending a PR for a new feature that you wish to see or fixing a critical bug which nobody seems to solve. There is so much more to it. You can help out in documentation, you can add comments to methods explaining what they do or you can fix failing test case or add a new one which you think the author has missed.</p>
+<p>One of the best ways to start contributing is by observing what kind of pull requests other developers send, and you will start finding a pattern in those which will help you send your first PR.</p>
+<p><strong>3. What will I gain from it?</strong><br />
+Satisfaction, Recognition, Learning. These were the main reasons I started contributing in the first place.</p>
+<p>I think these are the main hurdles I faced.I hope this blog post helps some of you and you can avoid the mistakes I have made. And it would be great, if you could share your experience of contributing to open-source projects. Mention it in comments or tweet me at <a href="https://twitter.com/jainrishi15" target="_blank">jainrishi15</a> if you have a similar post and I will try to include it in the blog post.</p>
+<p><strong>UPDATE:</strong><br />
+I came across <a href="https://blog.engineyard.com/2014/contribute-to-ruby?utm_source=rubyweekly&amp;utm_medium=email">this post</a> by PJ Hagerty which is about how and why to contribute to ruby.</p><br />  <a rel="nofollow" href="http://feeds.wordpress.com/1.0/gocomments/rishionrails.wordpress.com/294/"><img alt="" border="0" src="http://feeds.wordpress.com/1.0/comments/rishionrails.wordpress.com/294/" /></a> <img alt="" border="0" src="https://pixel.wp.com/b.gif?host=rishionrails.wordpress.com&#038;blog=41011324&#038;post=294&#038;subd=rishionrails&#038;ref=&#038;feed=1" width="1" height="1" />]]></content:encoded>
+      <wfw:commentRss>https://rishionrails.wordpress.com/2014/11/09/contributing-to-open-source-projects/feed/</wfw:commentRss>
+    <slash:comments>1</slash:comments>
+  
+    <media:content url="https://0.gravatar.com/avatar/6e6a476be4033a81ead8e6c2e496e8f5?s=96&#38;d=identicon&#38;r=G" medium="image">
+      <media:title type="html">jainrishi37</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2014/11/os1.png" medium="image">
+      <media:title type="html">os1</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2014/11/os2.png" medium="image">
+      <media:title type="html">os2</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2014/11/os3.png" medium="image">
+      <media:title type="html">os3</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2014/11/os4.png" medium="image">
+      <media:title type="html">os4</media:title>
+    </media:content>
+
+    <media:content url="https://rishionrails.files.wordpress.com/2014/11/os5.png" medium="image">
+      <media:title type="html">os5</media:title>
+    </media:content>
+  </item>
+  </channel>
+</rss>

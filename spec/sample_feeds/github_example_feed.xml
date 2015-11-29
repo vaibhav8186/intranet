@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:/abhishekbose87</id>
+  <link type="text/html" rel="alternate" href="https://github.com/abhishekbose87"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/abhishekbose87.atom"/>
+  <title>abhishekbose87’s Activity</title>
+  <updated>2015-08-25T06:20:38Z</updated>
+  <entry>
+    <id>tag:github.com,2008:IssueCommentEvent/3086693817</id>
+    <published>2015-08-25T06:20:38Z</published>
+    <updated>2015-08-25T06:20:38Z</updated>
+    <link type="text/html" rel="alternate" href="https://github.com/joshsoftware/intranet/pull/80#issuecomment-134493715"/>
+    <title type="html">abhishekbose87 commented on pull request joshsoftware/intranet#80</title>
+    <author>
+      <name>abhishekbose87</name>
+      <uri>https://github.com/abhishekbose87</uri>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars2.githubusercontent.com/u/3888224?v=3&amp;s=30"/>
+    <content type="html">&lt;!-- issue_comment --&gt;
+&lt;span class=&quot;mega-octicon octicon-comment-discussion&quot;&gt;&lt;/span&gt;
+
+&lt;div class=&quot;time&quot;&gt;
+  &lt;time datetime=&quot;2015-08-25T06:20:38Z&quot; is=&quot;relative-time&quot;&gt;Aug 25, 2015&lt;/time&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;title&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot; data-ga-click=&quot;News feed, event click, Event click type:IssueCommentEvent target:actor&quot;&gt;abhishekbose87&lt;/a&gt; commented on pull request &lt;a href=&quot;/joshsoftware/intranet/pull/80#issuecomment-134493715&quot; data-ga-click=&quot;News feed, event click, Event click type:IssueCommentEvent target:issue-comment&quot; title=&quot;Add GitHub blog feed to user profile&quot;&gt;joshsoftware/intranet#80&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;details&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot;&gt;&lt;img alt=&quot;@abhishekbose87&quot; class=&quot;gravatar&quot; height=&quot;30&quot; src=&quot;https://avatars3.githubusercontent.com/u/3888224?v=3&amp;amp;s=60&quot; width=&quot;30&quot; /&gt;&lt;/a&gt;
+  &lt;div class=&quot;message markdown-body&quot;&gt;
+    &lt;blockquote&gt;
+      &lt;p&gt;&lt;a href=&quot;https://github.com/Shwetakale&quot; class=&quot;user-mention&quot;&gt;@Shwetakale&lt;/a&gt; Delete the old pull request. Also let me write test cases and then you merge it.&lt;/p&gt;
+    &lt;/blockquote&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:PullRequestEvent/3086692513</id>
+    <published>2015-08-25T06:19:48Z</published>
+    <updated>2015-08-25T06:19:48Z</updated>
+    <link type="text/html" rel="alternate" href="https://github.com/joshsoftware/intranet/pull/80"/>
+    <title type="html">abhishekbose87 opened pull request joshsoftware/intranet#80</title>
+    <author>
+      <name>abhishekbose87</name>
+      <uri>https://github.com/abhishekbose87</uri>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars2.githubusercontent.com/u/3888224?v=3&amp;s=30"/>
+    <content type="html">&lt;!-- pull_request --&gt;
+&lt;span class=&quot;mega-octicon octicon-git-pull-request&quot;&gt;&lt;/span&gt;
+
+&lt;div class=&quot;time&quot;&gt;
+  &lt;time datetime=&quot;2015-08-25T06:19:48Z&quot; is=&quot;relative-time&quot;&gt;Aug 25, 2015&lt;/time&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;title&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot; data-ga-click=&quot;News feed, event click, Event click type:PullRequestEvent target:actor&quot;&gt;abhishekbose87&lt;/a&gt; opened pull request &lt;a href=&quot;/joshsoftware/intranet/pull/80&quot; data-ga-click=&quot;News feed, event click, Event click type:PullRequestEvent target:pull&quot;&gt;joshsoftware/intranet#80&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;details&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot;&gt;&lt;img alt=&quot;@abhishekbose87&quot; class=&quot;gravatar&quot; height=&quot;30&quot; src=&quot;https://avatars3.githubusercontent.com/u/3888224?v=3&amp;amp;s=60&quot; width=&quot;30&quot; /&gt;&lt;/a&gt;
+  &lt;div class=&quot;message&quot;&gt;
+    &lt;blockquote&gt;Add GitHub blog feed to user profile&lt;/blockquote&gt;
+      &lt;div class=&quot;pull-info&quot;&gt;
+        &lt;span class=&quot;octicon octicon-git-commit&quot;&gt;&lt;/span&gt;
+        &lt;em&gt;4&lt;/em&gt; commits with
+        &lt;em&gt;844&lt;/em&gt; additions and
+        &lt;em&gt;15&lt;/em&gt; deletions
+      &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:CreateEvent/3086687738</id>
+    <published>2015-08-25T06:16:56Z</published>
+    <updated>2015-08-25T06:16:56Z</updated>
+    <link type="text/html" rel="alternate" href="https://github.com/abhishekbose87/intranet/compare/add-github-blog-feed-to-user-profile"/>
+    <title type="html">abhishekbose87 created branch add-github-blog-feed-to-user-profile at abhishekbose87/intranet</title>
+    <author>
+      <name>abhishekbose87</name>
+      <uri>https://github.com/abhishekbose87</uri>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars2.githubusercontent.com/u/3888224?v=3&amp;s=30"/>
+    <content type="html">&lt;!-- create --&gt;
+&lt;div class=&quot;simple&quot;&gt;
+  &lt;span class=&quot;octicon octicon-git-branch&quot;&gt;&lt;/span&gt;
+
+  &lt;div class=&quot;title&quot;&gt;
+    &lt;a href=&quot;/abhishekbose87&quot; data-ga-click=&quot;News feed, event click, Event click type:CreateEvent target:actor&quot;&gt;abhishekbose87&lt;/a&gt; created branch &lt;a href=&quot;/abhishekbose87/intranet/tree/add-github-blog-feed-to-user-profile&quot; class=&quot;css-truncate css-truncate-target branch-name&quot; data-ga-click=&quot;News feed, event click, Event click type:CreateEvent target: branch link&quot; title=&quot;add-github-blog-feed-to-user-profile&quot;&gt;add-github-blog-feed-to-user-profile&lt;/a&gt; at &lt;a href=&quot;/abhishekbose87/intranet&quot; data-ga-click=&quot;News feed, event click, Event click type:CreateEvent target:repo&quot;&gt;abhishekbose87/intranet&lt;/a&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;time&quot;&gt;
+    &lt;time datetime=&quot;2015-08-25T06:16:56Z&quot; is=&quot;relative-time&quot;&gt;Aug 25, 2015&lt;/time&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:PushEvent/3024343484</id>
+    <published>2015-08-02T14:32:12Z</published>
+    <updated>2015-08-02T14:32:12Z</updated>
+    <link type="text/html" rel="alternate" href="https://github.com/abhishekbose87/pomarity-new/compare/cd44fa8c35...c7567d192e"/>
+    <title type="html">abhishekbose87 pushed to master at abhishekbose87/pomarity-new</title>
+    <author>
+      <name>abhishekbose87</name>
+      <uri>https://github.com/abhishekbose87</uri>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars2.githubusercontent.com/u/3888224?v=3&amp;s=30"/>
+    <content type="html">&lt;!-- push --&gt;
+&lt;span class=&quot;mega-octicon octicon-git-commit&quot;&gt;&lt;/span&gt;
+
+&lt;div class=&quot;time&quot;&gt;
+  &lt;time datetime=&quot;2015-08-02T14:32:12Z&quot; is=&quot;relative-time&quot;&gt;Aug 2, 2015&lt;/time&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;title&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:actor&quot;&gt;abhishekbose87&lt;/a&gt; pushed to &lt;a href=&quot;/abhishekbose87/pomarity-new/tree/master&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:branch&quot;&gt;master&lt;/a&gt; at &lt;a href=&quot;/abhishekbose87/pomarity-new&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:repo&quot;&gt;abhishekbose87/pomarity-new&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;details&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot;&gt;&lt;img alt=&quot;@abhishekbose87&quot; class=&quot;gravatar&quot; height=&quot;30&quot; src=&quot;https://avatars3.githubusercontent.com/u/3888224?v=3&amp;amp;s=60&quot; width=&quot;30&quot; /&gt;&lt;/a&gt;
+
+    &lt;div class=&quot;commits pusher-is-only-committer&quot;&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          &lt;span title=&quot;abhishekbose87&quot;&gt;
+            &lt;img alt=&quot;@abhishekbose87&quot; height=&quot;16&quot; src=&quot;https://avatars2.githubusercontent.com/u/3888224?v=3&amp;amp;s=32&quot; width=&quot;16&quot; /&gt;
+          &lt;/span&gt;
+          &lt;code&gt;&lt;a href=&quot;/abhishekbose87/pomarity-new/commit/c7567d192ebfde9c2576dbd66562c420db6952c8&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:sha&quot;&gt;c7567d1&lt;/a&gt;&lt;/code&gt;
+          &lt;div class=&quot;message&quot;&gt;
+            &lt;blockquote&gt;
+              Fix bug when there is no data
+            &lt;/blockquote&gt;
+          &lt;/div&gt;
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:PushEvent/3024340411</id>
+    <published>2015-08-02T14:28:07Z</published>
+    <updated>2015-08-02T14:28:07Z</updated>
+    <link type="text/html" rel="alternate" href="https://github.com/abhishekbose87/pomarity-new/compare/efa712a3bc...cd44fa8c35"/>
+    <title type="html">abhishekbose87 pushed to master at abhishekbose87/pomarity-new</title>
+    <author>
+      <name>abhishekbose87</name>
+      <uri>https://github.com/abhishekbose87</uri>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars2.githubusercontent.com/u/3888224?v=3&amp;s=30"/>
+    <content type="html">&lt;!-- push --&gt;
+&lt;span class=&quot;mega-octicon octicon-git-commit&quot;&gt;&lt;/span&gt;
+
+&lt;div class=&quot;time&quot;&gt;
+  &lt;time datetime=&quot;2015-08-02T14:28:07Z&quot; is=&quot;relative-time&quot;&gt;Aug 2, 2015&lt;/time&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;title&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:actor&quot;&gt;abhishekbose87&lt;/a&gt; pushed to &lt;a href=&quot;/abhishekbose87/pomarity-new/tree/master&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:branch&quot;&gt;master&lt;/a&gt; at &lt;a href=&quot;/abhishekbose87/pomarity-new&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:repo&quot;&gt;abhishekbose87/pomarity-new&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;details&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot;&gt;&lt;img alt=&quot;@abhishekbose87&quot; class=&quot;gravatar&quot; height=&quot;30&quot; src=&quot;https://avatars3.githubusercontent.com/u/3888224?v=3&amp;amp;s=60&quot; width=&quot;30&quot; /&gt;&lt;/a&gt;
+
+    &lt;div class=&quot;commits pusher-is-only-committer&quot;&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          &lt;span title=&quot;abhishekbose87&quot;&gt;
+            &lt;img alt=&quot;@abhishekbose87&quot; height=&quot;16&quot; src=&quot;https://avatars2.githubusercontent.com/u/3888224?v=3&amp;amp;s=32&quot; width=&quot;16&quot; /&gt;
+          &lt;/span&gt;
+          &lt;code&gt;&lt;a href=&quot;/abhishekbose87/pomarity-new/commit/cd44fa8c350fc16d7127793e5921fee2e0501682&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:sha&quot;&gt;cd44fa8&lt;/a&gt;&lt;/code&gt;
+          &lt;div class=&quot;message&quot;&gt;
+            &lt;blockquote&gt;
+              Add rails_12factor gem
+            &lt;/blockquote&gt;
+          &lt;/div&gt;
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:PushEvent/3024331220</id>
+    <published>2015-08-02T14:15:43Z</published>
+    <updated>2015-08-02T14:15:43Z</updated>
+    <link type="text/html" rel="alternate" href="https://github.com/abhishekbose87/pomarity-new/compare/058af7c4c7...efa712a3bc"/>
+    <title type="html">abhishekbose87 pushed to master at abhishekbose87/pomarity-new</title>
+    <author>
+      <name>abhishekbose87</name>
+      <uri>https://github.com/abhishekbose87</uri>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars2.githubusercontent.com/u/3888224?v=3&amp;s=30"/>
+    <content type="html">&lt;!-- push --&gt;
+&lt;span class=&quot;mega-octicon octicon-git-commit&quot;&gt;&lt;/span&gt;
+
+&lt;div class=&quot;time&quot;&gt;
+  &lt;time datetime=&quot;2015-08-02T14:15:43Z&quot; is=&quot;relative-time&quot;&gt;Aug 2, 2015&lt;/time&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;title&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:actor&quot;&gt;abhishekbose87&lt;/a&gt; pushed to &lt;a href=&quot;/abhishekbose87/pomarity-new/tree/master&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:branch&quot;&gt;master&lt;/a&gt; at &lt;a href=&quot;/abhishekbose87/pomarity-new&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:repo&quot;&gt;abhishekbose87/pomarity-new&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;details&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot;&gt;&lt;img alt=&quot;@abhishekbose87&quot; class=&quot;gravatar&quot; height=&quot;30&quot; src=&quot;https://avatars3.githubusercontent.com/u/3888224?v=3&amp;amp;s=60&quot; width=&quot;30&quot; /&gt;&lt;/a&gt;
+
+    &lt;div class=&quot;commits pusher-is-only-committer&quot;&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          &lt;span title=&quot;abhishekbose87&quot;&gt;
+            &lt;img alt=&quot;@abhishekbose87&quot; height=&quot;16&quot; src=&quot;https://avatars2.githubusercontent.com/u/3888224?v=3&amp;amp;s=32&quot; width=&quot;16&quot; /&gt;
+          &lt;/span&gt;
+          &lt;code&gt;&lt;a href=&quot;/abhishekbose87/pomarity-new/commit/efa712a3bc7d7f7a230afa0bc7ddde54d392de50&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:sha&quot;&gt;efa712a&lt;/a&gt;&lt;/code&gt;
+          &lt;div class=&quot;message&quot;&gt;
+            &lt;blockquote&gt;
+              Mention ruby version
+            &lt;/blockquote&gt;
+          &lt;/div&gt;
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:PushEvent/3024304448</id>
+    <published>2015-08-02T13:38:55Z</published>
+    <updated>2015-08-02T13:38:55Z</updated>
+    <link type="text/html" rel="alternate" href="https://github.com/abhishekbose87/pomarity-new/compare/f2a1fc831a...058af7c4c7"/>
+    <title type="html">abhishekbose87 pushed to master at abhishekbose87/pomarity-new</title>
+    <author>
+      <name>abhishekbose87</name>
+      <uri>https://github.com/abhishekbose87</uri>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars2.githubusercontent.com/u/3888224?v=3&amp;s=30"/>
+    <content type="html">&lt;!-- push --&gt;
+&lt;span class=&quot;mega-octicon octicon-git-commit&quot;&gt;&lt;/span&gt;
+
+&lt;div class=&quot;time&quot;&gt;
+  &lt;time datetime=&quot;2015-08-02T13:38:55Z&quot; is=&quot;relative-time&quot;&gt;Aug 2, 2015&lt;/time&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;title&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:actor&quot;&gt;abhishekbose87&lt;/a&gt; pushed to &lt;a href=&quot;/abhishekbose87/pomarity-new/tree/master&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:branch&quot;&gt;master&lt;/a&gt; at &lt;a href=&quot;/abhishekbose87/pomarity-new&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:repo&quot;&gt;abhishekbose87/pomarity-new&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;details&quot;&gt;
+  &lt;a href=&quot;/abhishekbose87&quot;&gt;&lt;img alt=&quot;@abhishekbose87&quot; class=&quot;gravatar&quot; height=&quot;30&quot; src=&quot;https://avatars3.githubusercontent.com/u/3888224?v=3&amp;amp;s=60&quot; width=&quot;30&quot; /&gt;&lt;/a&gt;
+
+    &lt;div class=&quot;commits pusher-is-only-committer&quot;&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          &lt;span title=&quot;abhishekbose87&quot;&gt;
+            &lt;img alt=&quot;@abhishekbose87&quot; height=&quot;16&quot; src=&quot;https://avatars2.githubusercontent.com/u/3888224?v=3&amp;amp;s=32&quot; width=&quot;16&quot; /&gt;
+          &lt;/span&gt;
+          &lt;code&gt;&lt;a href=&quot;/abhishekbose87/pomarity-new/commit/058af7c4c75d30bbfcbecf4d8002d3ec50121709&quot; data-ga-click=&quot;News feed, event click, Event click type:PushEvent target:sha&quot;&gt;058af7c&lt;/a&gt;&lt;/code&gt;
+          &lt;div class=&quot;message&quot;&gt;
+            &lt;blockquote&gt;
+              Mention ruby version
+            &lt;/blockquote&gt;
+          &lt;/div&gt;
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:CreateEvent/3023465014</id>
+    <published>2015-08-01T14:28:27Z</published>
+    <updated>2015-08-01T14:28:27Z</updated>
+    <link type="text/html" rel="alternate" href="https://github.com/abhishekbose87/pomarity-new/compare/master"/>
+    <title type="html">abhishekbose87 created branch master at abhishekbose87/pomarity-new</title>
+    <author>
+      <name>abhishekbose87</name>
+      <uri>https://github.com/abhishekbose87</uri>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars2.githubusercontent.com/u/3888224?v=3&amp;s=30"/>
+    <content type="html">&lt;!-- create --&gt;
+&lt;div class=&quot;simple&quot;&gt;
+  &lt;span class=&quot;octicon octicon-git-branch&quot;&gt;&lt;/span&gt;
+
+  &lt;div class=&quot;title&quot;&gt;
+    &lt;a href=&quot;/abhishekbose87&quot; data-ga-click=&quot;News feed, event click, Event click type:CreateEvent target:actor&quot;&gt;abhishekbose87&lt;/a&gt; created branch &lt;a href=&quot;/abhishekbose87/pomarity-new/tree/master&quot; class=&quot;css-truncate css-truncate-target branch-name&quot; data-ga-click=&quot;News feed, event click, Event click type:CreateEvent target: branch link&quot; title=&quot;master&quot;&gt;master&lt;/a&gt; at &lt;a href=&quot;/abhishekbose87/pomarity-new&quot; data-ga-click=&quot;News feed, event click, Event click type:CreateEvent target:repo&quot;&gt;abhishekbose87/pomarity-new&lt;/a&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;time&quot;&gt;
+    &lt;time datetime=&quot;2015-08-01T14:28:27Z&quot; is=&quot;relative-time&quot;&gt;Aug 1, 2015&lt;/time&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:CreateEvent/3023464712</id>
+    <published>2015-08-01T14:28:06Z</published>
+    <updated>2015-08-01T14:28:06Z</updated>
+    <link type="text/html" rel="alternate" href="https://github.com/abhishekbose87/pomarity-new"/>
+    <title type="html">abhishekbose87 created repository abhishekbose87/pomarity-new</title>
+    <author>
+      <name>abhishekbose87</name>
+      <uri>https://github.com/abhishekbose87</uri>
+    </author>
+    <media:thumbnail height="30" width="30" url="https://avatars2.githubusercontent.com/u/3888224?v=3&amp;s=30"/>
+    <content type="html">&lt;!-- create --&gt;
+&lt;div class=&quot;simple&quot;&gt;
+  &lt;span class=&quot;octicon octicon-repo&quot;&gt;&lt;/span&gt;
+
+  &lt;div class=&quot;title&quot;&gt;
+    &lt;a href=&quot;/abhishekbose87&quot; data-ga-click=&quot;News feed, event click, Event click type:CreateEvent target:actor&quot;&gt;abhishekbose87&lt;/a&gt; created repository &lt;a href=&quot;/abhishekbose87/pomarity-new&quot; data-ga-click=&quot;News feed, event click, Event click type:CreateEvent target:repository&quot; title=&quot;abhishekbose87/pomarity-new&quot;&gt;abhishekbose87/pomarity-new&lt;/a&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;time&quot;&gt;
+    &lt;time datetime=&quot;2015-08-01T14:28:06Z&quot; is=&quot;relative-time&quot;&gt;Aug 1, 2015&lt;/time&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</content>
+  </entry>
+</feed>
