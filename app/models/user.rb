@@ -36,7 +36,7 @@ class User
   has_and_belongs_to_many :schedules
   
   accepts_nested_attributes_for :attachments, reject_if: :all_blank, :allow_destroy => true
-  validates :email, format: {with: /\A.+@joshsoftware.com/, message: "Only Josh email-id is allowed."}
+  validates :email, format: {with: /\A.+@#{ORGANIZATION_DOMAIN}/, message: "Only #{ORGANIZATION_NAME} email-id is allowed."}
   validates :role, :email, presence: true
   validates_associated :employee_detail
 

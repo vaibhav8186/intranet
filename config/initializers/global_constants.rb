@@ -8,3 +8,6 @@ TSHIRT_SIZE = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
 PENDING = 'Pending'
 APPROVED = 'Approved'
 REJECTED = 'Rejected'
+
+ORGANIZATION_DOMAIN = 'joshsoftware.com'
+ORGANIZATION_NAME = 'Josh Software'
