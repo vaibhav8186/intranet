@@ -176,12 +176,20 @@ class UsersController < ApplicationController
 
   def get_github_feed
     handle = @user.public_profile.github_handle
+    @github_message = "#{@user.name} has not entered github handle yet!!" if handle.blank?
     return nil if handle.blank?
 
     xml_feed = Feedjira::Feed.fetch_raw "https://github.com/#{handle}.atom"
-    github_feed = Feedjira::Feed.parse xml_feed
 
-    return nil if github_feed.eql?(404) or github_feed.try(:entries).try(:blank?)
+    if xml_feed.eql?(404) 
+      @github_message = "The server has not found anything matching the URI given!!"
+      return nil
+    end
+
+    github_feed = Feedjira::Feed.parse xml_feed
+    
+    return nil if github_feed.try(:entries).try(:blank?)
+    
     if github_feed != 200
       github_commits = []
       github_feed.entries.each do |entry|
@@ -190,22 +198,31 @@ class UsersController < ApplicationController
       end
       github_commits
     else
-      []
+     @github_message = "No github entries found for #{@user.name}!!"
+     nil
     end
   end
 
   def get_blog_feed
     blog_url = @user.public_profile.blog_url
+    @blog_message = "#{@user.name} has not entered blog url yet!!" if blog_url.blank?
+   
     return if blog_url.blank?
 
     xml_feed = Feedjira::Feed.fetch_raw "#{blog_url}/feed"
+    if xml_feed.eql?(0) 
+      @blog_message = "The server has not found anything matching the URI given!!"
+      return nil
+    end
+    
     blog_feed = Feedjira::Feed.parse xml_feed
 
     return nil if blog_feed.try(:entries).try(:blank?)
     if blog_feed != 0
       blog_feed.entries[0..9]
     else
-      []
+      @blog_message = "No blog entries found for #{@user.name}!!" 
+      nil
     end
   end
 

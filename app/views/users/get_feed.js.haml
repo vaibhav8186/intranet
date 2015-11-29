@@ -3,12 +3,12 @@
     - if @github_entries.present?
       $("#github").html("#{escape_javascript(render(partial: 'users/github_profile', locals: {github_entries: @github_entries} ))}");
     - else
-      $("#github").html("No github entries found for this user")
+      $("#github").html("<h5><center>#{@github_message}</center></h5>")
   - when "blog"
     - if @blog_entries.present?
       $("#blog").html("#{escape_javascript(render(partial: 'users/blog_feed', locals: {blog_entries: @blog_entries} ))}");
     - else
-      $("#blog").html("No blog entries found for this user")
+      $("#blog").html("<h5><center>#{@blog_message}</center></h5>")
   - when "bonusly"
     - unless @not_found.eql?(true)
       $("#bonus-received").html("#{escape_javascript(render partial: 'users/bonusly_received', locals: {bonus_received: @bonus_received, user: @user})}");
