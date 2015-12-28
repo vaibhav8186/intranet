@@ -79,7 +79,7 @@ end
 gem 'simplecov', '~> 0.7.1'
 
 #BackGround Job processing instead of delayed_job
-gem 'sidekiq', '3.1.3'
+gem 'sidekiq'
 gem 'whenever'
 #gem for deploying to remote server
 gem 'mina', github: 'nadarei/mina'
