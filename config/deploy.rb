@@ -101,6 +101,7 @@ task :deploy => :environment do
     invoke :'deploy:link_shared_paths'
     invoke :'bundle:install'
     invoke :'rails:assets_precompile'
+    invoke :'deploy:cleanup'
 
     to :launch do
 
@@ -109,78 +110,13 @@ task :deploy => :environment do
         queue "cd #{deploy_to}/current && bundle exec rake db:mongoid:create_indexes RAILS_ENV=#{env}"
       end
 
-            
-
-      # SIDEKIQ restart
-            #queue "cd #{deploy_to}/current && nohup sidekiq -e RAILS_ENV=#{env} &"
-      #queue "sudo monit restart sidekiq"
-
       # Update whenever 
       unless nocron
         queue "cd #{deploy_to}/current && bundle exec whenever -i intranet_whenever_tasks --update-crontab --set 'environment=#{env}'"
       end
-
-      # Take backup if required
-      #if bkp
-      #  queue "export LC_ALL=C; /opt/mongo/bin/mongodump -d qwikcom_staging -o /data/bkp/#{Date.today.strftime("%Y%m%d")}.dump"
-      #end
-      
-      invoke 'application:restart'
+      queue "touch #{deploy_to}/#{current_path}/tmp/restart.txt"
+      queue "sudo monit restart sidekiq"
     end
+  end
+end
     
-       
-  end
-end
-namespace :passenger do
-  task :restart_passenger do
-    queue "touch #{deploy_to}/current/tmp/restart.txt"
-  end
-end
-
-namespace :nginx do
-  desc 'stop'
-  task :stop do
-    queue "sudo service nginx stop"
-  end
-
-  desc 'start'
-  task :start do
-    queue "sudo service nginx start"
-  end
-
-  desc 'restart'
-  task :restart do
-    invoke 'nginx:stop'
-    invoke 'nginx:start'
-  end
-end
-
-namespace :application do
-  desc 'Start the application'
-  task :start => :environment do
-    invoke 'passenger:restart_passenger'
-    #we need to stop & start the sidekiq server again
-    invoke :'sidekiq:quiet' 
-    invoke :'sidekiq:stop' 
-    invoke :'sidekiq:start'
-  end
-
-  desc 'Stop the application'
-  task :stop => :environment do
-    invoke :'sidekiq:quiet' 
-    invoke :'sidekiq:stop'
-  end
-
-  desc 'Restart the application'
-  task :restart => :environment do
-    invoke 'application:stop'
-    invoke 'application:start'
-  end
-end
-
-# For help in making your deploy script, see the Mina documentation:
-#
-#  - http://nadarei.co/mina
-#  - http://nadarei.co/mina/tasks
-#  - http://nadarei.co/mina/settings
-#  - http://nadarei.co/mina/helpers
