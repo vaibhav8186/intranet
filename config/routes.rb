@@ -3,6 +3,9 @@ Rails.application.routes.draw do
 
   mount RedactorRails::Engine => '/redactor_rails'
 
+  get '/auto-opt-in' => 'light/users#auto_opt_in', as: 'users/auto_opt_in'
+  get '/thank_you' => 'light/users#thank_you', as: 'users/thank_you'
+  post '/opt_in' => 'light/users#opt_in', as: 'users/opt_in'
   devise_for :users, controllers: { omniauth_callbacks: "omniauth_callbacks" }
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

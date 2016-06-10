@@ -107,7 +107,10 @@ gem 'authority'
 gem 'execjs'
 gem 'therubyracer', :platforms => :ruby
 gem 'light', git: 'git@github.com:joshsoftware/lightair.git', branch: 'engine'
+#gem 'light', path: '/home/shweta/project/light_air_engine/lightair'
 gem 'screamout', git: 'git@github.com:joshsoftware/screamout.git', branch: 'engine'
 gem 'mongoid_rateable', :git => 'git://github.com/PerfectMemory/mongoid_rateable.git'
 gem 'feedjira'
 gem 'rollbar'
+gem 'tinymce-rails'
+
