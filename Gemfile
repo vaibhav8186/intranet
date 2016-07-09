@@ -112,4 +112,4 @@ gem 'screamout', git: 'git@github.com:joshsoftware/screamout.git', branch: 'engi
 gem 'mongoid_rateable', :git => 'git://github.com/PerfectMemory/mongoid_rateable.git'
 gem 'feedjira'
 gem 'rollbar'
-
+gem 'aws-sdk'
