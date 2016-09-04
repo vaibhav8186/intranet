@@ -74,6 +74,11 @@ class UserMailer < ActionMailer::Base
     mail(subject: "New policy has been added",to: 'all@joshsoftware.com' )
   end
 
+  def database_backup(path, file_name)
+    attachments[file_name] = File.read("#{path}/#{file_name}")
+    mail(subject: 'Josh Intranet: Daily database backup', to: ADMIN_EMAILS)
+  end
+
   private
 
   def get_leave(id)
