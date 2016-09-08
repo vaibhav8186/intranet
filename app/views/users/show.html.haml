@@ -8,20 +8,20 @@
     %ul.nav.nav-tabs
       %li.active
         %a{"data-toggle" => "tab", :href => "#github"} Github
-      %li
-        %a{"data-toggle" => "tab", :href => "#bonus-received"} Bonus Received
-      %li
-        %a{"data-toggle" => "tab", :href => "#bonus-given"} Bonus Given
+      /%li
+      /%a{"data-toggle" => "tab", :href => "#bonus-received"} Bonus Received
+      /%li
+      /%a{"data-toggle" => "tab", :href => "#bonus-given"} Bonus Given
       %li
         %a{"data-toggle" => "tab", :href => "#blog"} Blog
 
     .tab-content
       .tab-pane.active#github
         Loading ..
-      .tab-pane#bonus-received
-        Loading ..
-      .tab-pane#bonus-given
-        Loading ..
+      /.tab-pane#bonus-received
+      /Loading ..
+      /.tab-pane#bonus-given
+      /Loading ..
       .tab-pane#blog
         Loading ..
 
@@ -37,11 +37,5 @@
   ).fail ->
    alert("Some error occurred while fetching blog feed")
    $("#blog").html("")
-  $.get("/users/" + user_id + "/get_feed/bonusly.js", ()->
-  ).done( ->
-  ).fail ->
-   alert("Some error occurred while fetching bonusly feed")
-   $("#bonus-received").html("");
-   $("#bonus-given").html("");
 
 
