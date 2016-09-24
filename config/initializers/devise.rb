@@ -34,7 +34,7 @@ Devise.setup do |config|
   # Configure which authentication keys should be case-insensitive.
   # These keys will be downcased upon creating or modifying a user and when used
   # to authenticate or find a user. Default is :email.
-  config.omniauth :google_oauth2, ENV['GOOGLE_API_CLIENT_ID'], ENV['GOOGLE_API_CLIENT_SECRET'], {scope: "userinfo.email userinfo.profile calendar drive https://spreadsheets.google.com/feeds", prompt: 'consent', access_type: 'offline'}
+  config.omniauth :google_oauth2, ENV['GOOGLE_API_CLIENT_ID'], ENV['GOOGLE_API_CLIENT_SECRET'], {scope: "userinfo.email userinfo.profile calendar drive https://spreadsheets.google.com/feeds", prompt: 'consent', access_type: 'offline', skip_jwt: true}
   config.case_insensitive_keys = [ :email ]
 
   # Configure which authentication keys should have whitespace stripped.
