@@ -19,10 +19,10 @@ gem 'simple_form', :git => 'git://github.com/plataformatec/simple_form.git'
 gem 'nested_form'
 gem "omniauth-google-oauth2"
 gem 'rnotifier'
-gem 'bootstrap-datepicker-rails'
+gem 'bootstrap-datepicker-rails', '1.3.0.2'
 gem 'colorbox-rails'
 gem 'google_drive'
-gem 'redactor-rails'
+gem 'redactor-rails', '0.4.5'
 gem 'mini_magick'
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'
