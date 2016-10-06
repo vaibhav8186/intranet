@@ -10,17 +10,17 @@ class Ability
     elsif user.role? 'HR'
       hr_abilities
     elsif user.role? 'Finance'
-      can [:public_profile, :private_profile, :edit, :apply_leave], User 
+      can [:public_profile, :private_profile, :edit, :apply_leave], User
     elsif user.role? 'Manager'
       can :manage, Project
-      can [:public_profile, :private_profile, :apply_leave], User 
+      can [:public_profile, :private_profile, :apply_leave], User
     elsif user.role? 'Employee'
-      employee_abilities(user.id) 
+      employee_abilities(user.id)
     elsif user.role? 'Intern'
-      intern_abilities   
+      intern_abilities
     end
   end
-  
+
   def common_admin_hr
     can :invite_user, User
     can :manage, [Project]
@@ -29,16 +29,18 @@ class Ability
     can :manage, LeaveApplication
     can :manage, Schedule
   end
-  
-  def intern_abilities 
+
+  def intern_abilities
     can [:public_profile, :private_profile], User
     can :read, [Policy, Attachment, Vendor]
-    can :read, Project 
+    can :read, Project
   end
-  
+
   def employee_abilities(user_id)
     can [:public_profile, :private_profile, :apply_leave], User, id: user_id
-    can [:index, :download_document], Attachment, user_id: user_id
+    can [:index, :download_document], Attachment do |attachment|
+      attachment.user_id == user_id || attachment.is_visible_to_all
+    end
     can :read, Policy
     can :read, Project
     cannot :manage, LeaveApplication
