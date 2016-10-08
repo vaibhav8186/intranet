@@ -331,10 +331,10 @@ GEM
     mongoid-paperclip (0.0.11)
       mongoid
       paperclip (>= 2.3.6, != 4.3.0)
-    mongoid-rspec (1.10.0)
-      mongoid (>= 3.0.1)
+    mongoid-rspec (2.2.0)
+      mongoid (~> 4.0.0)
       rake
-      rspec (>= 2.14)
+      rspec (~> 3.1)
     mongoid_slug (3.2.1)
       mongoid (> 3.0)
       stringex (~> 2.0)
