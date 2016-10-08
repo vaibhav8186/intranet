@@ -8,7 +8,7 @@ RSpec.describe Schedule, :type => :model do
   context "check time format" do
     it "should have correct time format" do
       schedule = FactoryGirl.create(:schedule)
-      schedule.interview_time.class.should eq(ActiveSupport::TimeWithZone)
+      expect(schedule.interview_time.class).to eq(ActiveSupport::TimeWithZone)
     end
 
     it "should not have incorrect time format" do
@@ -20,12 +20,12 @@ RSpec.describe Schedule, :type => :model do
   context "check date" do
     it "should have future date" do
       schedule = FactoryGirl.create(:schedule, interview_date: Date.tomorrow)
-      (schedule.interview_date < Date.today).should eq(false)
+      expect(schedule.interview_date < Date.today).to eq(false)
     end
 
     it "should not have past date" do
       schedule = FactoryGirl.build(:schedule,{interview_date: "12/2/1992"})
-      (schedule.interview_date < Date.today).should_not eq(false)
+      expect(schedule.interview_date < Date.today).not_to eq(false)
     end
   end
 
@@ -128,10 +128,7 @@ RSpec.describe Schedule, :type => :model do
       user = FactoryGirl.build(:user)
       schedule = FactoryGirl.build(:schedule,:users=>[user])
       email = schedule.users.first.email
-      p "pppppp"
-      p email
-      p "pppppp"
-      User.where(email:email).last.should eq(nil)
+      expect(User.where(email:email).last).to eq(nil)
     end
   end
 

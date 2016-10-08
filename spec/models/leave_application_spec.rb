@@ -23,7 +23,7 @@ describe LeaveApplication do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2, start_at: date, end_at: (date + 1.day))
       leave_application2 = FactoryGirl.build(:leave_application, user_id: @user.id, number_of_days: 1, start_at: (date + 1.day), end_at: (date + 1.day))
       expect(leave_application2.valid?).to eq(false)
-      leave_application2.errors[:base].should eq(["Already applied for leave on same date"])
+      expect(leave_application2.errors[:base]).to eq(["Already applied for leave on same date"])
     end
 
     it 'start date should not exists in the range of applied leaves'
@@ -50,21 +50,21 @@ describe LeaveApplication do
       date = Date.today
       leave_application = FactoryGirl.build(:leave_application, user_id: @user.id, number_of_days: 2, start_at: date, end_at: (date - 1.day))
       expect(leave_application.valid?).to eq(false)
-      leave_application.errors[:end_at].should be_present
+      expect(leave_application.errors[:end_at]).to be_present
     end
 
     it "mail for approval shouldn't get sent if not pending" do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
       Sidekiq::Extensions::DelayedMailer.jobs.clear
       leave_application.update_attributes(leave_status: 'Approved')
-      Sidekiq::Extensions::DelayedMailer.jobs.size.should eq(0)
+      expect(Sidekiq::Extensions::DelayedMailer.jobs.size).to eq(0)
     end
 
     it "mail for approval should get sent if any field has been updated and if pending" do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
       Sidekiq::Extensions::DelayedMailer.jobs.clear
       leave_application.update_attributes(number_of_days: 1)
-      Sidekiq::Extensions::DelayedMailer.jobs.size.should eq(1)
+      expect(Sidekiq::Extensions::DelayedMailer.jobs.size).to eq(1)
     end
 
     context 'self.process_leave ' do
@@ -84,10 +84,10 @@ describe LeaveApplication do
         @user.reload
         expect(@user.employee_detail.available_leaves).to eq(@available_leaves-@number_of_days)
 
-        @message.should eq({type: :notice, text: "Approved Successfully"})
+        expect(@message).to eq({type: :notice, text: "Approved Successfully"})
 
         @message = LeaveApplication.process_leave(leave_application.id, REJECTED, :process_reject_application, '')
-        @message.should eq({type: :notice, text: "Rejected Successfully"})
+        expect(@message).to eq({type: :notice, text: "Rejected Successfully"})
         @user.reload
         expect(@user.employee_detail.available_leaves).to eq(@available_leaves)
       end
@@ -105,7 +105,7 @@ describe LeaveApplication do
           expect(@user.employee_detail.available_leaves).to eq(@available_leaves-@number_of_days)
 
           @message = LeaveApplication.process_leave(leave_application.id, REJECTED, :process_reject_application, '')
-          @message.should eq({type: :notice, text: "Rejected Successfully"})
+          expect(@message).to eq({type: :notice, text: "Rejected Successfully"})
           @user.reload
           expect(@user.employee_detail.available_leaves).to eq(@available_leaves)
 
@@ -113,7 +113,7 @@ describe LeaveApplication do
           @user.reload
           expect(@user.employee_detail.available_leaves).to eq(@available_leaves-@number_of_days)
 
-          @message.should eq({type: :notice, text: "Approved Successfully"})
+          expect(@message).to eq({type: :notice, text: "Approved Successfully"})
         end
       end
 
@@ -128,7 +128,7 @@ describe LeaveApplication do
           @user.reload
           expect(@user.employee_detail.available_leaves).to eq(available_leaves)
 
-          @message.should eq({type: :notice, text: "Approved Successfully"})
+          expect(@message).to eq({type: :notice, text: "Approved Successfully"})
         end
 
         it 'does not change' do
@@ -141,7 +141,7 @@ describe LeaveApplication do
           @user.reload
           expect(@user.employee_detail.available_leaves).to eq(available_leaves)
 
-          @message.should eq({type: :error, text: "Leave is already Approved"})
+          expect(@message).to eq({type: :error, text: "Leave is already Approved"})
         end
       end
     end
