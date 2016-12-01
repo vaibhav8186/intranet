@@ -6,6 +6,11 @@
   %br
   %br
   = f.input :role, collection: User::ROLES, prompt: 'Select Role', required: false, label: "Change Role"
+  = f.label 'Visible On Website'
+  .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label"=>"Yes", "data-off-label"=> "NO"}
+    = f.check_box :visible_on_website, {}, 'true', 'false'
+  %br
+  %br
   = f.submit 'Update', class: 'btn controls'
 :css
   .make-switch{ height: 29px; margin-left: 18px;}
