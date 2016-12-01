@@ -68,6 +68,17 @@ Rails.application.routes.draw do
     patch :feedback
   end
 
+  namespace :api, :defaults => {:format => :json} do
+    namespace :v1 do
+      get 'team', to: "website#team"
+    end
+  end
+
+
+
+
+
+
   post '/blog_publish_hook' => 'application#blog_publish_hook', as: :blog_publish_hook
   # You can have the root of your site routed with "root"
   # root 'welcome#index'
