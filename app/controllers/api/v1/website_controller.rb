@@ -3,7 +3,7 @@ class Api::V1::WebsiteController < ApplicationController
   before_filter :restrict_access
 
  def team
-   render :json => User.visible_on_website.sort_by {|u| u.employee_detail.employee_id.to_i }.as_json(team_fields)
+   render :json => User.visible_on_website.asc(:website_sequence_number).as_json(team_fields)
  end
 
  private
@@ -13,7 +13,6 @@ class Api::V1::WebsiteController < ApplicationController
  end
 
  def restrict_access
-
    host = URI(request.referer).host if request.referer.present?
    head :unauthorized unless host.present? && host.match(/joshsoftware\.com/)
  end

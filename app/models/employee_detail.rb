@@ -9,13 +9,17 @@ class EmployeeDetail
   field :available_leaves, type: Integer, default: 0
   field :designation, type: String
   field :description, type: String
-  
+
+  DESIGNATIONS = ["Co-Founder & Director", "Director", "Director Engineering" , "Software Architect", "Team Lead","Operations Head",
+                  "Senior QA &Developer", "Senior Software Engineer","Senior Accountant", "HR Executive", "Android Developer"]
+
   validates :employee_id, uniqueness: true
   validates :available_leaves, numericality: {greater_than_or_equal_to: 0}
 
   before_save do 
     self.notification_emails.try(:reject!, &:blank?)
   end
+  
 
   def deduct_available_leaves(number_of_days)
     remaining_leaves = available_leaves - number_of_days

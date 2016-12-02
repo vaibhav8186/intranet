@@ -30,6 +30,8 @@ class User
   field :expires_at,         :type => Integer
   field :refresh_token,      :type => String
   field :visible_on_website, :type => Boolean, :default => true
+  field :website_sequence_number, :type => Integer, :default => 1
+
   has_many :leave_applications
   has_many :attachments
   has_and_belongs_to_many :projects
