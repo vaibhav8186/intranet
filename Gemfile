@@ -55,6 +55,8 @@ group :doc do
   gem 'sdoc', require: false
 end
 
+gem 'rspec_api_documentation', group: [:development, :test]
+
 group :test do
   gem 'rspec-rails'
   gem 'mongoid-rspec'

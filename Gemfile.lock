@@ -348,6 +348,7 @@ GEM
     multi_json (1.12.1)
     multi_xml (0.5.5)
     multipart-post (2.0.0)
+    mustache (1.0.3)
     nested_form (0.3.2)
     netrc (0.7.9)
     nokogiri (1.6.8.1)
@@ -469,6 +470,10 @@ GEM
       rspec-mocks (~> 3.5.0)
       rspec-support (~> 3.5.0)
     rspec-support (3.5.0)
+    rspec_api_documentation (4.8.0)
+      activesupport (>= 3.0.0)
+      mustache (~> 1.0, >= 0.99.4)
+      rspec (~> 3.0, >= 3.0.0)
     ruby2ruby (2.1.1)
       ruby_parser (~> 3.1)
       sexp_processor (~> 4.0)
@@ -606,6 +611,7 @@ DEPENDENCIES
   rnotifier
   rollbar
   rspec-rails
+  rspec_api_documentation
   sass-rails (~> 4.0.0)
   screamout!
   sdoc
@@ -623,5 +629,8 @@ DEPENDENCIES
   unicorn
   whenever
 
+RUBY VERSION
+   ruby 2.2.4p230
+
 BUNDLED WITH
-   1.11.2
+   1.13.6
