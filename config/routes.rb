@@ -68,7 +68,7 @@ Rails.application.routes.draw do
     patch :feedback
   end
 
-  namespace :api, :defaults => {:format => :json} do
+  namespace :api, :defaults => {:format => 'json'} do
     namespace :v1 do
       get 'team', to: "website#team"
     end

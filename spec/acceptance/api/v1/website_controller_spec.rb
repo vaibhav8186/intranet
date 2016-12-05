@@ -9,7 +9,7 @@ resource "Team Api" do
   get "/api/v1/team" do
     example "Get all the team members" do
       header 'Referer', 'http://joshsoftware.com'
-      user = FactoryGirl.create(:user)
+      user = FactoryGirl.create(:user, visible_on_website: false)
       do_request
       res = JSON.parse(response_body)
 
