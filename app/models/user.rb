@@ -29,6 +29,8 @@ class User
   field :access_token,       :type => String
   field :expires_at,         :type => Integer
   field :refresh_token,      :type => String
+  field :visible_on_website, :type => Boolean, :default => true
+  field :website_sequence_number, :type => Integer, :default => 1
 
   has_many :leave_applications
   has_many :attachments
@@ -42,6 +44,7 @@ class User
 
   scope :employees, ->{all.asc("public_profile.first_name")}
   scope :approved, ->{where(status: 'approved')}  
+  scope :visible_on_website, -> {where(status: 'approved', visible_on_website: true)}
   scope :interviewers, ->{where(:role.ne => 'Intern')}
   #Public profile will be nil when admin invite user for sign in with only email address 
   delegate :name, to: :public_profile, :allow_nil => true

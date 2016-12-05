@@ -17,6 +17,8 @@ class PublicProfile
   field :twitter_handle
   field :blog_url
   field :image
+  field :linkedin_url
+  field :facebook_url
 
   #validates_attachment :photo, :content_type => { :content_type => "image/jpg" }
 
@@ -35,6 +37,14 @@ class PublicProfile
   
   def name
     "#{first_name} #{last_name}"  
+  end
+
+  def image_url
+    image.try(:url) unless image.try(:url) == "default_photo.gif"
+  end
+
+  def modal_name
+    name.downcase.tr(" ", "-") if name.present?
   end
 
 end

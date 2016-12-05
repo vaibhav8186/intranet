@@ -121,11 +121,11 @@ class UsersController < ApplicationController
   def user_params
     safe_params = []
     if params[:user][:employee_detail_attributes].present?
-      safe_params = [ employee_detail_attributes: [:id, :employee_id, :date_of_relieving,:notification_emails => [] ], :project_ids => [] ]
+      safe_params = [ employee_detail_attributes: [:id, :employee_id, :date_of_relieving, :designation, :description, :notification_emails => [] ], :project_ids => [] ]
     elsif params[:user][:attachments_attributes].present?
       safe_params = [attachments_attributes: [:id, :name, :document, :_destroy]]
     else
-      safe_params = [:status, :role]
+      safe_params = [:status, :role, :visible_on_website, :website_sequence_number]
     end
     params.require(:user).permit(*safe_params)
   end
