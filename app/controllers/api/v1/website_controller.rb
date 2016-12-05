@@ -10,7 +10,7 @@ class Api::V1::WebsiteController < ApplicationController
  private
 
  def team_fields
-   {only: [:email], include: { public_profile: {only: [:name, :image_url,:modal_name, :github_handle, :twitter_handle, :facebook_url, :linkedin_url, :image], methods: [:name, :image_url, :modal_name]}, employee_detail: {only: [:designation, :description, :employee_id]}}}
+   {only: [:email], include: { public_profile: {only: [:name, :image_url, :modal_name, :github_handle, :twitter_handle, :facebook_url, :linkedin_url], methods: [:name, :image_url, :modal_name]}, employee_detail: {only: [:designation, :description, :employee_id]}}}
  end
 
  def restrict_access

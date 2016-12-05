@@ -37,7 +37,7 @@ class User
   has_and_belongs_to_many :projects
   has_and_belongs_to_many :schedules
 
-  after_update :delete_team_cache, if: Proc.new{ visible_on_website_changed?}
+  after_update :delete_team_cache, if: :website_fields_changed?
 
   accepts_nested_attributes_for :attachments, reject_if: :all_blank, :allow_destroy => true
   validates :email, format: {with: /\A.+@#{ORGANIZATION_DOMAIN}/, message: "Only #{ORGANIZATION_NAME} email-id is allowed."}
@@ -93,6 +93,8 @@ class User
     end
   end
 
-
+  def website_fields_changed?
+    website_sequence_number_changed? || visible_on_website_changed?
+  end
 
 end
