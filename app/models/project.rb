@@ -1,6 +1,10 @@
 class Project
   include Mongoid::Document
   include Mongoid::Slug
+
+  mount_uploader :image, FileUploader
+  mount_uploader :case_study, FileUploader
+  mount_uploader :logo, FileUploader
   field :name
   field :code_climate_id
   field :code_climate_snippet
@@ -9,11 +13,18 @@ class Project
   field :start_date, type: Date
   field :end_date, type: Date
   field :managed_by
-
+  field :image
+  field :description
+  field :url
+  field :case_study, type: String
+  field :logo
+  field :home_page_logo, type: Boolean, default: false
+  field :visible_on_website, type: Boolean, default: true
+  field :website_sequence_number, type: Integer
   # More Details
   field :ruby_version
   field :rails_version
-  field :database 
+  field :database
   field :database_version
   field :deployment_server
   field :deployment_script
@@ -32,11 +43,46 @@ class Project
   has_and_belongs_to_many :users
   accepts_nested_attributes_for :users
   validates_presence_of :name
-  
+  delegate :rails_with_version, to: :rails_version
   scope :all_active, ->{where(is_active: true).asc(:name)}
+  scope :visible_on_website, -> {where(visible_on_website: true)}
 
   def self.get_all_sorted_by_name
     Project.all.asc(:name)
+  end
+
+  def case_study_url
+    self.case_study.url
+  end
+
+  def tag_name(field)
+    case field
+      when :ruby_version
+        "Ruby " + self.ruby_version if ruby_version.present?
+      when :rails_version
+        "Rails " + rails_version if rails_version.present?
+      when :other_frameworks
+        self.try(field).split(',')
+      when :other_details
+        self.try(field).split(',')
+      when :database
+       "#{self.database} " + self.try(:database_version)
+      else
+        self.try(field)
+    end
+  end
+
+  def tags
+    tags = []
+    [:ruby_version, :rails_version, :database,:deployment_server, :deployment_script, :web_server, :app_server,
+      :payment_gateway, :image_store, :background_jobs, :other_frameworks, :other_details].each do |field|
+       tags << self.tag_name(field) if self.try(field).present?
+    end
+    tags.compact.flatten
+  end
+
+  def image_url
+    self.image.url
   end
 
   def self.to_csv(options = {})

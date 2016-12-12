@@ -21,7 +21,7 @@ class ProjectsController < ApplicationController
 
   def create
     @project = Project.new(safe_params)
-    if @project.save  
+    if @project.save 
       flash[:success] = "Project created Succesfully"
       redirect_to projects_path
     else
@@ -47,9 +47,14 @@ class ProjectsController < ApplicationController
      redirect_to projects_path
   end
 
+  def update_sequence_number
+    @project.update_attribute(:website_sequence_number, params[:website_sequence_number])
+    render nothing: true
+  end
+
   private
   def safe_params
-    params.require(:project).permit(:name, :start_date, :end_date, :managed_by, :code_climate_id, :code_climate_snippet, :code_climate_coverage_snippet, :is_active, :ruby_version, :rails_version, :database, :database_version, :deployment_server, :deployment_script, :web_server, :app_server, :payment_gateway, :image_store, :index_server, :background_jobs, :sms_gateway, :other_frameworks, :other_details, :user_ids => [])
+    params.require(:project).permit(:name, :start_date, :end_date, :managed_by, :code_climate_id, :code_climate_snippet, :code_climate_coverage_snippet, :is_active, :ruby_version, :rails_version, :database, :database_version, :deployment_server, :deployment_script, :web_server, :app_server, :payment_gateway, :image_store, :index_server, :background_jobs, :sms_gateway, :other_frameworks, :other_details, :image, :url, :description, :case_study,:logo, :visible_on_website, :website_sequence_number, :user_ids => [])
 
   end
 
