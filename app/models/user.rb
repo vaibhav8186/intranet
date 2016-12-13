@@ -29,7 +29,7 @@ class User
   field :access_token,       :type => String
   field :expires_at,         :type => Integer
   field :refresh_token,      :type => String
-  field :visible_on_website, :type => Boolean, :default => true
+  field :visible_on_website, :type => Boolean, :default => false
   field :website_sequence_number, :type => Integer, :default => 1
 
   has_many :leave_applications
