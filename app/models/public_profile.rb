@@ -36,7 +36,7 @@ class PublicProfile
     self.user.set_details("dob", self.date_of_birth) if self.date_of_birth_changed? #set the dob_day and dob_month
   end
 
-  after_update :delete_team_cache, if: Proc.new{ updated_at_changed? }
+  after_update :delete_team_cache, :send_email_to_hr, if: Proc.new{ updated_at_changed? }
 
   def name
     "#{first_name} #{last_name}"
@@ -48,6 +48,10 @@ class PublicProfile
 
   def modal_name
     name.downcase.tr(" ", "-") if name.present?
+  end
+
+  def send_email_to_hr
+    UserMailer.profile_updated(self.changes, self.user.name).deliver!
   end
 
 end

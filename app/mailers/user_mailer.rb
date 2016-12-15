@@ -79,6 +79,14 @@ class UserMailer < ActionMailer::Base
     mail(subject: 'Josh Intranet: Daily database backup', to: ADMIN_EMAILS)
   end
 
+  def profile_updated(changes, user_name)
+    changes.delete('updated_at')
+    @changes = changes.to_a
+    hr = User.approved.where(role: 'HR').try(:first).try(:email) || 'hr@joshsoftware.com'
+    @user_name = user_name
+    mail(subject: 'Profile updated', to: hr)
+  end
+
   private
 
   def get_leave(id)
