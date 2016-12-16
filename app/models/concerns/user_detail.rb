@@ -16,6 +16,10 @@ module UserDetail
     accepts_nested_attributes_for :employee_detail, reject_if: :all_blank, :allow_destroy => true
   end
 
+  def delete_team_cache
+    Rails.cache.delete('views/website/team.json')
+  end
+
   module ClassMethods    
 
     def save_access_token(auth, user)
@@ -69,5 +73,6 @@ module UserDetail
       end
       UserMailer.year_of_completion_wish(user_hash).deliver unless user_hash.blank?
     end
+
   end
 end

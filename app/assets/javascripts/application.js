@@ -39,3 +39,15 @@ $('.datepicker').datepicker({
   autoclose: true
 })
 })
+
+var readURL;
+readURL = function(input, src_id) {
+  var reader;
+  if (input.files && input.files[0]) {
+    reader = new FileReader;
+    reader.onload = function(e) {
+      $(src_id).attr('src', e.target.result);
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+};
