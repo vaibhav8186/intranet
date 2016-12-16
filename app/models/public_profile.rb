@@ -1,6 +1,8 @@
 class PublicProfile
   include Mongoid::Document
   include Mongoid::Slug
+  include Mongoid::Timestamps
+  include  UserDetail
 
   mount_uploader :image, FileUploader 
 
@@ -23,28 +25,33 @@ class PublicProfile
   #validates_attachment :photo, :content_type => { :content_type => "image/jpg" }
 
   embedded_in :user
-  
+
   #validates_presence_of :first_name, :last_name, :gender, :mobile_number, :date_of_birth, :blood_group, :on => :update
   validates :gender, inclusion: { in: GENDER }, allow_blank: true, :on => :update
   validates :blood_group, inclusion: { in: BLOOD_GROUPS }, allow_blank: true, :on => :update
-    
+
   before_save do
     #We need to manually set the slug because user does not have field 'name' in its model and delegated to public_profile
     user.set_slug
     self.user.set_details("dob", self.date_of_birth) if self.date_of_birth_changed? #set the dob_day and dob_month
-    
   end
-  
+
+  after_update :delete_team_cache, :send_email_to_hr, if: Proc.new{ updated_at_changed? }
+
   def name
-    "#{first_name} #{last_name}"  
+    "#{first_name} #{last_name}"
   end
 
   def image_url
-    image.try(:url) unless image.try(:url) == "default_photo.gif"
+    image.thumb.try(:url) unless image.try(:url) == "default_photo.gif"
   end
 
   def modal_name
     name.downcase.tr(" ", "-") if name.present?
+  end
+
+  def send_email_to_hr
+    UserMailer.profile_updated(self.changes, self.user.name).deliver!
   end
 
 end

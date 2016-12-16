@@ -1,10 +1,10 @@
 class User
   include Mongoid::Document
   include Mongoid::Slug
-  
+  include Mongoid::Timestamps
   #model's concern
   include LeaveAvailable
-  include UserDetail 
+  include UserDetail
 
   devise :database_authenticatable, :omniauthable,
          :recoverable, :rememberable, :trackable, :validatable, :omniauth_providers => [:google_oauth2]
@@ -29,27 +29,27 @@ class User
   field :access_token,       :type => String
   field :expires_at,         :type => Integer
   field :refresh_token,      :type => String
-  field :visible_on_website, :type => Boolean, :default => true
+  field :visible_on_website, :type => Boolean, :default => false
   field :website_sequence_number, :type => Integer, :default => 1
 
   has_many :leave_applications
   has_many :attachments
   has_and_belongs_to_many :projects
   has_and_belongs_to_many :schedules
-  
+
+  after_update :delete_team_cache, if: :website_fields_changed?
+
   accepts_nested_attributes_for :attachments, reject_if: :all_blank, :allow_destroy => true
   validates :email, format: {with: /\A.+@#{ORGANIZATION_DOMAIN}/, message: "Only #{ORGANIZATION_NAME} email-id is allowed."}
   validates :role, :email, presence: true
   validates_associated :employee_detail
-
   scope :employees, ->{all.asc("public_profile.first_name")}
   scope :approved, ->{where(status: 'approved')}  
-  scope :visible_on_website, -> {where(status: 'approved', visible_on_website: true)}
+  scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :interviewers, ->{where(:role.ne => 'Intern')}
   #Public profile will be nil when admin invite user for sign in with only email address 
   delegate :name, to: :public_profile, :allow_nil => true
   slug :name
-
   # Hack for Devise as specified in https://github.com/plataformatec/devise/issues/2949#issuecomment-40520236
   def self.serialize_into_session(record)
     [record.id.to_s, record.authenticatable_salt]
@@ -62,7 +62,6 @@ class User
                      ].flatten.compact.uniq
     UserMailer.delay.leave_application(self.email, notified_users, leave_application_id)
   end
-
   def role?(role)
     self.role == role
   end
@@ -92,6 +91,10 @@ class User
       set("#{dobj}_day" => value.day)
       set("#{dobj}_month" => value.month)
     end
+  end
+
+  def website_fields_changed?
+    website_sequence_number_changed? || visible_on_website_changed?
   end
 
 end

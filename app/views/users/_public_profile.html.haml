@@ -7,10 +7,10 @@
         = pub.input :gender, collection: GENDER, prompt: 'Select'
         = pub.input :mobile_number
       %td.photo
-        = image_tag(pub.object.image.medium.url, class: 'controls')
+        = image_tag(pub.object.image.medium.url, class: 'controls profile-image', size: '200x200')
         %br
         %br
-        = pub.input :image, label: 'Photo'
+        = pub.input :image, label: 'Photo', id: 'upload-photo'
 
   = pub.input :blood_group, collection: BLOOD_GROUPS, prompt: 'Select'
   = pub.input :date_of_birth, input_html: {class: 'datepicker', 'data-behaviour' => 'datepicker', value: @public_profile.date_of_birth.try(:strftime, "%d-%m-%Y")}
@@ -26,4 +26,7 @@
     = pub.submit 'Update Profile', class: 'btn'
 :css
   .photo{position: relative;  padding-left: 100px;}
-
+:javascript
+  $('#public_profile_image').on('change', function(){
+    readURL(this, '.profile-image')
+  })
