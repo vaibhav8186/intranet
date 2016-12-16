@@ -1,0 +1,16 @@
+%html
+  %body
+    Hi HR,
+    %br
+    %br
+    ="#{@user_name} has updated his/her profile: "
+    %table{border: 1}
+      %tr
+        %th Field
+        %th Before Change
+        %th After change
+      - @changes.each do |change|
+        %tr
+          %td= change[0]
+          %td= change[1][0]
+          %td= change[1][1]
