@@ -42,8 +42,8 @@ class PublicProfile
     "#{first_name} #{last_name}"
   end
 
-  def image_url
-    image.thumb.try(:url) unless image.try(:url) == "default_photo.gif"
+  def image_medium_url
+    image.medium.try(:url) unless image.try(:url) == "default_photo.gif"
   end
 
   def modal_name
