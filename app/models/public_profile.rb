@@ -42,7 +42,7 @@ class PublicProfile
     "#{first_name} #{last_name}"
   end
 
-  def image_url
+  def image_medium_url
     image.medium.try(:url) unless image.try(:url) == "default_photo.gif"
   end
 
