@@ -8,7 +8,8 @@ class ProjectsController < ApplicationController
   include RestfulAction
   
   def index
-    @projects = Project.get_all_sorted_by_name
+    @projects = Project.sort_by_position
+    @projects.init_list!
     respond_to do |format|
       format.html
       format.csv { send_data @projects.to_csv }
@@ -48,7 +49,7 @@ class ProjectsController < ApplicationController
   end
 
   def update_sequence_number
-    @project.update_attribute(:website_sequence_number, params[:website_sequence_number])
+    @project.move(to: params[:position].to_i)
     render nothing: true
   end
 

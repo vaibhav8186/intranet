@@ -16,6 +16,7 @@
  *= require colorbox-rails
  *= require jquery.timepicker.css
  *= require screamout/global
+ *= require jquery-ui
  *= require redactor-rails
  *= require octicons/octicons.css
  *= require_tree .

@@ -19,7 +19,6 @@
         = f.label 'Visible On Website'
         .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "Yes", "data-off-label" => "No"}
           = f.check_box :visible_on_website, {}, 'true', 'false'
-        = f.input :website_sequence_number
 
         .control-group
           = label_tag "Team Members", nil, class: 'control-label'

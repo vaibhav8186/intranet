@@ -57,7 +57,9 @@ Rails.application.routes.draw do
   #get 'approve_leave_application' => 'leave_applications#approve_leave', as: :approve_leave
   get 'process_leave_application' => 'leave_applications#process_leave', as: :process_leave
   resources :projects do
-    post 'update_sequence_number'
+    member do
+      post 'update_sequence_number'
+    end
   end
   resources :attachments do 
     member do
