@@ -83,10 +83,6 @@ class Project
     tags.compact.flatten
   end
 
-  def image_url
-    self.image.url
-  end
-
   def self.to_csv(options = {})
     column_names = ['name', 'code_climate_id', 'code_climate_snippet', 'code_climate_coverage_snippet', 'is_active', 'start_date', 'end_date', 'managed_by', 'ruby_version', 'rails_version', 'database', 'database_version', 'deployment_server', 'deployment_script', 'web_server', 'app_server', 'payment_gateway', 'image_store', 'index_server', 'background_jobs', 'sms_gateway', 'other_frameworks', 'other_details']
     CSV.generate(options) do |csv|
