@@ -3,7 +3,7 @@
     .row
       .col-md-6
         = f.input :name, required: false, class: 'pull-left'
-        = f.input :description, as: :text
+        = f.input :description, as: :text, input_html: {class: "text-description"}
         = f.input :url
         = f.label "Is Active"
         .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "True", "data-off-label" => "False"}
