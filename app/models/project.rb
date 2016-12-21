@@ -1,6 +1,7 @@
 class Project
   include Mongoid::Document
   include Mongoid::Slug
+  include Mongoid::Timestamps
   include ActsAsList::Mongoid
 
   mount_uploader :image, FileUploader
@@ -20,9 +21,8 @@ class Project
   field :url
   field :case_study, type: String
   field :logo
-  field :home_page_logo, type: Boolean, default: false
+  field :visible_on_home_page, type: Boolean, default: false
   field :visible_on_website, type: Boolean, default: true
-  field :website_sequence_number, type: Integer
   # More Details
   field :ruby_version
   field :rails_version
@@ -49,6 +49,10 @@ class Project
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :sort_by_position, -> { asc(:position)}
   
+  after_update do
+    Rails.cache.delete('views/website/portfolio.json') if updated_at_changed?
+  end
+
   def self.get_all_sorted_by_name
     Project.all.asc(:name)
   end

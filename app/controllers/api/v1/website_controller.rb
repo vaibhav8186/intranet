@@ -2,6 +2,7 @@ class Api::V1::WebsiteController < ApplicationController
 
   before_filter :restrict_access
   caches_action :team, cache_path: "website/team"
+  caches_action :portfolio, cache_path: "website/portfolio"
 
  def team
    render :json => User.visible_on_website.asc(:website_sequence_number).as_json(team_fields)
