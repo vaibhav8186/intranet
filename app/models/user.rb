@@ -30,7 +30,7 @@ class User
   field :expires_at,         :type => Integer
   field :refresh_token,      :type => String
   field :visible_on_website, :type => Boolean, :default => false
-  field :website_sequence_number, :type => Integer, :default => 1
+  field :website_sequence_number, :type => Integer
 
   has_many :leave_applications
   has_many :attachments
@@ -49,6 +49,11 @@ class User
   scope :interviewers, ->{where(:role.ne => 'Intern')}
   #Public profile will be nil when admin invite user for sign in with only email address 
   delegate :name, to: :public_profile, :allow_nil => true
+
+  before_create do
+    self.website_sequence_number = User.max(:website_sequence_number) + 1
+  end
+
   slug :name
   # Hack for Devise as specified in https://github.com/plataformatec/devise/issues/2949#issuecomment-40520236
   def self.serialize_into_session(record)
