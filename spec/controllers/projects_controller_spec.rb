@@ -50,4 +50,15 @@ describe ProjectsController do
       expect(assigns(:project)).to eq(project)
     end
   end
+
+  describe 'POST update_sequence_number' do
+    it "must update project position sequence number" do
+      projects = FactoryGirl.create_list(:project, 3)
+      projects.init_list!
+      last = projects.last
+      expect(last.position).to eq(3)
+      xhr :post, :update_sequence_number, id:  projects.last.id, position: 1
+      expect(last.reload.position).to eq(1)
+    end
+  end
 end
