@@ -51,8 +51,9 @@ class User
   delegate :name, to: :public_profile, :allow_nil => true
 
   before_create do
-    self.website_sequence_number = User.max(:website_sequence_number) + 1
+    self.website_sequence_number = (User.max(:website_sequence_number) || 0) + 1
   end
+
 
   slug :name
   # Hack for Devise as specified in https://github.com/plataformatec/devise/issues/2949#issuecomment-40520236

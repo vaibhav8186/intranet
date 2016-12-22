@@ -37,7 +37,13 @@ describe User do
      
     expect(user.eligible_for_leave?).to eq(true) 
   end 
-  
+
+  it 'should assign website sequence number auto incremented for new user' do
+    user1 = FactoryGirl.create(:user, email: "test2@joshsoftware.com")
+    expect(user1.website_sequence_number).to eq(1)
+    user = FactoryGirl.create(:user, email: 'test123@joshsoftware.com')
+    expect(user.reload.website_sequence_number).to eq(2)
+  end
 
   it "should reset yearly leave" do
     user = FactoryGirl.build(:user, private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year - 1, Date.today.month, 19).prev_month))

@@ -57,10 +57,6 @@ class Project
     Project.all.asc(:name)
   end
 
-  def case_study_url
-    self.case_study.url
-  end
-
   def tag_name(field)
     case field
       when :ruby_version
@@ -72,7 +68,7 @@ class Project
       when :other_details
         self.try(field).split(',')
       when :database
-       "#{self.database} " + self.try(:database_version)
+       "#{self.database} " + self.try(:database_version).to_s
       else
         self.try(field)
     end
