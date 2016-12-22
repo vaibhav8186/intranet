@@ -56,7 +56,11 @@ Rails.application.routes.draw do
   #get 'cancel_leave_application' => 'leave_applications#cancel_leave', as: :cancel_leave 
   #get 'approve_leave_application' => 'leave_applications#approve_leave', as: :approve_leave
   get 'process_leave_application' => 'leave_applications#process_leave', as: :process_leave
-  resources :projects
+  resources :projects do
+    member do
+      post 'update_sequence_number'
+    end
+  end
   resources :attachments do 
     member do
       get :download_document
@@ -71,6 +75,7 @@ Rails.application.routes.draw do
   namespace :api, :defaults => {:format => 'json'} do
     namespace :v1 do
       get 'team', to: "website#team"
+      get 'portfolio', to: "website#portfolio"
     end
   end
 
