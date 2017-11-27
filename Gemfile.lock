@@ -91,7 +91,7 @@ GIT
 
 GIT
   remote: git@github.com:joshsoftware/screamout.git
-  revision: 6464605c6f3406583f89f81a96448e4260747c94
+  revision: 61851037890e68e431ac9805875f08b0c226de92
   branch: engine
   specs:
     screamout (0.0.1)
@@ -205,8 +205,7 @@ GEM
       mongoid (>= 3.0, < 6.0)
       mongoid-grid_fs (>= 1.3, < 3.0)
     chronic (0.10.2)
-    climate_control (0.0.3)
-      activesupport (>= 3.0)
+    climate_control (0.2.0)
     cocaine (0.5.8)
       climate_control (>= 0.0.3, < 1.0)
     codeclimate-test-reporter (0.4.0)
@@ -308,7 +307,7 @@ GEM
     jquery-turbolinks (2.0.2)
       railties (>= 3.1.0)
       turbolinks
-    jquery-ui-rails (5.0.5)
+    jquery-ui-rails (6.0.1)
       railties (>= 3.2.16)
     json (1.8.3)
     jwt (1.5.1)
@@ -642,9 +641,6 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
   unicorn
   whenever
-
-RUBY VERSION
-   ruby 2.2.4p230
 
 BUNDLED WITH
    1.13.6
