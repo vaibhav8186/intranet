@@ -2,7 +2,7 @@ source 'http://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 ruby "2.2.4"
-gem 'rails', '4.2.0'
+gem 'rails', '4.2.5.2'
 gem 'devise'
 gem 'mongoid'
 gem 'mongoid_slug'
@@ -111,9 +111,9 @@ gem 'authority'
 gem 'execjs'
 gem 'therubyracer', :platforms => :ruby
 gem 'light', git: 'git@github.com:joshsoftware/lightair.git', branch: 'engine'
-#gem 'light', path: '/home/shweta/project/light_air_engine/lightair'
 gem 'screamout', git: 'git@github.com:joshsoftware/screamout.git', branch: 'engine'
 gem 'mongoid_rateable', :git => 'git://github.com/PerfectMemory/mongoid_rateable.git'
 gem 'feedjira'
 gem 'rollbar'
-gem 'aws-sdk'
+#gem 'aws-sdk', '~> 2'
+gem "aws-sdk"
