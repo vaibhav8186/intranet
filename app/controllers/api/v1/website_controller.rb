@@ -25,6 +25,6 @@ class Api::V1::WebsiteController < ApplicationController
 
  def restrict_access
    host = URI(request.referer).host if request.referer.present?
-   head :unauthorized unless host.present? && host.match(/joshsoftware\.com/)
+   head :unauthorized unless(host.present? && (host.match(/joshsoftware\.com/) || host.match(/josh-website-test/)))
  end
 end
