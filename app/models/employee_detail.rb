@@ -12,7 +12,7 @@ class EmployeeDetail
   field :description
 
   DESIGNATIONS = ["Co-Founder & Director", "Director", "Director Engineering" , "Software Architect", "Team Lead","Operations Head",
-                  "Senior QA & Developer", "Senior Software Engineer","Senior Accountant", "HR Executive", "Android Developer", "Software Engineer"]
+                  "Senior QA & Developer", "Senior Software Engineer","Senior Accountant", "HR Executive", "Android Developer", "Software Engineer", "iOS Developer", "People & Culture Manager"]
 
   validates :employee_id, uniqueness: true
   validates :available_leaves, numericality: {greater_than_or_equal_to: 0}
