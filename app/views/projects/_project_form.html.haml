@@ -2,6 +2,10 @@
   .control-group
     .row
       .col-md-6
+        .control-group
+          = label_tag "Company Name", nil, class: 'control-label'
+          .controls
+            = select_tag :company, options_for_select(Company.pluck(:name, :id), f.object.try(:company).try(:id)), {:prompt => "-- Select Company --", class: "members", name: "project[company]", style: "width: 340px"}                    
         = f.input :name, required: false, class: 'pull-left'
         = f.input :description, as: :text, input_html: {class: "text-description"}
         = f.input :url
@@ -28,6 +32,15 @@
           = label_tag 'Client Logo', nil, class: 'control-label'
           = f.file_field :logo, required: true, id: 'logo-upload', class: 'case_study_upload'
           = image_tag f.object.logo, size: "50x50", id: 'project-logo'
+
+          = f.input :no_of_emp, label: 'Number of employees'
+          = f.input :invoice_date, input_html: {class: :datepicker}, value: f.object.start_date.try(:strftime, '%d-%m-%Y')
+          = f.input :code, label: "Project Code" do 
+            = f.text_field :code, readonly: f.object.code
+            - unless f.object.code
+              = link_to "javascript:void(0)", onclick: "generate_code();" do 
+                = "Generate new Code"
+    
       .col-md-6.pull-right.upload
         = image_tag f.object.image, size: "200x200", id: 'project-image'
         = f.file_field :image, required: true, id: 'image-upload'
@@ -35,4 +48,9 @@
 
 :javascript
   $(".members").select2();
+  function generate_code(){
+    var code = (Math.random() * 100).toString(36).replace(/[^a-zA-Z0-9]+/g, '').substr(0, 6);
+    $("#project_code").val(code.toUpperCase());
+  }
+  
 

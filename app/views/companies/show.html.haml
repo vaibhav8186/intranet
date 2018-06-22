@@ -1,0 +1,27 @@
+.form-horizontal.row
+  %h3
+    = @company.name
+    .offset4{style: "float: right;"}
+      = render partial: "layouts/company_menu"
+
+  %div
+    %table.table.table-hover
+      %tr
+        %th Company Name
+        %td= @company.name
+      %tr
+        %th Address
+        %td= @company.address
+      %tr
+        %th GST number
+        %td= @company.gstno
+      %tr
+        %th Website
+        %td= link_to @company.website
+      %tr
+        %th Logo
+        %td= image_tag @company.logo, class: "company-logo"
+  
+= render 'contact_persons' if  @company.contact_persons.present?
+= render 'projects' if @projects.present?
+ 

@@ -1,0 +1,18 @@
+.form-horizontal.row
+  %h3.company-detail
+    Project Details
+  %table.table.table-hover
+    %thead
+      %tr
+        %th Project Name
+        %th No of employees
+        %th URL
+        %th Status
+    %tbody
+      - @projects.each do |project|
+        %tr
+          %td= link_to project.name, project_path(project)
+          %td= project.no_of_emp
+          %td= link_to project.url
+          %td
+            .label.label-success= project.is_active

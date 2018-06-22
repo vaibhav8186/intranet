@@ -28,6 +28,7 @@ class Ability
     can :manage, Vendor
     can :manage, LeaveApplication
     can :manage, Schedule
+    can :manage, Company
   end
 
   def intern_abilities

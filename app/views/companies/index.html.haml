@@ -1,0 +1,33 @@
+.form-heading.row
+  %h2 
+    .span3
+      Company
+    .offset7{style: "float: right;"}
+      = render partial: "layouts/company_menu"
+
+.form-horizontal
+  %table.table.table-hover#sortable
+    %thead
+      %tr
+        %th #
+        %th Company Name
+        %th GST number
+        %th Website
+        %th Logo
+        %th Actions
+
+    %tbody
+      - @companies.each_with_index do |company, i|
+        %tr
+          %td= i+1
+          %td= link_to company.name, company_path(company)
+          %td= company.gstno
+          %td= link_to company.website
+          %td= image_tag company.logo, class: "company-logo"
+          %td
+            - if can? :manage, Project
+              =link_to '', edit_company_path(company), class: "icon-edit", data: {'no-turbolink' =>  true}
+              |
+              =link_to '', company_path(company), method: :delete, "data-confirm" => "Are you sure?", class: "icon-trash"
+              | 
+              =link_to 'Add Project', new_project_path(company: company)

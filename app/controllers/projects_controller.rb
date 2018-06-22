@@ -17,7 +17,8 @@ class ProjectsController < ApplicationController
   end
 
   def new
-    @project = Project.new
+    @company = Company.find(params[:company]) if params[:company]
+    @project = Project.new(company: @company)
   end
 
   def create
@@ -58,7 +59,8 @@ class ProjectsController < ApplicationController
     params.require(:project).permit(:name, :start_date, :end_date, :managed_by, :code_climate_id, :code_climate_snippet,
     :code_climate_coverage_snippet, :is_active, :ruby_version, :rails_version, :database, :database_version, :deployment_server,
     :deployment_script, :web_server, :app_server, :payment_gateway, :image_store, :index_server, :background_jobs, :sms_gateway,
-    :other_frameworks,:other_details, :image, :url, :description, :case_study,:logo, :visible_on_website, :website_sequence_number,
+    :other_frameworks,:other_details, :image, :url, :description, :case_study,:logo, :visible_on_website, :website_sequence_number, 
+    :code, :no_of_emp, :invoice_date, :company,
     :user_ids => [])
   end
 

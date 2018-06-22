@@ -1,0 +1,34 @@
+- new_comp = !@company.persisted?
+%ul.nav.nav-tabs
+  %li.active
+    %a{data:{toggle: 'tab'}, href: '#'}
+      #{new_comp ? 'Create' : 'Update'} Company
+
+= simple_nested_form_for @company, :html => {class: "form-horizontal"} do |f|
+  .control-group
+    .row
+      .col-md-6
+        = f.input :name
+        = f.input :address, as: :text, class: 'pull-left'
+        = f.input :gstno, label: "GST Number"
+        = f.input :website
+        .control-group
+          = label_tag 'Logo', nil, class: 'control-label'
+          = f.file_field :logo, id: 'logo-upload', class: 'case_study_upload'
+        
+        .col-md-6
+          %h3 Contact Persons
+          = f.fields_for :contact_persons do |ff|
+            #nested-error.error
+            .well
+              = ff.input :email, email: true, required: true, class: "contact-email"
+              = ff.input :name
+              = ff.input :phone_no, label: "Mobile Number"
+              = ff.input :role, collection: CONTACT_ROLE, prompt: "Select Role"
+              .text-center
+                = ff.link_to_remove " Remove", class: "icon-trash"
+          = f.link_to_add "Add Contact Person", :contact_persons
+
+        
+  = f.submit :Save, class: 'btn controls btn-info', id: "company-submit"
+

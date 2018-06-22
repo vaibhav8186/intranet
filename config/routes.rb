@@ -61,6 +61,7 @@ Rails.application.routes.draw do
       post 'update_sequence_number'
     end
   end
+  resources :companies
   resources :attachments do 
     member do
       get :download_document

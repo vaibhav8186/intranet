@@ -11,3 +11,5 @@ REJECTED = 'Rejected'
 
 ORGANIZATION_DOMAIN = 'joshsoftware.com'
 ORGANIZATION_NAME = 'Josh Software'
+
+CONTACT_ROLE =  ["Accountant", "Technical", "Accountant and Technical"]
