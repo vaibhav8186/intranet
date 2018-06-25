@@ -1,7 +1,7 @@
   require 'spec_helper'
 
 RSpec.describe CompaniesController, type: :controller do
-	before(:each) do
+  before(:each) do
     @admin = FactoryGirl.create(:user, role: 'Admin')
     sign_in @admin
   end

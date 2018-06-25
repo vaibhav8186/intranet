@@ -7,15 +7,15 @@ RSpec.describe Company, type: :model do
   it { should have_many(:projects) }
 
   it "Should validate website URL" do 
-  	company = FactoryGirl.build(:company)
-  	company.website = "invalid.website"
-  	expect(company.valid?).to be_falsy
+    company = FactoryGirl.build(:company)
+    company.website = "invalid.website"
+    expect(company.valid?).to be_falsy
   end
 
   it "should return contact_persons" do 
-  	company = FactoryGirl.create(:company)
-  	FactoryGirl.create(:company)
-  	company.contact_persons.create(role: "Accountant", email: "xyz@test.com")
-  	expect(company.contact_persons.count).to eq(1)
+    company = FactoryGirl.create(:company)
+    FactoryGirl.create(:company)
+    company.contact_persons.create(role: "Accountant", email: "xyz@test.com")
+    expect(company.contact_persons.count).to eq(1)
   end
 end

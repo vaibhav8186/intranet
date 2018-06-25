@@ -13,12 +13,12 @@ class CompaniesController < ApplicationController
   end
 
   def new
-  	@company = Company.new
+    @company = Company.new
   end
 
   def create
-  	@company = Company.new(company_params)
-  	if @company.save 
+    @company = Company.new(company_params)
+    if @company.save 
       flash[:success] = "Company created Succesfully"
       redirect_to companies_path
     else
@@ -42,9 +42,9 @@ class CompaniesController < ApplicationController
 
   def destroy
     if @company.destroy
-     flash[:notice] = "Company deleted Succesfully" 
+      flash[:notice] = "Company deleted Succesfully" 
     else
-     flash[:notice] = "Error in deleting Company"
+      flash[:notice] = "Error in deleting Company"
     end
     redirect_to companies_path
   end
@@ -52,11 +52,11 @@ class CompaniesController < ApplicationController
   private
   
   def company_params
-  	params.require(:company).permit(:name, :address, :gstno, :logo, :website, 
+    params.require(:company).permit(:name, :address, :gstno, :logo, :website, 
       contact_persons_attributes: [:id, :role, :name, :phone_no, :email, :_destroy]) 
   end
   
   def set_company
-  	@company = Company.find(params[:id])
+    @company = Company.find(params[:id])
   end
 end
