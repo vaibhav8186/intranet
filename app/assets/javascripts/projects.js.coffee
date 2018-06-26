@@ -2,7 +2,7 @@
 # All this logic will automatically be available in application.js.
 # You can use CoffeeScript in this file: http://coffeescript.org/
 $(document).ready ->
-
+  $("#add-members").select2();
   $('#image-upload').on 'change', ->
     readURL this, '#project-image'
     return
@@ -37,6 +37,12 @@ $(document).ready ->
           data: { position: position + 1 }
         )
    )
+  $('#user_ids').change ->
+    selected = $('#user_ids :selected').length
+    limit = $('#project_number_of_employees').val()
+    if(selected > limit)
+      alert('Limit exceed!! You are trying to add more team members.')
+    return
 
 readURL = (input, src_id) ->
   if input.files and input.files[0]
@@ -48,3 +54,4 @@ readURL = (input, src_id) ->
 
     reader.readAsDataURL input.files[0]
   return
+
