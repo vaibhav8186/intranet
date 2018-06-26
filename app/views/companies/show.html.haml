@@ -20,7 +20,7 @@
         %td= link_to @company.website
       %tr
         %th Logo
-        %td= image_tag @company.logo, class: "company-logo"
+        %td= image_tag @company.logo.try(:url, :thumb)
   
 = render 'contact_persons' if  @company.contact_persons.present?
-= render 'projects' if @projects.present?
+= render 'project_details' if @projects.present?

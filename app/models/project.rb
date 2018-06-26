@@ -40,7 +40,7 @@ class Project
   field :other_frameworks
   field :other_details
   field :code, type: String
-  field :no_of_emp, type: Integer
+  field :number_of_employees, type: Integer
   field :invoice_date, type: Date
 
   slug :name
@@ -48,12 +48,12 @@ class Project
   has_and_belongs_to_many :users
   accepts_nested_attributes_for :users
   belongs_to :company
-  
+
   validates_presence_of :name
   scope :all_active, ->{where(is_active: true).asc(:name)}
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :sort_by_position, -> { asc(:position)}
-  
+
   validates_uniqueness_of :code, allow_blank: true, allow_nil: true
 
   after_update do
@@ -99,5 +99,4 @@ class Project
       end
     end
   end
-
 end

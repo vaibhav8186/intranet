@@ -61,7 +61,11 @@ Rails.application.routes.draw do
       post 'update_sequence_number'
     end
   end
-  resources :companies
+
+  resources :companies do
+    resources :projects, only: [:new, :create, :edit, :update]
+  end
+
   resources :attachments do 
     member do
       get :download_document

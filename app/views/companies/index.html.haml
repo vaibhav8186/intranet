@@ -23,11 +23,11 @@
           %td= link_to company.name, company_path(company)
           %td= company.gstno
           %td= link_to company.website
-          %td= image_tag company.logo, class: "company-logo"
+          %td= image_tag company.logo.try(:url, :thumb)
           %td
             - if can? :manage, Project
               =link_to '', edit_company_path(company), class: "icon-edit", data: {'no-turbolink' =>  true}
               |
               =link_to '', company_path(company), method: :delete, "data-confirm" => "Are you sure?", class: "icon-trash"
               | 
-              =link_to 'Add Project', new_project_path(company: company)
+              =link_to 'Add Project', new_company_project_path(company_id: company)

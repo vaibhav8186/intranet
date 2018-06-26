@@ -33,7 +33,7 @@
           = f.file_field :logo, required: true, id: 'logo-upload', class: 'case_study_upload'
           = image_tag f.object.logo, size: "50x50", id: 'project-logo'
 
-          = f.input :no_of_emp, label: 'Number of employees'
+          = f.input :number_of_employees
           = f.input :invoice_date, input_html: {class: :datepicker}, value: f.object.start_date.try(:strftime, '%d-%m-%Y')
           = f.input :code, label: "Project Code" do 
             = f.text_field :code, readonly: f.object.code

@@ -8,4 +8,8 @@ module ApplicationHelper
     when 'alert' then "alert alert-error"
     end
   end
+
+  def set_label status
+    status ? 'label-success' : 'label-warning'
+  end
 end

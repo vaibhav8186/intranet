@@ -17,7 +17,7 @@ class ProjectsController < ApplicationController
   end
 
   def new
-    @company = Company.find(params[:company]) if params[:company]
+    @company = Company.find(params[:company_id]) if params[:company_id]
     @project = Project.new(company: @company)
   end
 
@@ -60,7 +60,7 @@ class ProjectsController < ApplicationController
     :code_climate_coverage_snippet, :is_active, :ruby_version, :rails_version, :database, :database_version, :deployment_server,
     :deployment_script, :web_server, :app_server, :payment_gateway, :image_store, :index_server, :background_jobs, :sms_gateway,
     :other_frameworks,:other_details, :image, :url, :description, :case_study,:logo, :visible_on_website, :website_sequence_number, 
-    :code, :no_of_emp, :invoice_date, :company,
+    :code, :number_of_employees, :invoice_date, :company,
     :user_ids => [])
   end
 

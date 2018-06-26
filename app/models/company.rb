@@ -10,7 +10,7 @@ class Company
   field :logo, type: String
   field :website, type: String
 
-  has_many :projects
+  has_many :projects, dependent: :destroy
   embeds_many :contact_persons
   accepts_nested_attributes_for :contact_persons, allow_destroy: true, reject_if: :all_blank
 

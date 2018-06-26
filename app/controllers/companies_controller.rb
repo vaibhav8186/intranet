@@ -1,7 +1,7 @@
 class CompaniesController < ApplicationController
   include RestfulAction
 
-  before_action :authenticate_user!
+  load_and_authorize_resource
   before_action :set_company, only: [:edit, :show, :update, :destroy]
 
   def index
@@ -27,7 +27,7 @@ class CompaniesController < ApplicationController
   end
 
   def show
-    @projects = @company.projects.where(is_active: true)
+    @projects = @company.projects.group_by(&:is_active)
   end
 
   def update
