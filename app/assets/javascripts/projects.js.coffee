@@ -43,6 +43,12 @@ $(document).ready ->
     if(selected > limit)
       alert('Limit exceed!! You are trying to add more team members.')
     return
+  $('.usecode').click ->
+    code = $(this).data('code')
+    $('#project_code').val code
+    $('#existing-code').modal 'hide'
+    return
+  return
 
 readURL = (input, src_id) ->
   if input.files and input.files[0]

@@ -33,11 +33,16 @@
           = f.file_field :logo, required: true, id: 'logo-upload', class: 'case_study_upload'
           = image_tag f.object.logo, size: "50x50", id: 'project-logo'
           = f.input :invoice_date, input_html: {class: :datepicker}, value: f.object.start_date.try(:strftime, '%d-%m-%Y')
-          = f.input :code, label: "Project Code" do
+          = f.input :code, label: "Project Code", id: "projectcode" do
             = f.text_field :code, readonly: f.object.code
             - unless f.object.code
               = link_to "javascript:void(0)", onclick: "generate_code();" do
-                = "Generate new Code"
+                Generate New Code
+              - if @company && @company.projects.exists?
+                |
+                = link_to "#", data: { target: "#existing-code", toggle: "modal", type: "button"} do
+                  Use Existing Code
+                = render partial: "existing_code_modal", locals: { project: @project}
 
       .col-md-6.pull-right.upload
         = image_tag f.object.image, size: "200x200", id: 'project-image'
@@ -46,8 +51,5 @@
 
 :javascript
   $(".members").select2();
-  function generate_code(){
-    var code = (Math.random() * 100).toString(36).replace(/[^a-zA-Z0-9]+/g, '').substr(0, 6);
-    $("#project_code").val(code.toUpperCase());
-  }
+
 

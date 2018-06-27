@@ -3,7 +3,7 @@ class ProjectsController < ApplicationController
   load_and_authorize_resource
   skip_load_and_authorize_resource :only => :create
   before_action :authenticate_user!
-  before_action :load_project, except: [:index, :new, :create, :remove_team_member, :add_team_member]
+  before_action :load_project, except: [:index, :new, :create, :remove_team_member, :add_team_member, :generate_code]
 
   include RestfulAction
 
@@ -65,6 +65,14 @@ class ProjectsController < ApplicationController
     @project.user_ids = params[:project][:user_ids]
     @project.save
     @users = @project.reload.users
+  end
+
+  def generate_code
+    code = loop do
+      random_code = [*'0'..'9',*'A'..'Z',*'a'..'z'].sample(6).join.upcase
+      break random_code unless Project.where(code: random_code).first
+    end
+    render json: { code: code }
   end
 
   private

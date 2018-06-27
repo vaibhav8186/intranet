@@ -50,11 +50,13 @@ class Project
   belongs_to :company
 
   validates_presence_of :name
+  validate :project_code
+
   scope :all_active, ->{where(is_active: true).asc(:name)}
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :sort_by_position, -> { asc(:position)}
 
-  validates_uniqueness_of :code, allow_blank: true, allow_nil: true
+  # validates_uniqueness_of :code, allow_blank: true, allow_nil: true
 
   after_update do
     Rails.cache.delete('views/website/portfolio.json') if updated_at_changed?
@@ -97,6 +99,15 @@ class Project
       all.each do |project|
         csv << project.attributes.values_at(*column_names)
       end
+    end
+  end
+
+  def project_code
+    return true if code.nil?
+    project = Project.where(code: self.code).first
+    if project.present?
+      self.errors.add(:base, "Code already exists") unless
+        project.company_id == self.company_id
     end
   end
 end

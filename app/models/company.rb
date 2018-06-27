@@ -3,7 +3,7 @@ class Company
   include Mongoid::Slug
 
   mount_uploader :logo, FileUploader
-  
+
   field :name, type: String
   field :address, type: String
   field :gstno, type: String
@@ -24,6 +24,9 @@ class Company
     url = URI.parse(website) rescue false
     is_valid = url.kind_of?(URI::HTTP) || url.kind_of?(URI::HTTPS)
     errors.add(:website, "Invalid Website URL") unless is_valid
-  end 
+  end
 
+  def project_codes
+    projects.as_json(only: [:name,:code])
+  end
 end

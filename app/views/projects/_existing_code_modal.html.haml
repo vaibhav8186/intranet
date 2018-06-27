@@ -1,0 +1,20 @@
+#existing-code.modal.fade{:role => "dialog"}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{"data-dismiss" => "modal", :type => "button"} ×
+        %h4.modal-title Existing Codes
+      .modal-body
+        %h5 Use existing product codes
+        %table.table.table-hover
+          %tr
+            %th Project Name
+            %th Code
+            %th
+          - @company.project_codes.each do |project|
+            %tr
+              %td= project['name']
+              %td= project['code']
+              %td= link_to 'Use Code', "javascript:void(0);", class: "usecode", data: { code: project['code'] }
+      .modal-footer
+        %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
