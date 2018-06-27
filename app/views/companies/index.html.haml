@@ -1,33 +1,37 @@
 .form-heading.row
-  %h2 
+  %h2
     .span3
       Company
     .offset7{style: "float: right;"}
       = render partial: "layouts/company_menu"
 
 .form-horizontal
-  %table.table.table-hover#sortable
+  %table.table.table-hover#company_stream_table
     %thead
       %tr
         %th #
         %th Company Name
         %th GST number
         %th Website
-        %th Logo
         %th Actions
-
     %tbody
-      - @companies.each_with_index do |company, i|
+      %script#company_template{:type => "text/html"}
         %tr
-          %td= i+1
-          %td= link_to company.name, company_path(company)
-          %td= company.gstno
-          %td= link_to company.website
-          %td= image_tag company.logo.try(:url, :thumb)
+          {{#record}}
           %td
-            - if can? :manage, Project
-              =link_to '', edit_company_path(company), class: "icon-edit", data: {'no-turbolink' =>  true}
-              |
-              =link_to '', company_path(company), method: :delete, "data-confirm" => "Are you sure?", class: "icon-trash"
-              | 
-              =link_to 'Add Project', new_company_project_path(company_id: company)
+            {{index}}
+          %td
+            %a{href: "/companies/{{record._slugs}}" } {{name}}
+          %td
+            {{gstno}}
+          %td
+            {{website}}
+          %td
+            %a{href: "/companies/{{record._slugs}}/edit", class: "icon-edit", data: {'no-turbolink' =>  true}}
+            %a{href: "/companies/{{record._slugs}}", "data-method" => :delete, "data-confirm" => "Are you sure?", class: "icon-trash"}
+            %a{href: "/companies/{{record._slugs}}/projects/new"}
+              Add New Project
+          {{/record}}
+
+:coffeescript
+  @data = #{@companies.to_json(only: [:_slugs, :name, :gstno, :website])}

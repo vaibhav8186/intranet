@@ -3,7 +3,7 @@
     .modal-content
       .modal-header
         %button.close{"data-dismiss" => "modal", :type => "button"} ×
-        %h4.modal-title Modal Header
+        %h4.modal-title Select Team Member
       .modal-body
         = form_tag add_team_member_project_path(@project), remote: true do
           .control-group
