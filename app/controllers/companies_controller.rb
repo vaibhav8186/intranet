@@ -16,6 +16,7 @@ class CompaniesController < ApplicationController
 
   def new
     @company = Company.new
+    @company.addresses.build
   end
 
   def create
@@ -25,6 +26,14 @@ class CompaniesController < ApplicationController
       redirect_to companies_path
     else
       render 'new'
+    end
+  end
+
+  def edit
+    if @company.addresses.present?
+      @company.addresses
+    else
+      @company.addresses.build
     end
   end
 
@@ -59,7 +68,8 @@ class CompaniesController < ApplicationController
 
   def company_params
     params.require(:company).permit(:name, :address, :gstno, :logo, :website,
-      contact_persons_attributes: [:id, :role, :name, :phone_no, :email, :_destroy])
+      contact_persons_attributes: [:id, :role, :name, :phone_no, :email, :_destroy],
+      addresses_attributes: [:id, :type_of_address, :address, :city, :state, :landline_no, :pin_code, :_destroy])
   end
 
   def set_company

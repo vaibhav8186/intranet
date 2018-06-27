@@ -11,7 +11,7 @@
         %td= @company.name
       %tr
         %th Address
-        %td= @company.address
+        %td= raw @company.addresses.first.to_line
       %tr
         %th GST number
         %td= @company.gstno
@@ -21,6 +21,6 @@
       %tr
         %th Logo
         %td= image_tag @company.logo.try(:url, :thumb)
-  
+
 = render 'contact_persons' if  @company.contact_persons.present?
 = render 'project_details' if @projects.present?

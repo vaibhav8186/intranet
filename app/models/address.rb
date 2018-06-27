@@ -11,4 +11,12 @@ class Address
   belongs_to :private_profile
   belongs_to :leave_application
   belongs_to :vendor
+  embedded_in :company
+
+
+  def to_line
+    %w(type_of_address address city state landline_no pin_code).map do |line|
+      %{ #{self.send(line)} } if self.send(line).present?
+    end.compact.join(",")
+  end
 end
