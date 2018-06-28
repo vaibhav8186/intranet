@@ -11,7 +11,7 @@ class Address
   belongs_to :private_profile
   belongs_to :leave_application
   belongs_to :vendor
-  embedded_in :company
+  belongs_to :company
 
 
   def to_line

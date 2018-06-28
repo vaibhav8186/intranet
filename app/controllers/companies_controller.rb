@@ -30,11 +30,7 @@ class CompaniesController < ApplicationController
   end
 
   def edit
-    if @company.addresses.present?
-      @company.addresses
-    else
-      @company.addresses.build
-    end
+    @company.addresses.present? ? @company.addresses : @company.addresses.build
   end
 
   def show

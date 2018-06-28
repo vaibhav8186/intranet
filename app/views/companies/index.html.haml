@@ -27,10 +27,9 @@
           %td
             {{website}}
           %td
-            %a{href: "/companies/{{record._slugs}}/edit", class: "icon-edit", data: {'no-turbolink' =>  true}}
-            %a{href: "/companies/{{record._slugs}}", "data-method" => :delete, "data-confirm" => "Are you sure?", class: "icon-trash"}
-            %a{href: "/companies/{{record._slugs}}/projects/new"}
-              Add New Project
+            = link_to " ", "/companies/{{record._slugs}}/edit", data: { "no-turbolink": true }, class: "icon-edit"
+            = link_to " ", "/companies/{{record._slugs}}", data: { "no-turbolink": true, method: "delete", confirm: "Are you sure?" }, class: "icon-trash"
+            = link_to "Add New Project", "/companies/{{record._slugs}}/projects/new", data: { "no-turbolink": true }
           {{/record}}
 
 :coffeescript

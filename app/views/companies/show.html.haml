@@ -11,7 +11,10 @@
         %td= @company.name
       %tr
         %th Address
-        %td= raw @company.addresses.first.to_line
+        %td
+          - @company.addresses.each do |address|
+            = address.try(:to_line)
+            %br
       %tr
         %th GST number
         %td= @company.gstno
