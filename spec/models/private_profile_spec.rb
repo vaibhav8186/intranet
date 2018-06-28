@@ -14,5 +14,24 @@ describe PrivateProfile do
   it { should validate_presence_of(:date_of_joining).on(:update) }
   it { should validate_presence_of(:personal_email).on(:update) }
 =end
+
+  context 'Validate Date of joining' do
+    it 'should not update user beacuse joining date is not present' do
+      user = FactoryGirl.create(:user)
+      user.status = 'approved'
+      private_profile = user.private_profile
+      private_profile.date_of_joining = ''
+
+      expect(user.save).to eq(false)
+      expect(user.generate_errors_message).to eq("Private profile is invalid  Date of joining can't be blank")
+    end
+
+    it 'should update user because joing date is present' do
+      user = FactoryGirl.create(:user)
+
+      expect(user.save).to eq(true)
+      expect(user.generate_errors_message).to eq('  ')
+    end
+  end
 end
   
