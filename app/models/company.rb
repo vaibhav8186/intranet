@@ -11,14 +11,14 @@ class Company
 
   has_many :projects, dependent: :destroy
   embeds_many :contact_persons
-  has_many :addresses
+  has_many :addresses, dependent: :destroy
 
   accepts_nested_attributes_for :addresses, allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :contact_persons, allow_destroy: true, reject_if: :all_blank
 
   slug :name
 
-  validates_presence_of :name
+  validates :name, uniqueness: true, presence: true
   validate :website_url
 
   def website_url

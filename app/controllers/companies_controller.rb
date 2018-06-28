@@ -2,6 +2,7 @@ class CompaniesController < ApplicationController
   include RestfulAction
 
   load_and_authorize_resource
+  skip_load_and_authorize_resource only: :create
   before_action :set_company, only: [:edit, :show, :update, :destroy]
 
   def index

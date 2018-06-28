@@ -1,4 +1,4 @@
-  require 'spec_helper'
+require 'spec_helper'
 
 RSpec.describe CompaniesController, type: :controller do
   before(:each) do
@@ -22,22 +22,47 @@ RSpec.describe CompaniesController, type: :controller do
     end
 
     it "should create new project record" do
-      get :new 
+      get :new
       assigns(:company).new_record? == true
+    end
+
+    it "should build address record" do
+      get :new
+      assigns(:company).addresses.present? == true
     end
   end
 
-  describe "#create" do 
+  describe "#create" do
     it "should create new project" do
-      params = { company: { name: "xyz", website: "https://www.google.com", gstno: "12345"}}
-      post :create, params
+      post :create, { company: { name: "xyz", website: "https://www.google.com", gstno: "12345"}}
       expect(flash[:success]).to eq "Company created Succesfully"
     end
 
-    it "should render new on invalid record" do 
+    it "should render new on invalid record" do
       params = { company: { name: nil, website: "www.google.com", gstno: "12345"}}
       post :create, params
       expect(response).to render_template(:new)
+    end
+  end
+
+  describe "#edit" do
+    let(:company) { FactoryGirl.create(:company) }
+
+    it "should respond with success" do
+      get :edit, id: company.id
+      expect(response).to render_template(:edit)
+      expect(response).to have_http_status(200)
+    end
+
+    it "should return company record" do
+      get :edit, id: company.id
+      expect(assigns(:company).new_record?).to be_falsy
+    end
+
+    it "should build address record" do
+      get :edit, id: company.id
+      address = assigns(:company).addresses.first
+      expect(address.new_record?).to be_truthy
     end
   end
 
@@ -49,23 +74,31 @@ RSpec.describe CompaniesController, type: :controller do
     end
   end
 
-  describe '#patch' do
+  describe '#update' do
     it "should update company record" do
       company = FactoryGirl.create(:company)
       patch :update, {company: { name: "google"}, id: company.id }
       expect(company.reload.name).to eq("google")
     end
 
-    it "should accept nested attributes for contact" do 
+    it "should accept nested attributes for contact" do
       company = FactoryGirl.create(:company)
       params = { "company"=> { "contact_persons_attributes"=> {"0"=> {"email"=>"ajinath@joshsoftware.com",
-        "name"=>"Ajinath JEdhe", "mobileno"=>"1212121212",}}}, id: company.id} 
+        "name"=>"Ajinath JEdhe", "mobileno"=>"1212121212",}}}, id: company.id}
       patch :update, params
       expect(company.reload.contact_persons.count).to eq(1)
-    end 
+    end
+
+    it "should accept nested attributes for addresses" do
+      company = FactoryGirl.create(:company)
+      params = { "company"=> { "addresses_attributes"=> {"0"=> {"type_of_address"=>"temparaty",
+        "address"=>"Pune", "city"=>"Pune",}}}, id: company.id}
+      patch :update, params
+      expect(company.reload.addresses.count).to eq(1)
+    end
   end
 
-  describe '#delete' do 
+  describe '#destroy' do
     it 'should delete company record' do
       company =  FactoryGirl.create(:company)
       delete :destroy, id: company.id
