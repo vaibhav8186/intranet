@@ -10,6 +10,8 @@ class PrivateProfile
   field :previous_company
   field :bonusly_auth_token
   field :tshirt_size
+  field :internship_start_date, :type => Date
+  field :internship_end_date, :type => Date
 
   embedded_in :user
   embeds_many :contact_persons

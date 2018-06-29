@@ -14,6 +14,13 @@
     %tr
       %td
         - disable = ( can? :edit, User ) ? false : true
+        = pri.input :internship_start_date, disabled: disable, input_html: { class: 'datepicker',  'data-behaviour' => 'datepicker', value: @private_profile.internship_start_date.try(:strftime, '%d-%m-%Y')}
+      %td
+        - disable = ( can? :edit, User ) ? false : true
+        = pri.input :internship_end_date, disabled: disable, input_html: { class: 'datepicker',  'data-behaviour' => 'datepicker', value: @private_profile.internship_end_date.try(:strftime, '%d-%m-%Y')}
+    %tr
+      %td
+        - disable = ( can? :edit, User ) ? false : true
         = pri.input :date_of_joining, disabled: disable, input_html: { class: 'datepicker',  'data-behaviour' => 'datepicker', value: @private_profile.date_of_joining.try(:strftime, '%d-%m-%Y')}
       %td
         = pri.input :work_experience, placeholder: 'No of years'
