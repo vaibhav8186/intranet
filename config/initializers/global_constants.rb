@@ -11,3 +11,5 @@ REJECTED = 'Rejected'
 
 ORGANIZATION_DOMAIN = 'joshsoftware.com'
 ORGANIZATION_NAME = 'Josh Software'
+
+ROLE = { employee: 'Employee', HR: 'HR' }

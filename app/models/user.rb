@@ -103,4 +103,12 @@ class User
     website_sequence_number_changed? || visible_on_website_changed?
   end
 
+  def generate_errors_message
+    error_msg = []
+    error_msg.push(errors.full_messages,
+                   public_profile.errors.full_messages,
+                   private_profile.errors.full_messages)
+    error_msg.join(' ')
+  end
+
 end
