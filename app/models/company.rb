@@ -22,6 +22,7 @@ class Company
   validate :website_url
 
   def website_url
+    return true if website.nil? || website.empty?
     url = URI.parse(website) rescue false
     is_valid = url.kind_of?(URI::HTTP) || url.kind_of?(URI::HTTPS)
     errors.add(:website, "Invalid Website URL") unless is_valid
