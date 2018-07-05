@@ -26,6 +26,32 @@ describe PrivateProfile do
       expect(user.generate_errors_message).to eq("Private profile is invalid  Date of joining can't be blank")
     end
 
+    context 'validation' do
+      let!(:user){ FactoryGirl.create(:user) }
+
+      after do
+        expect(user.save).to eq(true)
+        expect(user.valid?).to eq(true)
+      end
+
+      it 'validation should not trigger because role is not employee' do
+        user.role = 'Intern'
+        byebug
+        expect(user.role).to_not be('Employee')
+      end
+
+      it 'validayion should not trigger because role is not HR' do
+        user.role = 'Intern'
+        expect(user.role).to_not be('HR')
+      end
+    end
+
+    it 'Validation should not trigger on create' do
+      user = FactoryGirl.create(:user)
+
+      expect(user.valid?).to eq(true)
+    end
+
     it 'should update user because joing date is present' do
       user = FactoryGirl.create(:user)
 
