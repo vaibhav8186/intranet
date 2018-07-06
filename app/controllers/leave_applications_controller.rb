@@ -1,18 +1,18 @@
 class LeaveApplicationsController < ApplicationController
-   
+
   before_action :authenticate_user!
   load_and_authorize_resource except: [:create, :view_leave_status, :process_leave]
   before_action :authorization_for_admin, only: [:process_leave]
- 
+
   def new
     @leave_application = LeaveApplication.new(user_id: current_user.id)
     @available_leaves = current_user.employee_detail.try(:available_leaves)
   end
-  
+
   def index
     @users = User.employees.not_in(role: ["Admin", "SuperAdmin"])
-  end  
-  
+  end
+
   def create
     @leave_application = LeaveApplication.new(strong_params)
     if @leave_application.save
@@ -22,9 +22,9 @@ class LeaveApplicationsController < ApplicationController
       flash[:error] = @leave_application.errors.full_messages.join("\n")
       render 'new' and return
     end
-    #redirect_to public_profile_user_path(current_user) and return 
-    redirect_to view_leaves_path(current_user) and return 
-  end 
+    #redirect_to public_profile_user_path(current_user) and return
+    redirect_to view_leaves_path(current_user) and return
+  end
 
   def edit
     @available_leaves = @leave_application.user.employee_detail.available_leaves
@@ -37,27 +37,27 @@ class LeaveApplicationsController < ApplicationController
       @available_leaves = current_user.employee_detail.available_leaves
       flash[:error] = @leave_application.errors.full_messages.join("\n")
       render 'edit' and return
-    end 
-    redirect_to ((can? :manage, LeaveApplication) ? leave_applications_path : view_leaves_path) and return 
+    end
+    redirect_to ((can? :manage, LeaveApplication) ? leave_applications_path : view_leaves_path) and return
   end
 
   def view_leave_status
     if ["Admin", "HR", "Manager"].include? current_user.role
-      @pending_leaves = LeaveApplication.order_by(:created_at.desc).pending
-      @processed_leaves = LeaveApplication.order_by(:created_at.desc).processed 
+      @pending_leaves = LeaveApplication.where(:user_id.in => user_ids).any_of(search_conditions).order_by(:created_at.desc).pending.page(params[:page]).per(10)
+      @processed_leaves = LeaveApplication.where(:user_id.in => user_ids).any_of(search_conditions).order_by(:created_at.desc).processed.page(params[:page]).per(10)
     else
-      @pending_leaves = current_user.leave_applications.order_by(:created_at.desc).pending
-      @processed_leaves = current_user.leave_applications.order_by(:created_at.desc).processed
+      @pending_leaves = current_user.leave_applications.any_of(search_conditions).order_by(:created_at.desc).pending.page(params[:page]).per(10)
+      @processed_leaves = current_user.leave_applications.any_of(search_conditions).order_by(:created_at.desc).processed.page(params[:page]).per(10)
     end
   end
 
   def strong_params
     safe_params = [
-                   :user_id, :start_at, 
+                   :user_id, :start_at,
                    :end_at, :contact_number, :number_of_days,
                    :reason, :reject_reason, :leave_status
                   ]
-    params.require(:leave_application).permit(*safe_params) 
+    params.require(:leave_application).permit(*safe_params)
   end
 
 =begin Commented on 26th may 2015. Added common method process_leave
@@ -68,7 +68,7 @@ class LeaveApplicationsController < ApplicationController
 
   def approve_leave
     process_leave(params[:id], 'Approved', :process_accept_application)
-  end 
+  end
 =end
 
   def process_leave
@@ -84,7 +84,7 @@ class LeaveApplicationsController < ApplicationController
     @message = LeaveApplication.process_leave(params[:id], @status, call_function, params[:reject_reason])
     @leave_application = LeaveApplication.find(params[:id])
     @pending_leaves = LeaveApplication.order_by(:created_at.desc).pending
-    
+
 
     respond_to do|format|
       format.js{}
@@ -101,5 +101,25 @@ class LeaveApplicationsController < ApplicationController
     else
       return true
     end
-  end 
+  end
+
+  def search_conditions
+    if params[:from].present?
+      to = params[:to].empty? ? Date.today.strftime("%d-%m-%Y") : params[:to]
+      start_at =  { start_at: params[:from]..to  }
+      end_at = { end_at: params[:from]..to }
+      [start_at, end_at]
+    end
+  end
+
+  def user_ids
+    if params[:name].present?
+      first_name, last_name = params[:name].split
+      last_name = first_name if last_name.nil?
+      User.or({ "public_profile.first_name": /#{first_name}/i}, { "public_profile.last_name": /#{last_name}/i}).pluck(:id)
+    else
+      User.pluck(:id)
+    end
+  end
+
 end
