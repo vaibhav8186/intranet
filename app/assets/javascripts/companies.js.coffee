@@ -9,7 +9,7 @@ $(document).ready ->
     view: view
     data_url: '/companies.json'
     stream_after: 2
-    fetch_data_limit: 10
+    fetch_data_limit: 100
 
   if($('#company_stream_table').length)
     $('#company_stream_table').stream_table options, data if typeof data isnt "undefined"

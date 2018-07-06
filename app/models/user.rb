@@ -63,7 +63,7 @@ class User
 
   def sent_mail_for_approval(leave_application_id)
     notified_users = [
-                      User.approved.where(role: 'HR').first.try(:email), User.approved.where(role: 'Admin').first.try(:email),
+                      User.approved.where(role: 'HR').pluck(:email), User.approved.where(role: 'Admin').first.try(:email),
                       self.employee_detail.try(:notification_emails).try(:split, ',')
                      ].flatten.compact.uniq
     UserMailer.delay.leave_application(self.email, notified_users, leave_application_id)
@@ -101,6 +101,14 @@ class User
 
   def website_fields_changed?
     website_sequence_number_changed? || visible_on_website_changed?
+  end
+
+  def generate_errors_message
+    error_msg = []
+    error_msg.push(errors.full_messages,
+                   public_profile.errors.full_messages,
+                   private_profile.errors.full_messages)
+    error_msg.join(' ')
   end
 
 end
