@@ -4,8 +4,8 @@ load File.expand_path("../../../lib/tasks/leave_reminder.rake", __FILE__)
 describe LeaveApplicationsController do
   context "Employee, manager and HR" do
     before(:each) do
-      @admin = FactoryGirl.create(:user, email: 'admin@joshsoftware.com', role: 'Admin') 
-      hr = FactoryGirl.create(:user, email: 'hr@joshsoftware.com', role: 'HR') 
+      @admin = FactoryGirl.create(:user, email: 'admin@joshsoftware.com', role: 'Admin')
+      hr = FactoryGirl.create(:user, email: 'hr@joshsoftware.com', role: 'HR')
       @user = FactoryGirl.create(:user, role: 'Employee')
       sign_in @user
       @leave_application = FactoryGirl.build(:leave_application, user_id: @user.id)
@@ -14,7 +14,7 @@ describe LeaveApplicationsController do
     it "should able to view new leave apply page" do
       get :new, {user_id: @user.id}
       should respond_with(:success)
-      should render_template(:new) 
+      should render_template(:new)
     end
 
     context "leaves view" do
@@ -24,7 +24,7 @@ describe LeaveApplicationsController do
         @user.save
         @leave_application = FactoryGirl.build(:leave_application, user_id: @user.id)
         post :create, {user_id: @user.id, leave_application: @leave_application.attributes.merge(number_of_days: 2)}
-        user2 = FactoryGirl.create(:user, id: "52b28303dd1b36927d000009", email: 'user2@joshsoftware.com', role: 'Employee')  
+        user2 = FactoryGirl.create(:user, id: "52b28303dd1b36927d000009", email: 'user2@joshsoftware.com', role: 'Employee')
         user2.build_private_profile(FactoryGirl.build(:private_profile).attributes)
         user2.public_profile = FactoryGirl.build(:public_profile)
         user2.save
@@ -41,7 +41,72 @@ describe LeaveApplicationsController do
         sign_out @user
         sign_in @admin
         get :view_leave_status
-        assigns(:pending_leaves).count.should eq(2) 
+        assigns(:pending_leaves).count.should eq(2)
+      end
+
+      it 'should search all leaves if search parameters are empty' do
+        sign_out @user
+        sign_in @admin
+        get :view_leave_status, { name: '', from: '', to: ''}
+        assigns(:pending_leaves).count.should eq(2)
+      end
+
+      it 'should search leaves by employee first name' do
+        sign_out @user
+        sign_in @admin
+        @user.public_profile.update(first_name: 'Test', last_name: 'Search')
+        get :view_leave_status, { name: 'Test', from: '', to: ''}
+        assigns(:pending_leaves).count.should eq(1)
+      end
+
+      it 'should search leaves by employee last name' do
+        sign_out @user
+        sign_in @admin
+        @user.public_profile.update(first_name: 'Test', last_name: 'Search')
+        get :view_leave_status, { name: 'Search', from: '', to: ''}
+        assigns(:pending_leaves).count.should eq(1)
+      end
+
+      it 'should search leaves by employee first name and last name' do
+        sign_out @user
+        sign_in @admin
+        @user.public_profile.update(first_name: 'Test', last_name: 'Search')
+        get :view_leave_status, { name: 'Test Search', from: '', to: ''}
+        assigns(:pending_leaves).count.should eq(1)
+      end
+
+      it 'should search leaves for case insensetive employee name' do
+        sign_out @user
+        sign_in @admin
+        @user.public_profile.update(first_name: 'Test', last_name: 'Search')
+        get :view_leave_status, { name: 'test search', from: '', to: ''}
+        assigns(:pending_leaves).count.should eq(1)
+      end
+
+      it 'should search leaves if some characters of employee name match' do
+        sign_out @user
+        sign_in @admin
+        @user.public_profile.update(first_name: 'Test', last_name: 'Search')
+        get :view_leave_status, { name: 'tes', from: '', to: ''}
+        assigns(:pending_leaves).count.should eq(1)
+      end
+
+      it 'should search leaves between from and to date' do
+        sign_out @user
+        sign_in @admin
+        @leave_application = @leave_application.update(start_at: Date.today + 5.days, end_at: Date.today + 10.days)
+        get :view_leave_status, { name: '', from: Date.today + 5.days, to: Date.today + 10.days}
+        assigns(:pending_leaves).count.should eq(1)
+      end
+
+      it'should search leaves by employee name, leave start_date and end_date' do
+        sign_out @user
+        sign_in @admin
+        @user.public_profile.update(first_name: 'Test', last_name: 'Search')
+        leave_application = @user.leave_applications.first
+        leave_application.update(start_at: Date.today + 5.days, end_at: Date.today + 10.days)
+        get :view_leave_status, { name: 'Test Search', from: Date.today + 5.days, to: Date.today + 10.days}
+        assigns(:pending_leaves).count.should eq(1)
       end
     end
 
@@ -51,8 +116,8 @@ describe LeaveApplicationsController do
       @user.save
       remaining_leave = @user.employee_detail.available_leaves - @leave_application.number_of_days
       post :create, {user_id: @user.id, leave_application: @leave_application.attributes.merge(number_of_days: 2)}
-      LeaveApplication.count.should == 1 
-      @user.reload 
+      LeaveApplication.count.should == 1
+      @user.reload
       expect(@user.employee_detail.available_leaves).to eq(remaining_leave)
     end
 
@@ -62,7 +127,7 @@ describe LeaveApplicationsController do
       @user.save
       @user.employee_detail.update_attribute(:available_leaves, 1)
       post :create, {user_id: @user.id, leave_application: @leave_application.attributes.merge(number_of_days: 9)}
-      expect(LeaveApplication.count).to eq 0 
+      expect(LeaveApplication.count).to eq 0
       @user.reload
       expect(@user.employee_detail.available_leaves).to eq(1)
     end
@@ -70,10 +135,10 @@ describe LeaveApplicationsController do
 
   context "AS HR" do
     before(:each) do
-      admin = FactoryGirl.create(:user, email: 'admin@joshsoftware.com', role: 'Admin') 
-      @user = FactoryGirl.create(:user, email: 'hr@joshsoftware.com', role: 'HR', private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01))) 
+      admin = FactoryGirl.create(:user, email: 'admin@joshsoftware.com', role: 'Admin')
+      @user = FactoryGirl.create(:user, email: 'hr@joshsoftware.com', role: 'HR', private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01)))
       sign_in @user
-      @leave_application = FactoryGirl.create(:leave_application, user_id: @user.id) 
+      @leave_application = FactoryGirl.create(:leave_application, user_id: @user.id)
     end
 
     it "should be able to apply leave" do
@@ -92,9 +157,9 @@ describe LeaveApplicationsController do
 
   context "While accepting leaves" do
     before(:each) do
-      @admin = FactoryGirl.create(:user, email: 'admin@joshsoftware.com', role: 'Admin') 
-      @hr = FactoryGirl.create(:user, email: 'hr@joshsoftware.com', role: 'HR') 
-      @user = FactoryGirl.create(:user, private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01))) 
+      @admin = FactoryGirl.create(:user, email: 'admin@joshsoftware.com', role: 'Admin')
+      @hr = FactoryGirl.create(:user, email: 'hr@joshsoftware.com', role: 'HR')
+      @user = FactoryGirl.create(:user, private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01)))
       sign_in @admin
     end
 
@@ -102,7 +167,7 @@ describe LeaveApplicationsController do
       leave_application = FactoryGirl.create(:leave_application, user_id: @user.id, number_of_days: 2)
       xhr :get, :process_leave, {id: leave_application.id, leave_action: :approve}
       leave_application = LeaveApplication.last
-      expect(leave_application.leave_status).to eq "Approved" 
+      expect(leave_application.leave_status).to eq "Approved"
     end
 
     it "Only single mail to employee should get sent on leave appproval" do
@@ -133,7 +198,7 @@ describe LeaveApplicationsController do
       expect(leave_application.leave_status).to eq("Approved")
       @user.reload
       expect(@user.employee_detail.available_leaves).to eq(available_leaves-number_of_days)
-    end 
+    end
 
     it "should be able to apply leave" do
       get :new, {user_id: @admin.id}
@@ -148,7 +213,7 @@ describe LeaveApplicationsController do
       expect(LeaveApplication.count).to eq(leave_application_count + 1)
       should respond_with(:success)
       should render_template(:index)
-    end 
+    end
   end
 
   context "Canceling leaves" do
@@ -162,8 +227,8 @@ describe LeaveApplicationsController do
 
   context 'If user is not Admin should not able to ' do
 
-    before do 
-      @user = FactoryGirl.create(:user, email: 'employee1@joshsoftware.com', private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01))) 
+    before do
+      @user = FactoryGirl.create(:user, email: 'employee1@joshsoftware.com', private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01)))
       sign_in @user
     end
 
@@ -186,9 +251,9 @@ describe LeaveApplicationsController do
   context "Rejecting leaves" do
 
     before(:each) do
-      @admin = FactoryGirl.create(:user, email: 'admin@joshsoftware.com', role: 'Admin') 
-      @hr = FactoryGirl.create(:user, email: 'hr@joshsoftware.com', role: 'HR') 
-      @user = FactoryGirl.create(:user, private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01))) 
+      @admin = FactoryGirl.create(:user, email: 'admin@joshsoftware.com', role: 'Admin')
+      @hr = FactoryGirl.create(:user, email: 'hr@joshsoftware.com', role: 'HR')
+      @user = FactoryGirl.create(:user, private_profile: FactoryGirl.build(:private_profile, date_of_joining: Date.new(Date.today.year, 01, 01)))
       sign_in @admin
     end
 
@@ -199,7 +264,7 @@ describe LeaveApplicationsController do
       leave_application = LeaveApplication.last
       expect(leave_application.leave_status).to eq "Rejected"
       expect(leave_application.reject_reason).to eq reason
-      
+
       xhr :get, :process_leave, {id: leave_application.id, reject_reason: reason, leave_action: :approve}
       leave_application = LeaveApplication.last
       expect(leave_application.leave_status).to eq "Approved"
@@ -230,16 +295,16 @@ describe LeaveApplicationsController do
       expect(@user.employee_detail.available_leaves).to eq(available_leaves-number_of_days)
       xhr :get, :process_leave, {id: leave_application.id, leave_action: :reject}
       leave_application = LeaveApplication.last
-      expect(leave_application.leave_status).to eq "Rejected" 
+      expect(leave_application.leave_status).to eq "Rejected"
       @user.reload
       expect(@user.employee_detail.available_leaves).to eq(available_leaves)
 
       xhr :get, :process_leave, {id: leave_application.id, leave_action: :reject}
       leave_application = LeaveApplication.last
-      expect(leave_application.leave_status).to eq "Rejected" 
+      expect(leave_application.leave_status).to eq "Rejected"
       @user.reload
       expect(@user.employee_detail.available_leaves).to eq(available_leaves)
-    end 
+    end
   end
 
   context 'Update', update_leave: true do
@@ -296,7 +361,7 @@ describe LeaveApplicationsController do
       end_at, days = leave_app.end_at.to_date + 1.day, leave_app.number_of_days - 1
       employee.employee_detail.available_leaves = 10
       employee.save
-      
+
       post :update, id: leave_app.id, leave_application: { "end_at"=> end_at, "number_of_days"=> days}
 
       l_app = assigns(:leave_application)
@@ -306,4 +371,3 @@ describe LeaveApplicationsController do
     end
   end
 end
-
