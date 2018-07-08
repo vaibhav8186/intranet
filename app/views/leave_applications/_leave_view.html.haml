@@ -1,41 +1,44 @@
-%table.table.table-hover
-  %thead
-    %th From
-    %th Start Date
-    %th Last Date
-    %th Days
-    %th Reason
-    %th Applied On
-    %th Status
-    - if (leave_data.present? and !leave_data.first.pending?) or can? :manage, LeaveApplication
-      %th Note
-    - if (leave_data.present? and leave_data.first.pending?) or can? :manage, LeaveApplication
-      %th Action
-  %tbody
-    - leave_data.each do|appr_leave|
-      - pending_leave = appr_leave.pending?
-      - leave_id = appr_leave.id.to_s
-      %tr{id: "leave_application_#{leave_id}", pending: "#{pending_leave}"}
-        %td= appr_leave.user.try(:name)
-        %td= appr_leave.start_at.strftime("%d-%m-%Y")
-        %td= appr_leave.end_at.strftime("%d-%m-%Y")
-        %td= appr_leave.number_of_days
-        %td= appr_leave.reason
-        %td= appr_leave.created_at.try(:strftime, "%d-%m-%Y")
-        %td.status= appr_leave.leave_status
-        %td
-          %a.reason{class: 'reason_'+ leave_id, id: "#{leave_id}"}
-          %br
-          .prev_reason #{appr_leave.reject_reason + ';' if appr_leave.reject_reason.present?}
-        %td.spinner.hide= image_tag('select2-spinner.gif', :class => 'spinner')
-        %td.action{id: "#{appr_leave.id}"}
-          - if pending_leave and can? :edit, appr_leave
-            .btn.btn-mini= link_to 'Edit', edit_leave_application_path(appr_leave)
-            - if can? :manage, appr_leave
-              %div.process_btn{ class: 'btn btn-success btn-mini', data: {action: 'approve'}} Approve
-              %div.process_btn{ class: 'btn btn-danger btn-mini', data: {action: 'reject'}} Reject
-          - elsif can? :manage, appr_leave
-            - if appr_leave.leave_status == REJECTED
-              %div.process_btn{ class: 'btn btn-success btn-mini', data: {action: 'approve'}} Approve
-            - else  
-              %div.process_btn{ class: 'btn btn-danger btn-mini', data: {action: 'reject'}} Reject
+.form-horizontal{style: "margin: 0px"}
+  %table.table.table-hover
+    %thead
+      %th From
+      %th Start Date
+      %th Last Date
+      %th Days
+      %th Reason
+      %th Applied On
+      %th Status
+      - if (leave_data.present? and !leave_data.first.pending?) or can? :manage, LeaveApplication
+        %th Note
+      - if (leave_data.present? and leave_data.first.pending?) or can? :manage, LeaveApplication
+        %th Action
+    %tbody
+      - leave_data.each do|appr_leave|
+        - pending_leave = appr_leave.pending?
+        - leave_id = appr_leave.id.to_s
+        %tr{id: "leave_application_#{leave_id}", pending: "#{pending_leave}"}
+          %td= appr_leave.user.try(:name)
+          %td= appr_leave.start_at.strftime("%d-%m-%Y")
+          %td= appr_leave.end_at.strftime("%d-%m-%Y")
+          %td= appr_leave.number_of_days
+          %td= appr_leave.reason
+          %td= appr_leave.created_at.try(:strftime, "%d-%m-%Y")
+          %td.status= appr_leave.leave_status
+          %td
+            %a.reason{class: 'reason_'+ leave_id, id: "#{leave_id}"}
+            %br
+            .prev_reason #{appr_leave.reject_reason + ';' if appr_leave.reject_reason.present?}
+          %td.spinner.hide= image_tag('select2-spinner.gif', :class => 'spinner')
+          %td.action{id: "#{appr_leave.id}"}
+            - if pending_leave and can? :edit, appr_leave
+              .btn.btn-mini= link_to 'Edit', edit_leave_application_path(appr_leave)
+              - if can? :manage, appr_leave
+                %div.process_btn{ class: 'btn btn-success btn-mini', data: {action: 'approve'}} Approve
+                %div.process_btn{ class: 'btn btn-danger btn-mini', data: {action: 'reject'}} Reject
+            - elsif can? :manage, appr_leave
+              - if appr_leave.leave_status == REJECTED
+                %div.process_btn{ class: 'btn btn-success btn-mini', data: {action: 'approve'}} Approve
+              - else
+                %div.process_btn{ class: 'btn btn-danger btn-mini', data: {action: 'reject'}} Reject
+.pull-right
+  = paginate leave_data
