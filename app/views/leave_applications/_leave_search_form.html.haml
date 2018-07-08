@@ -1,0 +1,8 @@
+%li
+  .search-form
+    = form_tag view_leaves_path, method: 'GET', class: "form form-inline" do
+      - if ["Admin", "HR", "Manager"].include? current_user.role
+        = text_field_tag :name, params[:name], class: "form-control", placeholder: "Enter name"
+      = text_field_tag :from, params[:from], class: "form-control datepicker", placeholder: "From Date"
+      = text_field_tag :to, params[:to], class: "form-control datepicker", placeholder: "To date"
+      = submit_tag "Search", class: "btn btn-primary"

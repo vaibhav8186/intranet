@@ -6,6 +6,7 @@
 .alert-message
 .leave_link
   =link_to "Apply Leave", new_user_leave_application_path(current_user)
+
 %ul.leave_applicationTab.nav.nav-tabs
   %li.active
     %a#pending_link{data:{toggle: 'tab', leave_count: @pending_leaves.count}, href: '#pending_leave'}
@@ -13,14 +14,16 @@
   %li
     %a#leave_history_link{data:{toggle: "tab"}, href: '#processed_leave'}
       Leave History
-   
+
+  = render 'leave_search_form'
+
 .leave_application_tab_content.tab-content
   #processed_leave.tab-pane.fade
     = render 'leave_applications/leave_view', leave_data: @processed_leaves
   #pending_leave.tab-pane.fade.in.active
     = render 'leave_applications/leave_view', leave_data: @pending_leaves
 :javascript
-  
+
   var reject_reason = ''
 
   function process_btn_click(e){
@@ -39,19 +42,19 @@
   $('.reason').editable({
     validate: make_editable
   });
-  
+
   $('.process_btn').click(process_btn_click);
-    
+
   function update_leave(div){
     action = div.attr('action')
     leave_application_id = div.attr('id')
-    
+
     $.ajax({
       url: '/process_leave_application',
       type: 'GET',
       data: {id: leave_application_id, leave_action: action, reject_reason: reject_reason},
       error: function(e){
-        $('.alert-message').alert({txt: 'Internal Server Error! Please contact web sysadmin', type: 'error'});  
+        $('.alert-message').alert({txt: 'Internal Server Error! Please contact web sysadmin', type: 'error'});
       }
     });
   }
