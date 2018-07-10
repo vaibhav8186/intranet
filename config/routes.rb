@@ -90,9 +90,9 @@ Rails.application.routes.draw do
   end
 
   resources :time_sheets
-
-
-
+  resources :slack do
+    post :get_projects, on: :collection
+  end
 
   post '/blog_publish_hook' => 'application#blog_publish_hook', as: :blog_publish_hook
   # You can have the root of your site routed with "root"
