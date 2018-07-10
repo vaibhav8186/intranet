@@ -12,4 +12,6 @@ REJECTED = 'Rejected'
 ORGANIZATION_DOMAIN = 'joshsoftware.com'
 ORGANIZATION_NAME = 'Josh Software'
 
+SLACK_API_TOKEN = 'xoxb-293860924400-392092168631-jVXwtjIdUhckSYaphhXmylOH'
+
 ROLE = { employee: 'Employee', HR: 'HR' }
