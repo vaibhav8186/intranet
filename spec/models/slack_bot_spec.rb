@@ -6,7 +6,7 @@ RSpec.describe SlackBot, type: :model do
       projects = ["tpn", "Dealsignal"]
       slack_params = {
         'token' => SLACK_API_TOKEN,
-        'channel' => 'DBGA1H15E',
+        'channel' => CHANNEL_ID,
         'text' => projects
       }
 
@@ -23,7 +23,7 @@ RSpec.describe SlackBot, type: :model do
       it 'it should response false because auth token invalid' do
         slack_params = {
           'token' => 'abcd.123',
-          'channel' => 'DBGA1H15E',
+          'channel' => CHANNEL_ID,
           'text' => projects
         }
 
@@ -54,7 +54,7 @@ RSpec.describe SlackBot, type: :model do
         projects = []
         slack_params = {
           'token' => SLACK_API_TOKEN,
-          'channel' => 'DBGA1H15E',
+          'channel' => CHANNEL_ID,
           'text' => projects
         }
 
