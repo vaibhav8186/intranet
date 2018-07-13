@@ -80,7 +80,7 @@ Rails.application.routes.draw do
   end
 
   resources :slack do
-    post :get_projects, on: :collection
+    post :projects, on: :collection
   end
 
 
