@@ -7,15 +7,15 @@ RSpec.describe SlackController do
     let!(:project_ds) { user.projects.create(name: 'Dealsignal') }
 
     before do
-      user.public_profile.slack_handle = 'U8NGCJBN0'
+      user.public_profile.slack_handle = USER_ID
       user.save
     end
 
     it 'should have status code 200' do
-      params = { user_id: 'U8NGCJBN0', channel_id: 'DBGA1H15E' }
+      params = { user_id: USER_ID, channel_id: CHANNEL_ID }
       slack_params = {
         'token' => SLACK_API_TOKEN,
-        'channel' => 'DBGA1H15E',
+        'channel' => CHANNEL_ID,
         'text' => "1. tpn\n2. Dealsignal"
       }
 
