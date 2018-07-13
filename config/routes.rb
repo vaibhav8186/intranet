@@ -91,7 +91,7 @@ Rails.application.routes.draw do
 
   resources :time_sheets
   resources :slack do
-    post :get_projects, on: :collection
+    post :projects, on: :collection
   end
 
   post '/blog_publish_hook' => 'application#blog_publish_hook', as: :blog_publish_hook

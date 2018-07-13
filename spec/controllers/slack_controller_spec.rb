@@ -27,7 +27,7 @@ RSpec.describe SlackController do
 
       stub_request(:post, "https://slack.com/api/chat.postMessage")
 
-      post :get_projects, params
+      post :projects, params
       expect(response).to have_http_status(200)
     end
   end
