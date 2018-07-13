@@ -39,6 +39,7 @@ class Project
   field :sms_gateway
   field :other_frameworks
   field :other_details
+  field :display_name
 
   slug :name
 
@@ -48,7 +49,15 @@ class Project
   scope :all_active, ->{where(is_active: true).asc(:name)}
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :sort_by_position, -> { asc(:position)}
-  
+
+  validates :display_name, format: { with: /\A[\S]*\z/, message: "Name should not contain white space" }
+
+  before_save do
+    if name_change || display_name.blank?
+      self.display_name = name.split.join('_')
+    end
+  end
+
   after_update do
     Rails.cache.delete('views/website/portfolio.json') if updated_at_changed?
   end
