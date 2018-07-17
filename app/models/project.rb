@@ -50,11 +50,12 @@ class Project
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :sort_by_position, -> { asc(:position)}
 
-  validates :display_name, format: { with: /\A[\S]*\z/, message: "Name should not contain white space" }
-
+  validates :display_name, format: { with: /\A[ ]*[\S]*[ ]*\Z/, message: "Name should not contain white space" }
   before_save do
-    if name_change || display_name.blank?
+    if name_changed? && display_name.blank?
       self.display_name = name.split.join('_')
+    else
+      self.display_name = self.display_name.strip
     end
   end
 

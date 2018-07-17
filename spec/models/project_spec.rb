@@ -28,6 +28,7 @@ describe Project do
 
     it 'should update display name when project name is change' do
       project.name = 'Deal signal'
+      project.display_name = ''
       project.save
 
       expect(project.display_name).to eq("Deal_signal")
