@@ -67,6 +67,9 @@ group :test do
   gem 'database_cleaner'
   gem 'faker'
   gem "codeclimate-test-reporter", require: nil
+  gem 'webmock'
+  gem 'vcr', '2.4.0'
+
 end
 
 group :development do
@@ -118,3 +121,6 @@ gem 'rollbar'
 #gem 'aws-sdk', '~> 2'
 gem "aws-sdk"
 gem "recaptcha", '~> 3.3.0', :require => "recaptcha/rails"
+gem "byebug"
+gem "rest-client"
+

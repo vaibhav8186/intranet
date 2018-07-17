@@ -14,7 +14,7 @@ class TimeSheet
   MAX_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
   
-  def parse_string(params)
+  def parse_timesheet_data(params)
     split_text = params['text'].split
 
     return false unless is_valid_command_format?(split_text, params['channel_id'])
@@ -51,17 +51,17 @@ class TimeSheet
       post_message_to_slack(params['channel_id'], text)
       return false
     end
-    
+
     is_valid_date(split_date, date, params)
   end
-  
+
   def is_valid_date(split_date, date, params)
     valid_date = Date.valid_date?(split_date[2].to_i, split_date[1].to_i, split_date[0].to_i)
     unless valid_date
       post_message_to_slack(params['channel_id'], "\`Error :: Invalid date\`")
       return false
     end
-    
+
     check_date_range(date, params)
   end
   
@@ -73,13 +73,13 @@ class TimeSheet
     end
     return true
   end
-  
+
   def time_validation(start_time, end_time, params)
     start_time = is_valid_time?(start_time, params)
     end_time = is_valid_time?(end_time, params)
-    
+
     return false unless start_time || end_time
-    
+
     if start_time > end_time
       text = "\`Error :: From time must be less than to time\`"
       post_message_to_slack(params['channel_id'], text)
@@ -91,9 +91,9 @@ class TimeSheet
   def is_valid_time?(time, params)
     time_format = check_time_format(time)
     ret = Time.parse(time_format) rescue nil
-    
+
     unless ret
-      text = "\`Error :: Invalid time formate\`"
+      text = "\`Error :: Invalid time format\`"
       post_message_to_slack(params['channel_id'], text)
       return false
     end
@@ -104,7 +104,7 @@ class TimeSheet
     return time + (':00') unless time.include?(':')
     time
   end
-  
+
   def concat_desscription(split_text)
     description = ''
     split_text[4..-1].each do |string|
@@ -112,7 +112,7 @@ class TimeSheet
     end
     description
   end
-  
+
   def time_sheets(split_text, params)
     user = load_user(params['user_id'])
     time_sheets_data = {}
@@ -124,7 +124,7 @@ class TimeSheet
     time_sheets_data['description'] = concat_desscription(split_text)
     time_sheets_data
   end
-   
+
   def post_message_to_slack(channel, text)
     params = {
       token: SLACK_API_TOKEN,
@@ -133,10 +133,8 @@ class TimeSheet
     }
     resp = RestClient.post("https://slack.com/api/chat.postMessage", params)
   end
-  
+
   def load_user(user_id)
     User.where("public_profile.slack_handle" => user_id)
   end
 end
-
-
