@@ -3,13 +3,15 @@ class TimeSheet
 
   field :user_id
   field :project_id
-  field :date
-  field :from_time
-  field :to_time
-  field :description
+  field :date,            :type => Date
+  field :from_time,       :type => Time
+  field :to_time,         :type => Time
+  field :description,     :type => String
 
   belongs_to :user
   belongs_to :project
+
+  validates :from_time, :to_time, uniqueness: { scope: [:user_id, :date], message: "record is already present" }
 
   MAX_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
@@ -20,7 +22,8 @@ class TimeSheet
     return false unless is_valid_command_format?(split_text, params['channel_id'])
     return false unless is_valid_project_name?(split_text[0], params)
     return false unless is_valid_date_format?(split_text[1], params)
-    return false unless time_validation(split_text[2], split_text[3], params)
+    return false unless time_validation(split_text[1], split_text[2], split_text[3], params)
+
     time_sheets_data = time_sheets(split_text, params)
     return true, time_sheets_data
   end
@@ -37,7 +40,8 @@ class TimeSheet
   def is_valid_project_name?(project_name, params)
     user = load_user(params['user_id'])
     display_names = user.first.projects.pluck(:display_name)
-    return true if display_names.include?(project_name)
+    display_names = display_names.map(&:downcase)
+    return true if display_names.include?(project_name.downcase)
     text = "\`Error :: you are not working on this project\`"
     post_message_to_slack(params['channel_id'], text)
     return false
@@ -74,23 +78,48 @@ class TimeSheet
     return true
   end
 
-  def time_validation(start_time, end_time, params)
-    start_time = is_valid_time?(start_time, params)
-    end_time = is_valid_time?(end_time, params)
-
-    return false unless start_time || end_time
-
-    if start_time > end_time
+  def is_from_time_greater_than_to_time?(from_time, to_time, params)
+    if from_time >= to_time
       text = "\`Error :: From time must be less than to time\`"
+      post_message_to_slack(params['channel_id'], text)
+      return false
+    end
+  end
+
+  def is_from_time_greater_than_to_time?(from_time, to_time, params)
+    if from_time >= to_time
+       text = "\`Error :: From time must be less than to time\`"
+       post_message_to_slack(params['channel_id'], text)
+       return false
+     end
+     return true
+  end
+
+  def is_timesheet_greater_then_current_time?(from_time, to_time, params)
+    if from_time >= Time.now || to_time >= Time.now
+      text = "\`Error :: Future time is not allowed\`"
       post_message_to_slack(params['channel_id'], text)
       return false
     end
     return true
   end
+
+  def time_validation(date, from_time, to_time, params)
+    from_time = is_valid_time?(date, from_time, params)
+    to_time = is_valid_time?(date, to_time, params)
+    return false unless from_time && to_time
+    return false unless is_from_time_greater_than_to_time?(from_time, to_time, params)
+    return false unless is_timesheet_greater_then_current_time?(from_time, to_time, params)
+
+    return true, from_time, to_time
+  end
   
-  def is_valid_time?(time, params)
+  def is_valid_time?(date, time, params)
     time_format = check_time_format(time)
-    ret = Time.parse(time_format) rescue nil
+
+    if time_format
+      ret = Time.parse(date + ' ' + time_format) rescue nil
+    end
 
     unless ret
       text = "\`Error :: Invalid time format\`"
@@ -101,6 +130,7 @@ class TimeSheet
   end
   
   def check_time_format(time)
+    return false if time.include?('.')
     return time + (':00') unless time.include?(':')
     time
   end
@@ -108,7 +138,7 @@ class TimeSheet
   def concat_desscription(split_text)
     description = ''
     split_text[4..-1].each do |string|
-      description = description + ' ' + string
+      description = description + string + ' '
     end
     description
   end
@@ -117,10 +147,10 @@ class TimeSheet
     user = load_user(params['user_id'])
     time_sheets_data = {}
     time_sheets_data['user_id'] = user.first.id
-    time_sheets_data['project_id'] = user.first.projects.find_by(display_name: split_text[0]).id
-    time_sheets_data['date'] = split_text[1]
-    time_sheets_data['from_time'] = split_text[2]
-    time_sheets_data['to_time'] = split_text[3]
+    time_sheets_data['project_id'] = user.first.projects.find_by(display_name: /#{split_text[0]}/i).id
+    time_sheets_data['date'] = Date.parse(split_text[1])
+    time_sheets_data['from_time'] = Time.parse(split_text[1] + ' ' + split_text[2])
+    time_sheets_data['to_time'] = Time.parse(split_text[1] + ' ' + split_text[3])
     time_sheets_data['description'] = concat_desscription(split_text)
     time_sheets_data
   end

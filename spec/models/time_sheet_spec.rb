@@ -20,84 +20,112 @@ RSpec.describe TimeSheet, type: :model do
         'text' => 'England_Hockey 14-07-2018  6 7 abcd efghigk lmnop' 
       }
 
-      ret = time_sheet.parse_string(params)
+      ret = time_sheet.parse_timesheet_data(params)
       expect(ret[0]).to eq(true)
+    end
+
+    it 'Should success even if project name is lower case' do
+      params = {
+        'user_id' => USER_ID,
+        'channel_id' => CHANNEL_ID,
+        'text' => 'england_hockey 14-07-2018  6 7 abcd efghigk lmnop'
+      }
+
+      ret = time_sheet.parse_timesheet_data(params)
+      expect(ret[0]).to eq(true)
+    end
+
+    it 'Should fails because record is already present' do
+      time_sheet = FactoryGirl.create(:time_sheet)
+      time_sheet_test = FactoryGirl.build(:time_sheet)
+      time_sheet_test.save
+      expect(time_sheet_test.errors.full_messages).to eq(["From time record is already present", "To time record is already present"])
     end
 
     it 'Should return false because invalid timesheet command format' do
       params = {
         'user_id' => USER_ID, 
         'channel_id' => CHANNEL_ID, 
-        'text' => 'England_Hockey 14-07-2018  6' 
+        'text' => 'England_Hockey 14-07-2018  6'
       }
 
-      expect(time_sheet.parse_string(params)).to eq(false)
+      expect(time_sheet.parse_timesheet_data(params)).to eq(false)
     end
 
     it 'Should return false because user does not assign to this project' do
       params = {
         'user_id' => USER_ID, 
-        'channel_id' => CHANNEL_ID, 
-        'text' => 'England 14-07-2018  6 7 abcd efgh' 
+        'channel_id' => CHANNEL_ID,
+        'text' => 'England 14-07-2018  6 7 abcd efgh'
       }
-      expect(time_sheet.parse_string(params)).to eq(false)
+      expect(time_sheet.parse_timesheet_data(params)).to eq(false)
     end
 
     context 'Validation - date' do
       it 'Should return false because invalid date format' do
         params = {
-          'user_id' => USER_ID, 
-          'channel_id' => CHANNEL_ID, 
-          'text' => 'England 14-2018  6 7 abcd efgh' 
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => 'England_Hockey 14-2018  6 7 abcd efgh'
         }
-        expect(time_sheet.parse_string(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because date is not within this week' do
         params = {
-          'user_id' => USER_ID, 
-          'channel_id' => CHANNEL_ID, 
-          'text' => 'England 1/07/2018  6 7 abcd efgh' 
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => 'England_Hockey 1/07/2018  6 7 abcd efgh'
         }
-        expect(time_sheet.parse_string(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because date is invalid' do
         params = {
-          'user_id' => USER_ID, 
-          'channel_id' => CHANNEL_ID, 
-          'text' => 'England 1/32/2018  6 7 abcd efgh' 
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => 'England_Hockey 1/32/2018  6 7 abcd efgh'
         }
-        expect(time_sheet.parse_string(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+      end
+
+      it 'Should return false because date and time is greater than current date and time' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => 'England_Hockey 20/07/2018  20:00 20:30 abcd efgh'
+        }
+
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
     end
 
     context 'Validation - Time' do
       it 'Should return false because invalid from time format' do
         params = {
-          'user_id' => USER_ID, 
-          'channel_id' => CHANNEL_ID, 
-          'text' => 'England 1/32/2018  6.00 7 abcd efgh' 
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => 'England_Hockey 14/07/2018  15.30 16 abcd efgh'
         }
-        expect(time_sheet.parse_string(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because invalid to time format' do
         params = {
-          'user_id' => USER_ID, 
-          'channel_id' => CHANNEL_ID, 
-          'text' => 'England 1/32/2018  6 7.00 abcd efgh' 
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => 'England_Hockey 14/07/2018  6 7.00 abcd efgh'
         }
-        expect(time_sheet.parse_string(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because from time is greater than to time' do
         params = {
-          'user_id' => USER_ID, 
-          'channel_id' => CHANNEL_ID, 
-          'text' => 'England 1/32/2018  8 7 abcd efgh' 
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => 'England_Hockey 14/07/2018  8 7 abcd efgh'
         }
-        expect(time_sheet.parse_string(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
     end
   end
