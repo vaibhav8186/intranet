@@ -30,7 +30,7 @@ class TimeSheet
 
   def is_valid_command_format?(split_text, channel_id)
     if split_text.length < MAX_COMMAND_LENGTH
-      text = "\`Error :: Invalid timesheet format\`"
+      text = "\`Error :: Invalid timesheet format. Fromat should be <project_name> <date> <from_time> <to_time> <description>\`"
       post_message_to_slack(channel_id, text)
       return false
     end
@@ -42,7 +42,7 @@ class TimeSheet
     display_names = user.first.projects.pluck(:display_name)
     display_names = display_names.map(&:downcase)
     return true if display_names.include?(project_name.downcase)
-    text = "\`Error :: you are not working on this project\`"
+    text = "\`Error :: you are not working on this project. Use /projects command to view your project\`"
     post_message_to_slack(params['channel_id'], text)
     return false
   end
@@ -51,7 +51,7 @@ class TimeSheet
     split_date = date.include?('/')? date.split('/') : date.split('-')
     
     if split_date.length < DATE_FORMAT_LENGTH
-      text = "\`Error :: Invalid date format\`"
+      text = "\`Error :: Invalid date format. Format should be dd/mm/yyyy\`"
       post_message_to_slack(params['channel_id'], text)
       return false
     end
@@ -122,7 +122,7 @@ class TimeSheet
     end
 
     unless ret
-      text = "\`Error :: Invalid time format\`"
+      text = "\`Error :: Invalid time format. Format should be HH:MM:SS\`"
       post_message_to_slack(params['channel_id'], text)
       return false
     end

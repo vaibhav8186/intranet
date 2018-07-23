@@ -15,7 +15,7 @@ RSpec.describe TimeSheetsController, type: :controller do
       params = {
         'user_id' => USER_ID, 
         'channel_id' => CHANNEL_ID, 
-        'text' => 'England_Hockey 14-07-2018  6 7 abcd efghigk lmnop' 
+        'text' => "England_Hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
       post :create, params

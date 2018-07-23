@@ -17,7 +17,7 @@ RSpec.describe TimeSheet, type: :model do
       params = {
         'user_id' => USER_ID, 
         'channel_id' => CHANNEL_ID, 
-        'text' => 'England_Hockey 14-07-2018  6 7 abcd efghigk lmnop' 
+        'text' => "England_Hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
       ret = time_sheet.parse_timesheet_data(params)
@@ -28,7 +28,7 @@ RSpec.describe TimeSheet, type: :model do
       params = {
         'user_id' => USER_ID,
         'channel_id' => CHANNEL_ID,
-        'text' => 'england_hockey 14-07-2018  6 7 abcd efghigk lmnop'
+        'text' => "england_hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
       ret = time_sheet.parse_timesheet_data(params)
@@ -46,7 +46,7 @@ RSpec.describe TimeSheet, type: :model do
       params = {
         'user_id' => USER_ID, 
         'channel_id' => CHANNEL_ID, 
-        'text' => 'England_Hockey 14-07-2018  6'
+        'text' => 'England_Hockey 22-07-2018  6'
       }
 
       expect(time_sheet.parse_timesheet_data(params)).to eq(false)
@@ -93,7 +93,7 @@ RSpec.describe TimeSheet, type: :model do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
-          'text' => 'England_Hockey 20/07/2018  20:00 20:30 abcd efgh'
+          'text' => "England_Hockey #{Date.today}  20:00 20:30 abcd efgh"
         }
 
         expect(time_sheet.parse_timesheet_data(params)).to eq(false)
@@ -105,7 +105,7 @@ RSpec.describe TimeSheet, type: :model do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
-          'text' => 'England_Hockey 14/07/2018  15.30 16 abcd efgh'
+          'text' => "England_Hockey #{Date.yesterday} 15.30 16 abcd efgh"
         }
         expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
@@ -114,7 +114,7 @@ RSpec.describe TimeSheet, type: :model do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
-          'text' => 'England_Hockey 14/07/2018  6 7.00 abcd efgh'
+          'text' => "England_Hockey #{Date.yesterday} 6 7.00 abcd efgh"
         }
         expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
@@ -123,7 +123,7 @@ RSpec.describe TimeSheet, type: :model do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
-          'text' => 'England_Hockey 14/07/2018  8 7 abcd efgh'
+          'text' => "England_Hockey #{Date.yesterday} 8 7 abcd efgh"
         }
         expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
@@ -135,7 +135,7 @@ RSpec.describe TimeSheet, type: :model do
       slack_params = {
         'token' => SLACK_API_TOKEN,
         'channel' => CHANNEL_ID,
-        'text' => "\`Error :: Invalid timesheet format\`"
+        'text' => "\`Error :: Invalid timesheet format. Fromat should be <project_name> <date> <from_time> <to_time> <description>\`"
       }
       VCR.use_cassette 'timesheet_failure_reason_invalid_date' do
         response = Net::HTTP.post_form(URI("https://slack.com/api/chat.postMessage"), slack_params)
@@ -148,7 +148,7 @@ RSpec.describe TimeSheet, type: :model do
       slack_params = {
         'token' => SLACK_API_TOKEN,
         'channel' => CHANNEL_ID,
-        'text' => "\`Error :: you are not working on this project\`"
+        'text' => "\`Error :: you are not working on this project. Use /projects command to view your project\`"
       }
       VCR.use_cassette 'timesheet_failure_reason_not_assign_project' do
         response = Net::HTTP.post_form(URI("https://slack.com/api/chat.postMessage"), slack_params)
@@ -161,7 +161,7 @@ RSpec.describe TimeSheet, type: :model do
       slack_params = {
         'token' => SLACK_API_TOKEN,
         'channel' => CHANNEL_ID,
-        'text' => "\`Error :: Invalid date format\`"
+        'text' => "\`Error :: Invalid date format. Format should be dd/mm/yyyy\`"
       }
       VCR.use_cassette 'timesheet_failure_reason_invalid_date_format' do
         response = Net::HTTP.post_form(URI("https://slack.com/api/chat.postMessage"), slack_params)
@@ -226,9 +226,23 @@ RSpec.describe TimeSheet, type: :model do
       slack_params = {
         'token' => SLACK_API_TOKEN,
         'channel' => CHANNEL_ID,
-        'text' => "\`Error :: Invalid time format\`"
+        'text' => "\`Error :: Invalid time format. Format should be HH:MM:SS\`"
       }
       VCR.use_cassette 'timesheet_failure_reason__invalid_time' do
+        response = Net::HTTP.post_form(URI("https://slack.com/api/chat.postMessage"), slack_params)
+        ret = JSON.parse(response.body)
+        expect(ret['ok']).to eq(true)
+      end
+    end
+
+    it 'Record is already present : should return true' do
+      text = "\` Error :: From time record is already present, To time record is already present\`"
+      slack_params = {
+        'token' => SLACK_API_TOKEN,
+        'channel' => CHANNEL_ID,
+        'text' => text
+      }
+      VCR.use_cassette 'timesheet_failure_reason_record_already_present' do
         response = Net::HTTP.post_form(URI("https://slack.com/api/chat.postMessage"), slack_params)
         ret = JSON.parse(response.body)
         expect(ret['ok']).to eq(true)
@@ -253,7 +267,7 @@ RSpec.describe TimeSheet, type: :model do
       slack_params = {
         'token' => SLACK_API_TOKEN,
         'channel' => 'UU12345',
-        'text' => "\`Error :: Invalid time format\`"
+        'text' => "\`Error :: Channel not found\`"
       }
       VCR.use_cassette 'timesheet_failure_reason_invalid_channel_id' do
         response = Net::HTTP.post_form(URI("https://slack.com/api/chat.postMessage"), slack_params)
