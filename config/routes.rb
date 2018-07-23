@@ -76,6 +76,8 @@ Rails.application.routes.draw do
     namespace :v1 do
       get 'team', to: "website#team"
       get 'portfolio', to: "website#portfolio"
+      post 'contact_us', to: "website#contact_us"
+      post 'career', to: "website#career"
     end
   end
 
