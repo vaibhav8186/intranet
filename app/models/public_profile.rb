@@ -21,7 +21,7 @@ class PublicProfile
   field :image
   field :linkedin_url
   field :facebook_url
-  field :slack_handle
+  field :slack_uuid
 
   #validates_attachment :photo, :content_type => { :content_type => "image/jpg" }
 

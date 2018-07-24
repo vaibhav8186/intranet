@@ -22,7 +22,8 @@
   = pub.input :blog_url
   = pub.input :linkedin_url
   = pub.input :facebook_url
-  = pub.input :slack_handle
+  - if can? :edit, User
+    = pub.input :slack_uuid
   %center
     = pub.submit 'Update Profile', class: 'btn'
 :css
