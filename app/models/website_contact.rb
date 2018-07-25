@@ -6,7 +6,14 @@ class WebsiteContact
   field :skype_id,   :type => String
   field :phone,      :type => String
   field :message,    :type => String
+  field :organization
+  field :role
+  field :job_title
 
   validates_presence_of :name
   validates :email, format: { with: EMAIL_ADDRESS, message: 'Invalid email'}
+
+  after_create do
+    WebsiteMailer.delay.contact_us(self)
+  end
 end

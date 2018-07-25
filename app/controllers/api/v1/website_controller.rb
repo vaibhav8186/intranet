@@ -15,10 +15,11 @@ class Api::V1::WebsiteController < ApplicationController
 
   def contact_us
     @website_contact = WebsiteContact.new(website_contact_params)
-    if @website_contact.save
+    valid = @website_contact.valid? ? true : false
+    if verify_recaptcha(:model => @website_contact, :message => "Oh! It's error with reCAPTCHA!", attribute: 'recaptcha') && valid
       render json: { text: ' ' }, status: :created
     else
-      render json: { text: ' '}, status: :unprocessable_entity
+      render json: { errors: @website_contact.errors.full_messages.join(",")}, status: :unprocessable_entity
     end
   end
 
@@ -48,7 +49,7 @@ class Api::V1::WebsiteController < ApplicationController
   end
 
   def website_contact_params
-    params.require(:contact_us).permit(:name, :email, :skype_id, :phone, :message)
+    params.require(:contact_us).permit(:name, :email, :skype_id, :phone, :message,:organization, :job_title, :role)
   end
 
   def career_params
