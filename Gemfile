@@ -117,3 +117,4 @@ gem 'feedjira'
 gem 'rollbar'
 #gem 'aws-sdk', '~> 2'
 gem "aws-sdk"
+gem "recaptcha", '~> 3.3.0', :require => "recaptcha/rails"
