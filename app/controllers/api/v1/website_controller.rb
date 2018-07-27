@@ -17,6 +17,7 @@ class Api::V1::WebsiteController < ApplicationController
     @website_contact = WebsiteContact.new(website_contact_params)
     valid = @website_contact.valid? ? true : false
     if verify_recaptcha(:model => @website_contact, :message => "Oh! It's error with reCAPTCHA!", attribute: 'recaptcha') && valid
+      @website_contact.save
       render json: { text: ' ' }, status: :created
     else
       render json: { errors: @website_contact.errors.full_messages.join(",")}, status: :unprocessable_entity
