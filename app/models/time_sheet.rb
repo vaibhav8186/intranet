@@ -41,7 +41,7 @@ class TimeSheet
     user = load_user(params['user_id'])
     display_names = user.first.projects.pluck(:display_name)
     display_names = display_names.map(&:downcase)
-    return true if display_names.include?(project_name.downcase)
+    return true if display_names.include?(project_name.downcase) || project_name == 'other'
     text = "\`Error :: you are not working on this project. Use /projects command to view your project\`"
     post_message_to_slack(params['channel_id'], text)
     return false
@@ -144,10 +144,11 @@ class TimeSheet
   end
 
   def time_sheets(split_text, params)
-    user = load_user(params['user_id'])
     time_sheets_data = {}
+    user = load_user(params['user_id'])
+    project = load_project(user, split_text[0])
     time_sheets_data['user_id'] = user.first.id
-    time_sheets_data['project_id'] = user.first.projects.find_by(display_name: /#{split_text[0]}/i).id
+    time_sheets_data['project_id'] = project.nil? ? nil : project.id
     time_sheets_data['date'] = Date.parse(split_text[1])
     time_sheets_data['from_time'] = Time.parse(split_text[1] + ' ' + split_text[2])
     time_sheets_data['to_time'] = Time.parse(split_text[1] + ' ' + split_text[3])
@@ -161,7 +162,11 @@ class TimeSheet
       channel: channel,
       text: text
     }
-    resp = RestClient.post("https://slack.com/api/chat.postMessage", params)
+    resp = RestClient.post("https://slack.com/api/chat.postMessage", params)    
+  end
+
+  def load_project(user, display_name)
+    user.first.projects.where(display_name: /#{display_name}/i).first
   end
 
   def load_user(user_id)

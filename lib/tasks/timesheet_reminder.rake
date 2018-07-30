@@ -1,7 +1,8 @@
+require 'time_difference'
 namespace :timesheet_reminder do
   desc "Remainds to employee to fill timesheet"
   task :ts_reminders => :environment do
-    unfill_timesheet_date = []
+    unfilled_timesheet_date = []
     return if HolidayList.is_holiday?(Date.today)
     users = User.where(
       '$and' => [
@@ -14,23 +15,28 @@ namespace :timesheet_reminder do
     )
 
     users.each do |user|
-      last_time_sheet_date = user.time_sheets.last.date if is_time_sheet_present?(user)
-      yesterday_date = Date.yesterday
-      next if last_time_sheet_date.nil?
-
-      while(last_time_sheet_date <= yesterday_date)
-        next if HolidayList.is_holiday?(yesterday_date)
-        unless is_user_on_leave?(user, yesterday_date)
-          fill_time_sheet_dates = user.time_sheets.pluck(:date)
-          unfill_timesheet_date << yesterday_date unless fill_time_sheet_dates.include?(yesterday_date)
-          break
+      last_filled_time_sheet_date = user.time_sheets.order(date: :asc).last.date + 1 if is_time_sheet_present?(user)
+      next if last_filled_time_sheet_date.nil?
+      date_difference = TimeDifference.between(DateTime.current, DateTime.parse(last_filled_time_sheet_date.to_s)).in_days.round
+      if date_difference < 2
+        next if HolidayList.is_holiday?(last_filled_time_sheet_date)
+        unless is_user_on_leave?(user, last_filled_time_sheet_date)
+          unfilled_timesheet_date << last_filled_time_sheet_date unless is_time_sheet_filled?(user, last_filled_time_sheet_date)
         end
-        yesterday_date -= 1
+      else
+        while(last_filled_time_sheet_date < Date.today)
+          next last_filled_time_sheet_date += 1 if HolidayList.is_holiday?(last_filled_time_sheet_date)
+          unless is_user_on_leave?(user, last_filled_time_sheet_date)
+            unfilled_timesheet_date << last_filled_time_sheet_date unless is_time_sheet_filled?(user, last_filled_time_sheet_date)
+            break
+          end
+          last_filled_time_sheet_date += 1
+        end
       end
 
-      unless unfill_timesheet_date.blank?
+      unless unfilled_timesheet_date.blank?
         slack_uuid = user.public_profile.slack_handle
-        text = "#{unfill_timesheet_date} *Fill your time sheet for this date*"
+        text = "*Fill your time sheet from #{unfilled_timesheet_date} this date*"
         send_reminder(slack_uuid, text) unless slack_uuid.blank?
       end
     end  
@@ -52,6 +58,12 @@ namespace :timesheet_reminder do
     leave_end_at = user.leave_applications[0].end_at
 
     date.between?(leave_start_at, leave_end_at)
+  end
+
+  def is_time_sheet_filled?(user, date)
+    filled_time_sheet_dates = user.time_sheets.pluck(:date)
+    return false unless filled_time_sheet_dates.include?(date)
+    return true
   end
 
   def send_reminder(user_id, text)
