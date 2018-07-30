@@ -67,7 +67,7 @@ group :test do
   gem 'database_cleaner'
   gem 'faker'
   gem "codeclimate-test-reporter", require: nil
-  gem 'webmock'
+  gem 'webmock', '1.8.0'
   gem 'vcr', '2.4.0'
 
 end
@@ -123,4 +123,5 @@ gem "aws-sdk"
 gem "recaptcha", '~> 3.3.0', :require => "recaptcha/rails"
 gem "byebug"
 gem "rest-client"
+gem 'time_difference'
 
