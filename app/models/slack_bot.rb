@@ -13,4 +13,13 @@ class SlackBot < SlackRubyBot::Bot
     resp = RestClient.post("https://slack.com/api/chat.postMessage", params)
   end
 
+  def get_user_info(user_id)
+    params = {
+      token: SLACK_API_TOKEN,
+      user: user_id
+    }
+
+    resp = RestClient.post("https://slack.com/api/users.info", params)
+    JSON.parse(resp)['user']['profile']['email']
+  end
 end
