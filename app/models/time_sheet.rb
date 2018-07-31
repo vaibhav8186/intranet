@@ -172,4 +172,13 @@ class TimeSheet
   def load_user(user_id)
     User.where("public_profile.slack_handle" => user_id)
   end
+
+  def get_user_info(user_id)
+    params = {
+      token: SLACK_API_TOKEN,
+      user: user_id
+    }
+    user_info = RestClient.post("https://slack.com/api/users.info", params)
+    JSON.parse(user_info)['user']['profile']['email']
+  end
 end
