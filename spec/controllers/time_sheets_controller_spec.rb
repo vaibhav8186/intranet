@@ -36,4 +36,24 @@ RSpec.describe TimeSheetsController, type: :controller do
     end
   end
 
+  context 'Check user is exists' do
+    let(:user) { FactoryGirl.create(:user, email: 'ajay@joshsoftware.com') }
+    before do
+      user.projects.create(name: 'England Hockey', display_name: 'England_Hockey')
+      user.save
+      stub_request(:post, "https://slack.com/api/chat.postMessage")
+    end
+
+    it 'Associate slack id to user' do
+      params = {
+        'token' => SLACK_API_TOKEN,
+        'channel' => CHANNEL_ID,
+        'user_id' => USER_ID,
+        'text' => "England_Hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
+      }
+      post :create, params
+      expect(response).to have_http_status(:created)
+    end
+  end
+
 end

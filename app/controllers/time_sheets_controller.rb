@@ -2,9 +2,9 @@ require 'rest-client'
 
 class TimeSheetsController < ApplicationController
   skip_before_filter :verify_authenticity_token
+  before_action :is_user_exist?, only: :create
 
   def create
-    @time_sheet = TimeSheet.new
     ret, time_sheets_data = @time_sheet.parse_timesheet_data(params) unless params['user_id'].nil?
     if ret == true
       create_time_sheet(time_sheets_data, params)
@@ -25,5 +25,16 @@ class TimeSheetsController < ApplicationController
 
       render json: { text: 'fail' }, status: :unprocessable_entity
     end
+  end
+
+  private
+
+  def is_user_exist?
+    @time_sheet = TimeSheet.new
+    user = User.where("public_profile.slack_handle" => params['user_id'])
+    return unless user.first.nil?
+    email = @time_sheet.get_user_info(params['user_id'])
+    exists_user = User.where(email: email)
+    exists_user.first.public_profile.update_attribute(:slack_handle, params['user_id'])
   end
 end
