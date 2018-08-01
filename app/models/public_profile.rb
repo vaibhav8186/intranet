@@ -37,7 +37,7 @@ class PublicProfile
     self.user.set_details("dob", self.date_of_birth) if self.date_of_birth_changed? #set the dob_day and dob_month
   end
 
-  after_update :delete_team_cache, :send_email_to_hr, if: Proc.new{ updated_at_changed? }
+  after_update :delete_team_cache, :send_email_to_hr, if: Proc.new{ updated_at_changed? && !slack_handle_changed? }
 
   def name
     "#{first_name} #{last_name}"
