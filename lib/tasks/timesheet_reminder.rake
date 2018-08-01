@@ -54,10 +54,11 @@ namespace :timesheet_reminder do
 
   def is_user_on_leave?(user, date)
     return false unless user.leave_applications.present?
-    leave_start_at = user.leave_applications[0].start_at
-    leave_end_at = user.leave_applications[0].end_at
-
-    date.between?(leave_start_at, leave_end_at)
+    leave_applications = user.leave_applications.where(:start_at.gte => date)
+    leave_applications.each do |leave_application|
+      return true if date.between?(leave_application.start_at, leave_application.end_at)
+    end
+    return false
   end
 
   def is_time_sheet_filled?(user, date)
