@@ -30,7 +30,7 @@ class TimeSheet
 
   def is_valid_command_format?(split_text, channel_id)
     if split_text.length < MAX_COMMAND_LENGTH
-      text = "\`Error :: Invalid timesheet format. Fromat should be <project_name> <date> <from_time> <to_time> <description>\`"
+      text = "\`Error :: Invalid timesheet format. Format should be <project_name> <date> <from_time> <to_time> <description>\`"
       post_message_to_slack(channel_id, text)
       return false
     end
@@ -71,7 +71,7 @@ class TimeSheet
   
   def check_date_range(date, params)
     if Date.parse(date) > Date.today || Date.parse(date) < 7.days.ago
-      text = "\`Error :: Date should be in last week\`"
+      text = "\`Error :: not allowed to fill timesheet for this date. If you want to fill, meet your manager.\`"
       post_message_to_slack(params['channel_id'], text)
       return false
     end
