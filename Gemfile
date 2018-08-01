@@ -69,7 +69,6 @@ group :test do
   gem "codeclimate-test-reporter", require: nil
   gem 'webmock', '1.8.0'
   gem 'vcr', '2.4.0'
-
 end
 
 group :development do
@@ -123,3 +122,5 @@ gem "aws-sdk"
 gem "byebug"
 gem "rest-client"
 gem 'time_difference'
+gem 'slack-ruby-bot'
+
