@@ -1,5 +1,7 @@
 class TimeSheet
   include Mongoid::Document
+  include Mongoid::Timestamps
+  include CheckUser
 
   field :user_id
   field :project_id
@@ -15,7 +17,7 @@ class TimeSheet
 
   MAX_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
-  
+
   def parse_timesheet_data(params)
     split_text = params['text'].split
 
@@ -31,7 +33,7 @@ class TimeSheet
   def is_valid_command_format?(split_text, channel_id)
     if split_text.length < MAX_COMMAND_LENGTH
       text = "\`Error :: Invalid timesheet format. Format should be <project_name> <date> <from_time> <to_time> <description>\`"
-      post_message_to_slack(channel_id, text)
+      SlackApiService.new.post_message_to_slack(channel_id, text)
       return false
     end
     return true
@@ -39,11 +41,10 @@ class TimeSheet
 
   def is_valid_project_name?(project_name, params)
     user = load_user(params['user_id'])
-    display_names = user.first.projects.pluck(:display_name)
-    display_names = display_names.map(&:downcase)
-    return true if display_names.include?(project_name.downcase) || project_name == 'other'
+    project = user.first.projects.find_by(display_name: /^#{project_name}$/i) rescue nil
+    return true if !project.nil? || project_name == 'other'
     text = "\`Error :: you are not working on this project. Use /projects command to view your project\`"
-    post_message_to_slack(params['channel_id'], text)
+    SlackApiService.new.post_message_to_slack(params['channel_id'], text)
     return false
   end
 
@@ -52,7 +53,7 @@ class TimeSheet
     
     if split_date.length < DATE_FORMAT_LENGTH
       text = "\`Error :: Invalid date format. Format should be dd/mm/yyyy\`"
-      post_message_to_slack(params['channel_id'], text)
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
     end
 
@@ -62,7 +63,7 @@ class TimeSheet
   def is_valid_date(split_date, date, params)
     valid_date = Date.valid_date?(split_date[2].to_i, split_date[1].to_i, split_date[0].to_i)
     unless valid_date
-      post_message_to_slack(params['channel_id'], "\`Error :: Invalid date\`")
+      SlackApiService.new.post_message_to_slack(params['channel_id'], "\`Error :: Invalid date\`")
       return false
     end
 
@@ -72,7 +73,7 @@ class TimeSheet
   def check_date_range(date, params)
     if Date.parse(date) > Date.today || Date.parse(date) < 7.days.ago
       text = "\`Error :: not allowed to fill timesheet for this date. If you want to fill, meet your manager.\`"
-      post_message_to_slack(params['channel_id'], text)
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
     end
     return true
@@ -81,7 +82,7 @@ class TimeSheet
   def is_from_time_greater_than_to_time?(from_time, to_time, params)
     if from_time >= to_time
       text = "\`Error :: From time must be less than to time\`"
-      post_message_to_slack(params['channel_id'], text)
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
     end
   end
@@ -89,7 +90,7 @@ class TimeSheet
   def is_from_time_greater_than_to_time?(from_time, to_time, params)
     if from_time >= to_time
        text = "\`Error :: From time must be less than to time\`"
-       post_message_to_slack(params['channel_id'], text)
+       SlackApiService.new.post_message_to_slack(params['channel_id'], text)
        return false
      end
      return true
@@ -98,7 +99,7 @@ class TimeSheet
   def is_timesheet_greater_then_current_time?(from_time, to_time, params)
     if from_time >= Time.now || to_time >= Time.now
       text = "\`Error :: Future time is not allowed\`"
-      post_message_to_slack(params['channel_id'], text)
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
     end
     return true
@@ -118,15 +119,15 @@ class TimeSheet
     time_format = check_time_format(time)
 
     if time_format
-      ret = Time.parse(date + ' ' + time_format) rescue nil
+      return_value = Time.parse(date + ' ' + time_format) rescue nil
     end
 
-    unless ret
+    unless return_value
       text = "\`Error :: Invalid time format. Format should be HH:MM:SS\`"
-      post_message_to_slack(params['channel_id'], text)
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
     end
-    ret
+    return_value
   end
   
   def check_time_format(time)
@@ -156,29 +157,16 @@ class TimeSheet
     time_sheets_data
   end
 
-  def post_message_to_slack(channel, text)
-    params = {
-      token: SLACK_API_TOKEN,
-      channel: channel,
-      text: text
-    }
-    resp = RestClient.post("https://slack.com/api/chat.postMessage", params)    
-  end
-
   def load_project(user, display_name)
-    user.first.projects.where(display_name: /#{display_name}/i).first
+    user.first.projects.where(display_name: /^#{display_name}$/i).first
   end
 
   def load_user(user_id)
     User.where("public_profile.slack_handle" => user_id)
   end
 
-  def get_user_info(user_id)
-    params = {
-      token: SLACK_API_TOKEN,
-      user: user_id
-    }
-    user_info = RestClient.post("https://slack.com/api/users.info", params)
-    JSON.parse(user_info)['user']['profile']['email']
+  def check_user_is_present(user, user_id)
+    is_user_present?(user, user_id)
   end
+
 end
