@@ -4,7 +4,6 @@ class SlackController < ApplicationController
   def projects
     projects = @user.projects.pluck(:display_name) unless @user.nil?
     @slack_bot.show_projects(projects, params['channel_id']) unless projects.blank?
-    render json: { text: 'You are not register as slack user' }, status: 401 and return if @user.nil?
     render json: { text: 'You are not working on any project' } and return if projects.blank?
     render json: { text: '' }, status: 200
   end
