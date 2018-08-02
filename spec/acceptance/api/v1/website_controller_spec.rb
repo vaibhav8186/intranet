@@ -42,4 +42,52 @@ resource "Website Apis" do
       expect(status).to eq 401
     end
   end
+
+  post "/api/v1/contact_us" do
+    example "Should have status created" do
+      params = {}
+      params['name'] = Faker::Name.name
+      params['email'] = Faker::Internet.email
+      do_request(:contact_us => params)
+      expect(status).to eq(201)
+    end
+
+    example "Should have status unprocessable entity" do
+      params = {}
+      params['email'] = Faker::Internet.email
+      do_request(:contact_us => params)
+      expect(status).to eq(422)
+    end
+
+  end
+
+  post "/api/v1/career" do
+    example 'Should have status created' do
+      params = {}
+      params['first_name'] = Faker::Name.first_name
+      params['last_name'] = Faker::Name.last_name
+      params['email'] = Faker::Internet.email
+      params['contact_number'] = Faker::PhoneNumber.phone_number
+      params['current_company'] = Faker::Company.name
+      params['current_ctc'] = '8 lakhs'
+      params['linkedin_profile'] = Faker::Internet.url
+      params['github_profile'] = Faker::Internet.url
+      params['resume'] = fixture_file_upload("/home/josh/redis.pdf")
+      params['portfolio_link'] = Faker::Internet.url
+      params['cover'] = fixture_file_upload("/home/josh/redis.pdf")
+
+      do_request(:career => params)
+      expect(status).to eq(201)
+    end
+
+    example 'Should have status unprocessable entity' do
+      params = {}
+      params['first_name'] = Faker::Name.first_name
+      params['last_name'] = Faker::Name.last_name
+      params['email'] = Faker::Internet.email
+
+      do_request(:career => params)
+      expect(status).to eq(422)
+    end
+  end
 end
