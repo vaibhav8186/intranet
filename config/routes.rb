@@ -79,8 +79,8 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :time_sheets
-  resources :slack do
+  resources :time_sheets, only: :create
+  resources :slack, only: :projects do
     post :projects, on: :collection
   end
 

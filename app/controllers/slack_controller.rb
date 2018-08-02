@@ -1,33 +1,26 @@
 class SlackController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  before_action :is_user_exist?, only: :projects
+  before_action :is_user_present?, only: :projects
   def projects
-    user = User.where('public_profile.slack_handle' => params['user_id']).first unless params['user_id'].nil?
-    projects = user.projects.pluck(:name) unless user.nil?
-    @slack.show_projects(projects, params['channel_id']) unless projects.blank?
-    if user.nil?
-      render json: { text: 'You are not register as slack user' }, status: 401
-    else
-      if projects.blank?
-        render json: { text: 'You are not working on any project' }
-      else
-        render json: { text: '' }, status: 200
-      end
-    end
+    projects = @user.projects.pluck(:display_name) unless @user.nil?
+    @slack_bot.show_projects(projects, params['channel_id']) unless projects.blank?
+    render json: { text: 'You are not register as slack user' }, status: 401 and return if @user.nil?
+    render json: { text: 'You are not working on any project' } and return if projects.blank?
+    render json: { text: '' }, status: 200
   end
 
   private
 
-  def is_user_exist?
-    @slack = SlackBot.new
-    user = User.where("public_profile.slack_handle" => params['user_id'])
-    return unless user.first.nil?
-    email = @slack.get_user_info(params['user_id'])
-    exists_user = User.where(email: email)
-    if exists_user.first.nil?
-      render json: { text: 'Please create your intranet account' }, status: :unauthorized
-    else
-      exists_user.first.public_profile.update_attribute(:slack_handle, params['user_id'])
+  def is_user_present?
+    load_user
+    @slack_bot = SlackBot.new
+    return_value = @slack_bot.check_user_is_present(@user, params['user_id'])
+    unless return_value
+      render json: { text: 'You are not part of organization contact to admin' }, status: :unauthorized
     end
+  end
+
+  def load_user
+    @user = User.where('public_profile.slack_handle' => params['user_id']).first unless params['user_id'].nil?
   end
 end
