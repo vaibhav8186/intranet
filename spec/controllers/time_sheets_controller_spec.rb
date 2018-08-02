@@ -21,7 +21,7 @@ RSpec.describe TimeSheetsController, type: :controller do
       post :create, params
       resp = JSON.parse(response.body)
       expect(response).to have_http_status(:created)
-      expect(resp['text']).to eq("*Timesheet save successfully*")
+      expect(resp['text']).to eq("*Timesheet saved successfully!*")
     end
 
     it 'should fail because validation trigger on timesheet data' do
