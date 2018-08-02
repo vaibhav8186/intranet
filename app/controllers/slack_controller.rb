@@ -1,6 +1,6 @@
 class SlackController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  before_action :is_user_present?, only: :projects
+  before_action :user_exists?, only: :projects
   def projects
     projects = @user.projects.pluck(:display_name) unless @user.nil?
     @slack_bot.show_projects(projects, params['channel_id']) unless projects.blank?
@@ -10,7 +10,7 @@ class SlackController < ApplicationController
 
   private
 
-  def is_user_present?
+  def user_exists?
     load_user
     @slack_bot = SlackBot.new
     return_value = @slack_bot.check_user_is_present(@user, params['user_id'])

@@ -21,16 +21,16 @@ class TimeSheet
   def parse_timesheet_data(params)
     split_text = params['text'].split
 
-    return false unless is_valid_command_format?(split_text, params['channel_id'])
-    return false unless is_valid_project_name?(split_text[0], params)
-    return false unless is_valid_date_format?(split_text[1], params)
+    return false unless valid_command_format?(split_text, params['channel_id'])
+    return false unless valid_project_name?(split_text[0], params)
+    return false unless valid_date_format?(split_text[1], params)
     return false unless time_validation(split_text[1], split_text[2], split_text[3], params)
 
     time_sheets_data = time_sheets(split_text, params)
     return true, time_sheets_data
   end
 
-  def is_valid_command_format?(split_text, channel_id)
+  def valid_command_format?(split_text, channel_id)
     if split_text.length < MAX_COMMAND_LENGTH
       text = "\`Error :: Invalid timesheet format. Format should be <project_name> <date> <from_time> <to_time> <description>\`"
       SlackApiService.new.post_message_to_slack(channel_id, text)
@@ -39,7 +39,7 @@ class TimeSheet
     return true
   end
 
-  def is_valid_project_name?(project_name, params)
+  def valid_project_name?(project_name, params)
     user = load_user(params['user_id'])
     project = user.first.projects.find_by(display_name: /^#{project_name}$/i) rescue nil
     return true if !project.nil? || project_name == 'other'
@@ -48,7 +48,7 @@ class TimeSheet
     return false
   end
 
-  def is_valid_date_format?(date, params)
+  def valid_date_format?(date, params)
     split_date = date.include?('/')? date.split('/') : date.split('-')
     
     if split_date.length < DATE_FORMAT_LENGTH
@@ -57,10 +57,10 @@ class TimeSheet
       return false
     end
 
-    is_valid_date(split_date, date, params)
+    valid_date?(split_date, date, params)
   end
 
-  def is_valid_date(split_date, date, params)
+  def valid_date?(split_date, date, params)
     valid_date = Date.valid_date?(split_date[2].to_i, split_date[1].to_i, split_date[0].to_i)
     unless valid_date
       SlackApiService.new.post_message_to_slack(params['channel_id'], "\`Error :: Invalid date\`")
@@ -79,7 +79,7 @@ class TimeSheet
     return true
   end
 
-  def is_from_time_greater_than_to_time?(from_time, to_time, params)
+  def from_time_greater_than_to_time?(from_time, to_time, params)
     if from_time >= to_time
       text = "\`Error :: From time must be less than to time\`"
       SlackApiService.new.post_message_to_slack(params['channel_id'], text)
@@ -87,7 +87,7 @@ class TimeSheet
     end
   end
 
-  def is_from_time_greater_than_to_time?(from_time, to_time, params)
+  def from_time_greater_than_to_time?(from_time, to_time, params)
     if from_time >= to_time
        text = "\`Error :: From time must be less than to time\`"
        SlackApiService.new.post_message_to_slack(params['channel_id'], text)
@@ -106,16 +106,16 @@ class TimeSheet
   end
 
   def time_validation(date, from_time, to_time, params)
-    from_time = is_valid_time?(date, from_time, params)
-    to_time = is_valid_time?(date, to_time, params)
+    from_time = valid_time?(date, from_time, params)
+    to_time = valid_time?(date, to_time, params)
     return false unless from_time && to_time
-    return false unless is_from_time_greater_than_to_time?(from_time, to_time, params)
+    return false unless from_time_greater_than_to_time?(from_time, to_time, params)
     return false unless is_timesheet_greater_then_current_time?(from_time, to_time, params)
 
     return true, from_time, to_time
   end
   
-  def is_valid_time?(date, time, params)
+  def valid_time?(date, time, params)
     time_format = check_time_format(time)
 
     if time_format
@@ -166,7 +166,7 @@ class TimeSheet
   end
 
   def check_user_is_present(user, user_id)
-    is_user_present?(user, user_id)
+    user_present?(user, user_id)
   end
 
 end

@@ -1,6 +1,6 @@
 class TimeSheetsController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  before_action :is_user_present?, only: :create
+  before_action :user_exists?, only: :create
 
   def create
     return_value, time_sheets_data = @time_sheet.parse_timesheet_data(params) unless params['user_id'].nil?
@@ -26,7 +26,7 @@ class TimeSheetsController < ApplicationController
 
   private
 
-  def is_user_present?
+  def user_exists?
     load_user
     @time_sheet = TimeSheet.new
     return_value = @time_sheet.check_user_is_present(@user, params['user_id'])

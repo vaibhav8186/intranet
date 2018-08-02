@@ -8,6 +8,6 @@ class SlackBot < SlackRubyBot::Bot
   end
 
   def check_user_is_present(user, user_id)
-    is_user_present?(user, user_id)
+    user_present?(user, user_id)
   end
 end
