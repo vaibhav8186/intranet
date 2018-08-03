@@ -68,7 +68,7 @@ class Project
     if name_changed? && display_name.blank?
       self.display_name = name.split.join('_')
     else
-      self.display_name = self.display_name.strip
+      self.display_name = self.display_name.try(:strip)
     end
   end
 
