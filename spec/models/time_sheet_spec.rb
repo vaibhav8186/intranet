@@ -130,6 +130,58 @@ RSpec.describe TimeSheet, type: :model do
     end
   end
 
+  context 'Timesheet reminder' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
+
+    before do
+      user.public_profile.slack_handle = USER_ID
+    end
+
+    context 'check timesheet' do
+      it 'Should return false because timesheet is not present' do
+        expect(time_sheet.check_time_sheet(user)).to eq(false)
+      end
+
+      it 'should return true because timesheet is present' do
+        user.time_sheets.create(date: 1.days.ago, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
+        expect(time_sheet.check_time_sheet(user)).to eq(true)
+      end
+    end
+
+    context 'timesheet filled' do
+      before do
+        user.time_sheets.create(date: Date.today - 1, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
+        user.time_sheets.create(date: Date.today - 2, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
+        user.time_sheets.create(date: Date.today - 3, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
+      end
+
+      it 'Should return false because timesheet is not filled' do
+        expect(time_sheet.time_sheet_filled?(user, 4.days.ago.utc)).to eq(false)
+      end
+
+      it 'Should return true because timesheet is filled' do
+        expect(time_sheet.time_sheet_filled?(user, Date.today - 1)).to eq(true)
+      end
+    end
+
+    context 'user on leave' do
+      it 'Should return false because leave application is not present' do
+        expect(time_sheet.user_on_leave?(user, Date.today - 2)).to eq(false)
+      end
+
+      it 'Should return true because user is on leave' do
+        FactoryGirl.create(:leave_application, user_id: user.id)
+        expect(time_sheet.user_on_leave?(user, Date.today + 2)).to eq(true)
+      end
+
+      it 'Should return false because user is not on leave' do
+        FactoryGirl.create(:leave_application, user_id: user.id)
+        expect(time_sheet.user_on_leave?(user, Date.today + 4)).to eq(false)
+      end
+    end
+  end
+
   context 'Api test' do
     it 'Invalid time sheet format : Should return true ' do
       slack_params = {
