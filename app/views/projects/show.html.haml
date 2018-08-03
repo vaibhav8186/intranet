@@ -1,20 +1,49 @@
 .form-horizontal.row
-  %h2
-    .span4
-      = @project.name
+  %h3
+    = @project.name
     .offset4{style: "float: right;"}
       = render partial: "layouts/project_menu"
-  =raw @project.code_climate_snippet
-  - if !@users.blank?
-    %table.table.table-hover
-      %thead
-        %tr
-          %th
-          %th Name
-          %th Email
-      %tbody
-        - @users.each_with_index do |user|
-          %tr
-            %td= image_tag(user.public_profile.image.thumb.url, class: 'img-polaroid') if user.public_profile
-            %td= link_to user.public_profile.name, user_path(user)
-            %td= user.email
+
+  %div
+    %table.table.table-hover.table-striped
+      %tr
+        %th Project Name
+        %td= @project.name
+      %tr
+        %th Start Date
+        %td= @project.start_date
+      %tr
+        %th End Date
+        %td= @project.end_date
+      %tr
+        %th End Date
+        %td= @project.end_date
+      %tr
+        %th Invoice Date
+        %td= @project.invoice_date
+      %tr
+        %th URL
+        %td= link_to @project.url
+      %tr
+        %th Project Code
+        %td= @project.code
+      %tr
+        %th Project Description
+        %td= @project.description
+      %tr
+        %th Code climate snippet
+        %td=raw @project.code_climate_snippet
+      %tr
+        %th Comapny
+        %td= link_to @project.company.try(:name), @project.company
+      %tr
+        %th Number of Employees
+        %td= @project.number_of_employees
+      %tr
+        %th Logo
+        %td= image_tag @project.logo.try(:url, :thumb)
+
+-if @users.present?
+  %div.team-member-list
+    = render 'users'
+

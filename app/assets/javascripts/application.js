@@ -53,3 +53,10 @@ readURL = function(input, src_id) {
     reader.readAsDataURL(input.files[0]);
   }
 };
+
+var generate_code;
+generate_code = function() {
+  $.get('/projects/generate_code', function(response, status) {
+    $('#project_code').val(response.code);
+  });
+};

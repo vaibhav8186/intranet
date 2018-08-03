@@ -10,6 +10,21 @@ describe Project do
     expect(project.tags).to eq(["Ruby 2.2.3", "Rails 4.2.1", "Mongodb ", "Retrofit", "GCM"])
   end
 
+
+  it "should use existing product code of company" do
+    company = FactoryGirl.create(:company)
+    project = FactoryGirl.create(:project)
+    new_project = FactoryGirl.build(:project, name: "test", code: project.code)
+    expect(new_project).to be_valid
+  end
+
+  it "should not use existing product code of other company" do
+    company = FactoryGirl.create(:company)
+    project = FactoryGirl.create(:project, company: company)
+    new_project = FactoryGirl.build(:project, code: project.code)
+    expect(new_project).to be_invalid
+  end
+
   context 'validation - display name' do
     let!(:project) { FactoryGirl.create(:project) }
 

@@ -1,0 +1,15 @@
+#new-team-member.modal.fade{:role => "dialog"}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{"data-dismiss" => "modal", :type => "button"} ×
+        %h4.modal-title Select Team Member
+      .modal-body
+        = form_tag add_team_member_project_path(@project), remote: true do
+          .control-group
+            = label_tag "Team Members", nil, class: 'control-label'
+            .controls
+              = select_tag :user_ids, options_from_collection_for_select(User.where(:role.nin => ['HR','Finance'], :status => STATUS[2]).to_a, :id, :name, @project.users.collect{|k| k.id}), id: 'add-members', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple team memebers", name: "project[user_ids][]"
+          = submit_tag "Update Team Members", class: "btn btn-primary pull-right"
+      .modal-footer
+        %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close

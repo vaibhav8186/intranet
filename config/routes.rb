@@ -33,10 +33,10 @@ Rails.application.routes.draw do
 
   get 'contacts' => 'admins#contacts_from_site', as: 'site_contacts'
 
-  get 'calendar' => 'home#calendar', as: :calendar  
-  resources :leave_applications, only: [:index, :edit, :update] 
+  get 'calendar' => 'home#calendar', as: :calendar
+  resources :leave_applications, only: [:index, :edit, :update]
   resources :users, except: [:new, :create, :destroy] do
-    resources :leave_applications, except: [:view_leave_status, :index, :edit, :update] 
+    resources :leave_applications, except: [:view_leave_status, :index, :edit, :update]
     member do
       match :public_profile, via: [:get, :put]
       match :private_profile, via: [:get, :put]
@@ -51,17 +51,25 @@ Rails.application.routes.draw do
     end
   end
 
-  put 'available_leave/:id' => 'users#update_available_leave', as: :update_available_leave 
-  get 'view/leave_applications' => 'leave_applications#view_leave_status', as: :view_leaves 
-  #get 'cancel_leave_application' => 'leave_applications#cancel_leave', as: :cancel_leave 
+  put 'available_leave/:id' => 'users#update_available_leave', as: :update_available_leave
+  get 'view/leave_applications' => 'leave_applications#view_leave_status', as: :view_leaves
+  #get 'cancel_leave_application' => 'leave_applications#cancel_leave', as: :cancel_leave
   #get 'approve_leave_application' => 'leave_applications#approve_leave', as: :approve_leave
   get 'process_leave_application' => 'leave_applications#process_leave', as: :process_leave
   resources :projects do
     member do
       post 'update_sequence_number'
+      post 'add_team_member', as: "add_team_member"
+      delete 'remove_team_member/:user_id' => "projects#remove_team_member", as: :remove_team_member
     end
+    get 'generate_code', as: :generate_code, on: :collection
   end
-  resources :attachments do 
+
+  resources :companies do
+    resources :projects, only: [:new, :create, :edit, :update]
+  end
+
+  resources :attachments do
     member do
       get :download_document
     end

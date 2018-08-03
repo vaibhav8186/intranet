@@ -1,0 +1,13 @@
+.row.form-horizontal.row
+  %h2 Projects
+  %ul.nav.nav-tabs
+    %li.active
+      %a{"data-toggle" => "tab", :href => "#active"} Acive Project
+    %li
+      %a{"data-toggle" => "tab", :href => "#inactive"} Inactive Project
+
+  .tab-content
+    #active.tab-pane.fade.in.active
+      = render partial: 'projects', locals: { projects: @projects[true] || []}
+    #inactive.tab-pane.fade
+      = render partial: 'projects', locals: { projects: @projects[false] || [] }

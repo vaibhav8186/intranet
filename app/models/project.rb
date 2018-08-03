@@ -39,16 +39,29 @@ class Project
   field :sms_gateway
   field :other_frameworks
   field :other_details
+
+  field :code, type: String
+  field :number_of_employees, type: Integer
+  field :invoice_date, type: Date
+
   field :display_name
+
 
   slug :name
 
   has_and_belongs_to_many :users
   accepts_nested_attributes_for :users
+  belongs_to :company
+
   validates_presence_of :name
+  validate :project_code
+
   scope :all_active, ->{where(is_active: true).asc(:name)}
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :sort_by_position, -> { asc(:position)}
+
+
+  # validates_uniqueness_of :code, allow_blank: true, allow_nil: true
 
   validates :display_name, format: { with: /\A[ ]*[\S]*[ ]*\Z/, message: "Name should not contain white space" }
   before_save do
@@ -58,6 +71,7 @@ class Project
       self.display_name = self.display_name.strip
     end
   end
+
 
   after_update do
     Rails.cache.delete('views/website/portfolio.json') if updated_at_changed?
@@ -103,4 +117,12 @@ class Project
     end
   end
 
+  def project_code
+    return true if code.nil?
+    project = Project.where(code: self.code).first
+    if project.present?
+      self.errors.add(:base, "Code already exists") unless
+        project.company_id == self.company_id
+    end
+  end
 end

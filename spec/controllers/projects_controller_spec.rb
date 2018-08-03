@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe ProjectsController do
-  
+
   before(:each) do
    @admin = FactoryGirl.create(:user, role: 'Admin')
    sign_in @admin
@@ -23,7 +23,7 @@ describe ProjectsController do
     end
 
     it "should create new project record" do
-      get :new 
+      get :new
       assigns(:project).new_record? == true
     end
   end
@@ -48,6 +48,19 @@ describe ProjectsController do
       project = FactoryGirl.create(:project)
       get :show, id: project.id
       expect(assigns(:project)).to eq(project)
+    end
+  end
+
+  describe "GET generate_code" do
+    it "should respond with json" do
+      get :generate_code, {format: :json}
+      response.header['Content-Type'].should include 'application/json'
+    end
+
+    it "should generate 6 digit aplphanuric code" do
+      get :generate_code, {format: :json}
+      parse_response = JSON.parse(response.body)
+      expect(parse_response["code"].length).to be 6
     end
   end
 

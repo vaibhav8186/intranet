@@ -2,6 +2,10 @@
   .control-group
     .row
       .col-md-6
+        .control-group
+          = label_tag "Company Name", nil, class: 'control-label'
+          .controls
+            = select_tag :company_id, options_for_select(Company.pluck(:name, :id), f.object.try(:company).try(:id)), {:prompt => "-- Select Company --", class: "members", name: "project[company_id]", style: "width: 340px"}
         = f.input :name, required: false, class: 'pull-left'
         = f.input :display_name, required: false
         = f.input :description, as: :text, input_html: {class: "text-description"}
@@ -20,7 +24,7 @@
         = f.label 'Visible On Website'
         .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "Yes", "data-off-label" => "No"}
           = f.check_box :visible_on_website, {}, 'true', 'false'
-
+        = f.input :number_of_employees
         .control-group
           = label_tag "Team Members", nil, class: 'control-label'
           .controls
@@ -29,6 +33,18 @@
           = label_tag 'Client Logo', nil, class: 'control-label'
           = f.file_field :logo, required: true, id: 'logo-upload', class: 'case_study_upload'
           = image_tag f.object.logo, size: "50x50", id: 'project-logo'
+          = f.input :invoice_date, input_html: {class: :datepicker}, value: f.object.start_date.try(:strftime, '%d-%m-%Y')
+          = f.input :code, label: "Project Code", id: "projectcode" do
+            = f.text_field :code, readonly: f.object.code
+            - unless f.object.code
+              = link_to "javascript:void(0)", onclick: "generate_code();" do
+                Generate New Code
+              - if @company && @company.projects.exists?
+                |
+                = link_to "#", data: { target: "#existing-code", toggle: "modal", type: "button"} do
+                  Use Existing Code
+                = render partial: "existing_code_modal", locals: { project: @project}
+
       .col-md-6.pull-right.upload
         = image_tag f.object.image, size: "200x200", id: 'project-image'
         = f.file_field :image, required: true, id: 'image-upload'

@@ -8,6 +8,5 @@ class ContactPerson
 
   embedded_in :private_profile
   embedded_in :vender
-  
-  #validates :phone_no, length: { is: 10 }, numericality: { only_integer: true }, allow_blank: true
+  embedded_in :company
 end

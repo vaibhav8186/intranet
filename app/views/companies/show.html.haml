@@ -1,0 +1,29 @@
+.form-horizontal.row
+  %h3
+    = @company.name
+    .offset4{style: "float: right;"}
+      = render partial: "layouts/company_menu"
+
+  %div
+    %table.table.table-hover
+      %tr
+        %th Company Name
+        %td= @company.name
+      %tr
+        %th Address
+        %td
+          - @company.addresses.each do |address|
+            = address.try(:to_line)
+            %br
+      %tr
+        %th GST number
+        %td= @company.gstno
+      %tr
+        %th Website
+        %td= link_to @company.website
+      %tr
+        %th Logo
+        %td= image_tag @company.logo.try(:url, :thumb)
+
+= render 'contact_persons' if  @company.contact_persons.present?
+= render 'project_details' if @projects.present?

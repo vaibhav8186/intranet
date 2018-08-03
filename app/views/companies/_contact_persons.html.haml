@@ -1,0 +1,17 @@
+.form-horizontal.row
+  %h3.model-detail
+    Contact Persons
+  %table.table.table-hover
+    %thead
+      %tr
+        %th Name
+        %th Email
+        %th Mobile Number
+        %th Role
+    %tbody
+      - @company.contact_persons.each do |contact|
+        %tr
+          %td= contact.name
+          %td= contact.email
+          %td= contact.phone_no
+          %td= contact.role
