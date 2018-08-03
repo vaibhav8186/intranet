@@ -7,7 +7,7 @@ class SlackBot < SlackRubyBot::Bot
     SlackApiService.new.post_message_to_slack(channel, text)
   end
 
-  def check_user_is_present(user, user_id)
-    user_present?(user, user_id)
+  def fetch_email_and_associate_to_user(user_id)
+    call_slack_api_service_and_fetch_email(user_id)
   end
 end

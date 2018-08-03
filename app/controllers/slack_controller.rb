@@ -13,8 +13,8 @@ class SlackController < ApplicationController
   def user_exists?
     load_user
     @slack_bot = SlackBot.new
-    return_value = @slack_bot.check_user_is_present(@user, params['user_id'])
-    unless return_value
+    @user = @slack_bot.fetch_email_and_associate_to_user(params['user_id']) if @user.blank?
+    unless @user
       render json: { text: 'You are not part of organization contact to admin' }, status: :unauthorized
     end
   end

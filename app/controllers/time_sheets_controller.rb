@@ -29,8 +29,8 @@ class TimeSheetsController < ApplicationController
   def user_exists?
     load_user
     @time_sheet = TimeSheet.new
-    return_value = @time_sheet.check_user_is_present(@user, params['user_id'])
-    unless return_value
+    @user = @time_sheet.fetch_email_and_associate_to_user(params['user_id']) if @user.blank?
+    unless @user
       render json: { text: 'You are not part of organization contact to admin' }, status: :unauthorized
     end
   end
