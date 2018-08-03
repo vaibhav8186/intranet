@@ -157,6 +157,26 @@ class TimeSheet
     time_sheets_data
   end
 
+  def check_time_sheet(user)
+    return false unless user.time_sheets.present?
+    return true
+  end
+
+  def user_on_leave?(user, date)
+    return false unless user.leave_applications.present?
+    leave_applications = user.leave_applications.where(:start_at.gte => date)
+    leave_applications.each do |leave_application|
+      return true if date.between?(leave_application.start_at, leave_application.end_at)
+    end
+    return false
+  end
+
+  def time_sheet_filled?(user, date)
+    filled_time_sheet_dates = user.time_sheets.pluck(:date)
+    return false unless filled_time_sheet_dates.include?(date)
+    return true
+  end
+
   def load_project(user, display_name)
     user.first.projects.where(display_name: /^#{display_name}$/i).first
   end
