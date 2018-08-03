@@ -36,8 +36,8 @@ task import_companies: [:environment] do
   end
 
   def assign_companies_to_projects(project_names, company)
-    project_names =  project_names.try(:split, "|").try(:map, &:strip) || []
-    Project.in(name: project_names).update_all(company_id: company.id)
+    project_names =  project_names.try(:split, "|").try(:map, &:strip).try(:map, &:downcase) || []
+    Project.in(name: /#{project_names}/i).update_all(company_id: company.id)
   end
 
   def create_accountant(company, row)
@@ -68,9 +68,9 @@ task import_companies: [:environment] do
     address.save
   end
 
-  file = File.open('import_companies_log.csv', 'w')
+  file = File.open('log/import_companies_log.csv', 'w')
   file.puts "Index, Response, Company Name, Error Messages"
-  CSV.foreach("public/companies.csv", headers: true).with_index(1) do |row, index|
+  CSV.foreach("public/projects.csv", headers: true).with_index(1) do |row, index|
     company = import_company(row)
     if company.invalid?
       puts "ERROR - Importing #{company.name}"
