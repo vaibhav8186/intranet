@@ -14,3 +14,5 @@ ORGANIZATION_NAME = 'Josh Software'
 
 CONTACT_ROLE =  ["Accountant", "Technical", "Accountant and Technical"]
 ROLE = { employee: 'Employee', HR: 'HR' }
+
+EMAIL_ADDRESS = /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
