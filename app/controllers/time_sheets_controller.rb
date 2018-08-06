@@ -17,7 +17,7 @@ class TimeSheetsController < ApplicationController
       render json: { text: "*Timesheet saved successfully!*" }, status: :created
     else
       if @time_sheet.errors.messages[:from_time].present? || @time_sheet.errors.messages[:to_time].present?
-        text ="\`Error :: record already present for given time.\`"
+        text ="\`Error :: Record already present for given time.\`"
         SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       end
       render json: { text: 'fail' }, status: :unprocessable_entity

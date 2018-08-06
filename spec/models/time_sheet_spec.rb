@@ -278,7 +278,7 @@ RSpec.describe TimeSheet, type: :model do
       slack_params = {
         'token' => SLACK_API_TOKEN,
         'channel' => CHANNEL_ID,
-        'text' => "\`Error :: Invalid time format. Format should be HH:MM:SS\`"
+        'text' => "\`Error :: Invalid time format. Format should be HH:MM\`"
       }
       VCR.use_cassette 'timesheet_failure_reason__invalid_time' do
         response = Net::HTTP.post_form(URI("https://slack.com/api/chat.postMessage"), slack_params)

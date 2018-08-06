@@ -43,7 +43,7 @@ class TimeSheet
     user = load_user(params['user_id'])
     project = user.first.projects.find_by(display_name: /^#{project_name}$/i) rescue nil
     return true if !project.nil? || project_name == 'other'
-    text = "\`Error :: you are not working on this project. Use /projects command to view your project\`"
+    text = "\`Error :: You are not working on this project. Use /projects command to view your project\`"
     SlackApiService.new.post_message_to_slack(params['channel_id'], text)
     return false
   end
@@ -71,20 +71,16 @@ class TimeSheet
   end
   
   def check_date_range(date, params)
-    if Date.parse(date) > Date.today || Date.parse(date) < 7.days.ago
-      text = "\`Error :: not allowed to fill timesheet for this date. If you want to fill, meet your manager.\`"
+    if Date.parse(date) < 7.days.ago
+      text = "\`Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.\`"
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+      return false
+    elsif Date.parse(date) > Date.today
+      text = "\`Error :: Can't fill the timesheet for future date.\`"
       SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
     end
     return true
-  end
-
-  def from_time_greater_than_to_time?(from_time, to_time, params)
-    if from_time >= to_time
-      text = "\`Error :: From time must be less than to time\`"
-      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
-      return false
-    end
   end
 
   def from_time_greater_than_to_time?(from_time, to_time, params)
@@ -96,9 +92,9 @@ class TimeSheet
      return true
   end
 
-  def is_timesheet_greater_then_current_time?(from_time, to_time, params)
+  def timesheet_greater_than_current_time?(from_time, to_time, params)
     if from_time >= Time.now || to_time >= Time.now
-      text = "\`Error :: Future time is not allowed\`"
+      text = "\`Error :: Can't fill the timesheet for future time.\`"
       SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
     end
@@ -110,7 +106,7 @@ class TimeSheet
     to_time = valid_time?(date, to_time, params)
     return false unless from_time && to_time
     return false unless from_time_greater_than_to_time?(from_time, to_time, params)
-    return false unless is_timesheet_greater_then_current_time?(from_time, to_time, params)
+    return false unless timesheet_greater_than_current_time?(from_time, to_time, params)
 
     return true, from_time, to_time
   end
@@ -123,7 +119,7 @@ class TimeSheet
     end
 
     unless return_value
-      text = "\`Error :: Invalid time format. Format should be HH:MM:SS\`"
+      text = "\`Error :: Invalid time format. Format should be HH:MM\`"
       SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
     end
