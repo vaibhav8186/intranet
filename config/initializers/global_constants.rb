@@ -13,6 +13,9 @@ ORGANIZATION_DOMAIN = 'joshsoftware.com'
 ORGANIZATION_NAME = 'Josh Software'
 
 CONTACT_ROLE =  ["Accountant", "Technical", "Accountant and Technical"]
+
+SLACK_API_TOKEN = 'xoxb-293860924400-392092168631-jVXwtjIdUhckSYaphhXmylOH'
+
 ROLE = { employee: 'Employee', HR: 'HR' }
 
 EMAIL_ADDRESS = /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
