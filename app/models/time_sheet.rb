@@ -15,8 +15,9 @@ class TimeSheet
 
   validates :from_time, :to_time, uniqueness: { scope: [:user_id, :date], message: "record is already present" }
 
-  MAX_COMMAND_LENGTH = 5
+  MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
+  MAX_DAILY_STATUS_COMMAND_LENGTH = 2
 
   def parse_timesheet_data(params)
     split_text = params['text'].split
@@ -31,7 +32,7 @@ class TimeSheet
   end
 
   def valid_command_format?(split_text, channel_id)
-    if split_text.length < MAX_COMMAND_LENGTH
+    if split_text.length < MAX_TIMESHEET_COMMAND_LENGTH
       text = "\`Error :: Invalid timesheet format. Format should be <project_name> <date> <from_time> <to_time> <description>\`"
       SlackApiService.new.post_message_to_slack(channel_id, text)
       return false
@@ -67,6 +68,7 @@ class TimeSheet
       return false
     end
 
+    return true if params['command'] == '/daily_status'
     check_date_range(date, params)
   end
   
@@ -153,6 +155,56 @@ class TimeSheet
     time_sheets_data
   end
 
+  def parse_ts_status_command(params)
+    split_text = params['text'].split
+    if split_text.length < MAX_DAILY_STATUS_COMMAND_LENGTH
+      time_sheet_log = get_time_sheet_log_for_today(params) unless split_text.present?
+      time_sheet_log = get_time_sheet_log_for_date(params, split_text[0]) if split_text.present?
+    else
+      text = "\`Error :: Invalid command options. Use /daily_status <date> to view your timesheet log\`"
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+    end
+    time_sheet_log.present? ? time_sheet_log : false
+  end
+
+  def get_time_sheet_log_for_today(params)
+    user = load_user(params['user_id'])
+    time_sheets = load_time_sheets(user, Date.today)
+    return false unless time_sheet_present?(time_sheets, params)
+    time_sheets = remove_date_from_time(time_sheets, Date.today.to_s)
+    prepend_index(time_sheets)
+  end
+
+  def get_time_sheet_log_for_date(params, date)
+    return false unless valid_date_format?(date, params)
+    user = load_user(params['user_id'])
+    time_sheets = load_time_sheets(user, Date.parse(date))
+    return false unless time_sheet_present?(time_sheets, params)
+    time_sheets = remove_date_from_time(time_sheets, date.to_s)
+    prepend_index(time_sheets)
+  end
+
+  def time_sheet_present?(time_sheets, params)
+    unless time_sheets.present?
+      text = "\`Error :: Record not found\`"
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+      return false
+    end
+    return true
+  end
+
+  def remove_date_from_time(time_sheets, date)
+    time_sheets.each do |time_sheet|
+      time_sheet[2] = time_sheet[2].to_s.remove("#{date} - ")
+      time_sheet[3] = time_sheet[3].to_s.remove("#{date} - ")
+    end
+  end
+
+  def prepend_index(time_sheets)
+    time_sheet_log = time_sheets.each_with_index.map{|time_sheet, index| time_sheet.join(' ').prepend("#{index + 1}. ") + " \n"}
+    time_sheet_log.join('')
+  end
+
   def check_time_sheet(user)
     return false unless user.time_sheets.present?
     return true
@@ -171,6 +223,16 @@ class TimeSheet
     filled_time_sheet_dates = user.time_sheets.pluck(:date)
     return false unless filled_time_sheet_dates.include?(date)
     return true
+  end
+
+  def load_time_sheets(user, date)
+    user.first.time_sheets.where(date: date).includes(:project).collect do |time_sheet|
+      [
+        time_sheet.project.try(:name),
+        time_sheet.date, time_sheet.from_time,
+        time_sheet.to_time, time_sheet.description
+      ]
+    end
   end
 
   def load_project(user, display_name)

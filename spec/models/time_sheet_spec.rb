@@ -182,6 +182,92 @@ RSpec.describe TimeSheet, type: :model do
     end
   end
 
+  context 'timesheet status' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+    let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
+
+    before do
+      user.public_profile.slack_handle = USER_ID
+      user.save
+      stub_request(:post, "https://slack.com/api/chat.postMessage")
+    end
+
+    context 'command without option' do
+      it 'Should give timesheet log' do
+        user.time_sheets.create(user_id: user.id, project_id: project.id, 
+                                date: Date.today, from_time: '9:00', 
+                                to_time: '10:00', description: 'Today I finish the work')
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => ""
+        }
+
+        time_sheets = time_sheet.parse_ts_status_command(params)
+        expect(time_sheets).to eq("1. The pediatric network 07/08/2018 09:00 AM 10:00 AM Today I finish the work \n")
+      end
+
+      it 'Should return false because timesheet record not present' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => ""
+        }
+
+        time_sheets = time_sheet.parse_ts_status_command(params)
+        expect(time_sheets).to eq(false)
+      end
+    end
+
+    context 'command with options' do
+      it 'Should give timesheet log' do
+        user.time_sheets.create(user_id: user.id, project_id: project.id, 
+                                date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"), 
+                                to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => Date.yesterday.to_s
+        }
+        time_sheets = time_sheet.parse_ts_status_command(params)
+        expect(time_sheets).to eq("#{time_sheets}")
+      end
+
+      it 'Should return false because timesheet record not present' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => Date.yesterday.to_s
+        }
+        time_sheets = time_sheet.parse_ts_status_command(params)
+        expect(time_sheets).to eq(false)
+      end
+
+      it 'Should return false because invalid date format' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => '06/07'
+        }
+
+        time_sheets = time_sheet.parse_ts_status_command(params)
+        expect(time_sheets).to eq(false)
+      end
+
+      it 'Should return false because invalid date' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => '06/13/2018'
+        }
+
+        time_sheets = time_sheet.parse_ts_status_command(params)
+        expect(time_sheets).to eq(false)
+      end
+    end
+  end
+
   context 'Api test' do
     it 'Invalid time sheet format : Should return true ' do
       slack_params = {

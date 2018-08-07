@@ -1,6 +1,6 @@
 class TimeSheetsController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  before_action :user_exists?, only: :create
+  before_action :user_exists?, only: [:create, :daily_status]
 
   def create
     return_value, time_sheets_data = @time_sheet.parse_timesheet_data(params) unless params['user_id'].nil?
@@ -20,7 +20,18 @@ class TimeSheetsController < ApplicationController
         text ="\`Error :: Record already present for given time.\`"
         SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       end
-      render json: { text: 'fail' }, status: :unprocessable_entity
+      render json: { text: 'Fail' }, status: :unprocessable_entity
+    end
+  end
+
+  def daily_status
+    @time_sheet = TimeSheet.new
+    time_sheet_log = @time_sheet.parse_ts_status_command(params)
+    if time_sheet_log
+      SlackApiService.new.post_message_to_slack(params['channel_id'], time_sheet_log)
+      render json: { text: '' }, status: :ok
+    else
+      render json: { text: 'Fail' }, status: :unprocessable_entity
     end
   end
 
