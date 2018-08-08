@@ -155,7 +155,7 @@ class TimeSheet
     time_sheets_data
   end
 
-  def parse_ts_status_command(params)
+  def parse_daily_status_command(params)
     split_text = params['text'].split
     if split_text.length < MAX_DAILY_STATUS_COMMAND_LENGTH
       time_sheet_log = get_time_sheet_log_for_today(params) unless split_text.present?
@@ -169,19 +169,21 @@ class TimeSheet
 
   def get_time_sheet_log_for_today(params)
     user = load_user(params['user_id'])
-    time_sheets = load_time_sheets(user, Date.today)
+    time_sheets, time_sheet_message = load_time_sheets(user, Date.today)
     return false unless time_sheet_present?(time_sheets, params)
     time_sheets = remove_date_from_time(time_sheets, Date.today.to_s)
-    prepend_index(time_sheets)
+    time_sheet_log = prepend_index(time_sheets)
+    time_sheet_message + ". Details are following\n\n" + time_sheet_log
   end
 
   def get_time_sheet_log_for_date(params, date)
     return false unless valid_date_format?(date, params)
     user = load_user(params['user_id'])
-    time_sheets = load_time_sheets(user, Date.parse(date))
+    time_sheets, time_sheet_message = load_time_sheets(user, Date.parse(date))
     return false unless time_sheet_present?(time_sheets, params)
-    time_sheets = remove_date_from_time(time_sheets, date.to_s)
-    prepend_index(time_sheets)
+    time_sheets = remove_date_from_time(time_sheets, date.to_date.to_s)
+    time_sheet_log = prepend_index(time_sheets)
+    time_sheet_message + ". Details are as follow\n\n" + time_sheet_log
   end
 
   def time_sheet_present?(time_sheets, params)
@@ -195,8 +197,8 @@ class TimeSheet
 
   def remove_date_from_time(time_sheets, date)
     time_sheets.each do |time_sheet|
+      time_sheet[1] = time_sheet[1].to_s.remove("#{date} - ")
       time_sheet[2] = time_sheet[2].to_s.remove("#{date} - ")
-      time_sheet[3] = time_sheet[3].to_s.remove("#{date} - ")
     end
   end
 
@@ -226,13 +228,33 @@ class TimeSheet
   end
 
   def load_time_sheets(user, date)
-    user.first.time_sheets.where(date: date).includes(:project).collect do |time_sheet|
-      [
-        time_sheet.project.try(:name),
-        time_sheet.date, time_sheet.from_time,
-        time_sheet.to_time, time_sheet.description
-      ]
+    time_sheet_log = []
+    total_minutes = 0
+    time_sheet_message = 'You worked on'
+    user.first.projects.includes(:time_sheets).each do |project|
+      project.time_sheets.where(date: date).each do |time_sheet|
+        time_sheet_data = []
+        time_sheet_data.push(project.name, time_sheet.from_time, time_sheet.to_time, time_sheet.description)
+        time_sheet_log << time_sheet_data
+        minutes = calculate_working_minutes(time_sheet)
+        total_minutes += minutes
+        time_sheet_data = []
+      end
+      hours, minitues = calculate_hours_and_minutes(total_minutes.to_i)
+      next if hours == 0 && minitues == 0
+      time_sheet_message += " *#{project.name}: #{hours}H #{minitues}M*" 
     end
+    return time_sheet_log, time_sheet_message
+  end
+
+  def calculate_hours_and_minutes(total_minutes)
+    hours = total_minutes / 60
+    minutes = total_minutes % 60
+    return hours, minutes
+  end
+
+  def calculate_working_minutes(time_sheet)
+    TimeDifference.between(time_sheet.to_time, time_sheet.from_time).in_minutes
   end
 
   def load_project(user, display_name)

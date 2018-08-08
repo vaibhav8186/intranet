@@ -58,7 +58,7 @@ RSpec.describe TimeSheetsController, type: :controller do
 
   context 'Timesheet: Daily status' do
     let(:user) { FactoryGirl.create(:user, email: 'ajay@joshsoftware.com') }
-    let!(:project) { FactoryGirl.create(:project) }
+    let!(:project) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
 
     context 'command with date option' do
       before do
