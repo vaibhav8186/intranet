@@ -49,6 +49,7 @@ class User
   scope :approved, ->{where(status: 'approved')}  
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :interviewers, ->{where(:role.ne => 'Intern')}
+  scope :get_approved_users_to_send_reminder, ->{where('$and' => ['$or' => [{ role: 'Intern' }, { role: 'Employee' }], status: 'Approved'])}
   #Public profile will be nil when admin invite user for sign in with only email address 
   delegate :name, to: :public_profile, :allow_nil => true
 

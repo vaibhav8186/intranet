@@ -147,9 +147,21 @@ RSpec.describe TimeSheet, type: :model do
 
     before do
       user.public_profile.slack_handle = USER_ID
+      stub_request(:post, "https://slack.com/api/chat.postMessage")
     end
 
-    context 'check timesheet' do
+    context 'success' do
+      it 'Should give the message to fill timesheet' do
+        user.time_sheets.create(date: 2.days.ago, from_time: '9:00', to_time: '10:00', description: 'call')
+        expect(HolidayList.is_holiday?(user.time_sheets[0].date + 1)).to eq(false)
+        expect(time_sheet.time_sheet_present?(user)).to eq(true)
+        expect(time_sheet.user_on_leave?(user, user.time_sheets[0].date + 1)).to eq(false)
+        expect(time_sheet.time_sheet_filled?(user, user.time_sheets[0].date + 1)).to eq(false)
+        expect(time_sheet.unfilled_timesheet_present?(user, user.time_sheets[0].date + 1)).to eq(true)
+      end
+    end
+
+    context 'timesheet present' do
       it 'Should return false because timesheet is not present' do
         expect(TimeSheet.check_time_sheet(user)).to eq(false)
       end
