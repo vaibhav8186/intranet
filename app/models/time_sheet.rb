@@ -168,27 +168,28 @@ class TimeSheet
   end
 
   def get_time_sheet_log_for_today(params)
+    text = "\`No timesheet found for today.\`"
     user = load_user(params['user_id'])
     time_sheets, time_sheet_message = load_time_sheets(user, Date.today)
-    return false unless time_sheet_present?(time_sheets, params)
+    return false unless time_sheet_present?(time_sheets, params, text)
     time_sheets = remove_date_from_time(time_sheets, Date.today.to_s)
     time_sheet_log = prepend_index(time_sheets)
     time_sheet_message + ". Details are following\n\n" + time_sheet_log
   end
 
   def get_time_sheet_log_for_date(params, date)
+    text = "\`No timesheet found for given date.\`"
     return false unless valid_date_format?(date, params)
     user = load_user(params['user_id'])
     time_sheets, time_sheet_message = load_time_sheets(user, Date.parse(date))
-    return false unless time_sheet_present?(time_sheets, params)
+    return false unless time_sheet_present?(time_sheets, params, text)
     time_sheets = remove_date_from_time(time_sheets, date.to_date.to_s)
     time_sheet_log = prepend_index(time_sheets)
     time_sheet_message + ". Details are as follow\n\n" + time_sheet_log
   end
 
-  def time_sheet_present?(time_sheets, params)
+  def time_sheet_present?(time_sheets, params, text)
     unless time_sheets.present?
-      text = "\`Error :: Record not found\`"
       SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
     end
