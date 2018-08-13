@@ -56,4 +56,73 @@ RSpec.describe TimeSheetsController, type: :controller do
     end
   end
 
+  context 'Timesheet: Daily status' do
+    let(:user) { FactoryGirl.create(:user, email: 'ajay@joshsoftware.com') }
+    let!(:project) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
+
+    context 'command with date option' do
+      before do
+        stub_request(:post, "https://slack.com/api/chat.postMessage")
+        user.time_sheets.create(user_id: user.id, project_id: project.id,
+                                date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
+                                to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+      end
+
+      it 'Should success' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => Date.yesterday.to_s
+        }
+
+        post :daily_status, params
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'Should fail because invalid date' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => '06/13/2018'
+        }
+
+        post :daily_status, params
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
+    context 'command without date option' do
+      before do
+        stub_request(:post, "https://slack.com/api/chat.postMessage")
+      end
+
+      it 'Should success' do
+        user.time_sheets.create(user_id: user.id, project_id: project.id,
+                                date: Date.today, from_time: '9:00',
+                                to_time: '10:00', description: 'Today I finish the work')
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => ""
+        }
+
+        post :daily_status, params
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'Should fail because timesheet not present' do
+        user.time_sheets.create(user_id: user.id, project_id: project.id,
+                                date: Date.today - 1, from_time: '9:00',
+                                to_time: '10:00', description: 'Today I finish the work')
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => ""
+        }
+
+        post :daily_status, params
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+  end
 end

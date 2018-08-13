@@ -182,6 +182,111 @@ RSpec.describe TimeSheet, type: :model do
     end
   end
 
+  context 'Daily timesheet status' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
+    let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
+
+    before do
+      user.public_profile.slack_handle = USER_ID
+      user.save
+      stub_request(:post, "https://slack.com/api/chat.postMessage")
+    end
+
+    context 'command without option' do
+      it 'Should give timesheet log' do
+        user.time_sheets.create(user_id: user.id, project_id: project.id, 
+                                date: Date.today, from_time: '9:00', 
+                                to_time: '10:00', description: 'Today I finish the work')
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => ""
+        }
+
+        time_sheets = time_sheet.parse_daily_status_command(params)
+        expect(time_sheets).to eq("#{time_sheets}")
+      end
+
+      it 'Should return false because timesheet record not present' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => ""
+        }
+
+        time_sheets = time_sheet.parse_daily_status_command(params)
+        expect(time_sheets).to eq(false)
+      end
+    end
+
+    context 'command with options' do
+      it 'Should give timesheet log' do
+        user.time_sheets.create(user_id: user.id, project_id: project.id, 
+                                date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"), 
+                                to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => Date.yesterday.to_s
+        }
+        time_sheets = time_sheet.parse_daily_status_command(params)
+        expect(time_sheets).to eq("#{time_sheets}")
+      end
+
+      it 'Should return false because timesheet record not present' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => Date.yesterday.to_s
+        }
+        time_sheets = time_sheet.parse_daily_status_command(params)
+        expect(time_sheets).to eq(false)
+      end
+
+      it 'Should return false because invalid date format' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => '06/07'
+        }
+
+        time_sheets = time_sheet.parse_daily_status_command(params)
+        expect(time_sheets).to eq(false)
+      end
+
+      it 'Should return false because invalid date' do
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => '06/13/2018'
+        }
+
+        time_sheets = time_sheet.parse_daily_status_command(params)
+        expect(time_sheets).to eq(false)
+      end
+    end
+
+    it 'Should give right hours and minutes' do
+      total_minutes = 359
+      local_var_hours = total_minutes / 60
+      local_var_minutes = total_minutes % 60
+      hours, minutes = time_sheet.calculate_hours_and_minutes(total_minutes)
+      expect(hours).to eq(local_var_hours)
+      expect(minutes).to eq(local_var_minutes)
+    end
+
+    it 'Should give right difference between time' do
+      user.time_sheets.create(user_id: user.id, project_id: project.id, 
+                              date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"), 
+                              to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+      user_time_sheet = user.time_sheets[0]
+      time_diff = TimeDifference.between(user_time_sheet.to_time, user_time_sheet.from_time).in_minutes
+      minutes = time_sheet.calculate_working_minutes(user_time_sheet)
+      expect(minutes).to eq(time_diff)
+    end
+  end
+
   context 'Api test' do
     it 'Invalid time sheet format : Should return true ' do
       slack_params = {
