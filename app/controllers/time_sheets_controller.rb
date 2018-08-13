@@ -28,8 +28,7 @@ class TimeSheetsController < ApplicationController
     @time_sheet = TimeSheet.new
     time_sheet_log = @time_sheet.parse_daily_status_command(params)
     if time_sheet_log
-      SlackApiService.new.post_message_to_slack(params['channel_id'], time_sheet_log)
-      render json: { text: '' }, status: :ok
+      render json: { text: time_sheet_log }, status: :ok
     else
       render json: { text: 'Fail' }, status: :unprocessable_entity
     end

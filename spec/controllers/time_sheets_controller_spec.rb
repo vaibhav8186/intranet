@@ -76,6 +76,8 @@ RSpec.describe TimeSheetsController, type: :controller do
         }
 
         post :daily_status, params
+        resp = JSON.parse(response.body)
+        expect(resp['text']).to eq("You worked on *The pediatric network: 1H 0M*. Details are as follow\n\n1. The pediatric network 09:00AM 10:00AM Today I finish the work \n")
         expect(response).to have_http_status(:ok)
       end
 
@@ -107,6 +109,8 @@ RSpec.describe TimeSheetsController, type: :controller do
         }
 
         post :daily_status, params
+        resp = JSON.parse(response.body)
+        expect(resp['text']).to eq("You worked on *The pediatric network: 1H 0M*. Details are as follow\n\n1. The pediatric network 09:00AM 10:00AM Today I finish the work \n")
         expect(response).to have_http_status(:ok)
       end
 
