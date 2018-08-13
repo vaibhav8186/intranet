@@ -14,7 +14,7 @@ ORGANIZATION_NAME = 'Josh Software'
 
 CONTACT_ROLE =  ["Accountant", "Technical", "Accountant and Technical"]
 
-SLACK_API_TOKEN = 'xoxb-293860924400-392092168631-jVXwtjIdUhckSYaphhXmylOH'
+SLACK_API_TOKEN = ENV['SLACK_API_TOKEN']
 
 ROLE = { employee: 'Employee', HR: 'HR' }
 

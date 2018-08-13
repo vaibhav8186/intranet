@@ -58,17 +58,17 @@ RSpec.describe TimeSheetsController, type: :controller do
 
   context 'Timesheet: Daily status' do
     let(:user) { FactoryGirl.create(:user, email: 'ajay@joshsoftware.com') }
-    let!(:project) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
+    let!(:tpn) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
 
     context 'command with date option' do
       before do
         stub_request(:post, "https://slack.com/api/chat.postMessage")
-        user.time_sheets.create(user_id: user.id, project_id: project.id,
+        user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                                 date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                                 to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
       end
 
-      it 'Should success' do
+      it 'Should success : user worked on single project' do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
@@ -79,6 +79,26 @@ RSpec.describe TimeSheetsController, type: :controller do
         resp = JSON.parse(response.body)
         expect(resp['text']).to eq("You worked on *The pediatric network: 1H 0M*. Details are as follow\n\n1. The pediatric network 09:00AM 10:00AM Today I finish the work \n")
         expect(response).to have_http_status(:ok)
+      end
+
+      it 'Should success : user worked on multiple projects' do
+        deal_signal = user.projects.create(name: 'Deal signal', display_name: 'deal_signal')
+        user.time_sheets.create(user_id: user.id, project_id: tpn.id,
+                                date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
+                                to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+
+        user.time_sheets.create(user_id: user.id, project_id: deal_signal.id,
+                                date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 11:00"),
+                                to_time: Time.parse("#{Date.yesterday} 12:00"), description: 'Today I finish the work')
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => Date.yesterday.to_s
+        }
+        post :daily_status, params
+        resp = JSON.parse(response.body)
+        expect(response).to have_http_status(:ok)
+        expect(resp['text']).to eq("You worked on *The pediatric network: 1H 0M* *Deal signal: 1H 0M*. Details are as follow\n\n1. The pediatric network 09:00AM 10:00AM Today I finish the work \n2. Deal signal 11:00AM 12:00PM Today I finish the work \n")
       end
 
       it 'Should fail because invalid date' do
@@ -98,8 +118,8 @@ RSpec.describe TimeSheetsController, type: :controller do
         stub_request(:post, "https://slack.com/api/chat.postMessage")
       end
 
-      it 'Should success' do
-        user.time_sheets.create(user_id: user.id, project_id: project.id,
+      it 'Should success : user worked single project' do
+        user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                                 date: Date.today, from_time: '9:00',
                                 to_time: '10:00', description: 'Today I finish the work')
         params = {
@@ -114,8 +134,28 @@ RSpec.describe TimeSheetsController, type: :controller do
         expect(response).to have_http_status(:ok)
       end
 
+      it 'Should success : user worked on multiple project' do
+        deal_signal = user.projects.create(name: 'Deal signal', display_name: 'deal_signal')
+        user.time_sheets.create(user_id: user.id, project_id: tpn.id,
+                                date: Date.today, from_time: '9:00',
+                                to_time: '10:00', description: 'Today I finish the work')
+
+        user.time_sheets.create(user_id: user.id, project_id: deal_signal.id,
+                                date: Date.today, from_time: '11:00',
+                                to_time: '12:00', description: 'Today I finish the work')
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => ""
+        }
+        post :daily_status, params
+        resp = JSON.parse(response.body)
+        expect(response).to have_http_status(:ok)
+        expect(resp['text']).to eq("You worked on *The pediatric network: 1H 0M* *Deal signal: 1H 0M*. Details are as follow\n\n1. The pediatric network 09:00AM 10:00AM Today I finish the work \n2. Deal signal 11:00AM 12:00PM Today I finish the work \n")
+      end
+
       it 'Should fail because timesheet not present' do
-        user.time_sheets.create(user_id: user.id, project_id: project.id,
+        user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                                 date: Date.today - 1, from_time: '9:00',
                                 to_time: '10:00', description: 'Today I finish the work')
         params = {
