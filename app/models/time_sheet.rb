@@ -218,7 +218,7 @@ class TimeSheet
     total_minutes = 0
     time_sheet_message = 'You worked on'
     user.first.projects.includes(:time_sheets).each do |project|
-      project.time_sheets.where('$and' => [{user_id: user.first.id}, {date: date}]).each do |time_sheet|
+      project.time_sheets.where(user_id: user.first.id, date: date).each do |time_sheet|
         time_sheet_data = []
         from_time = time_sheet.from_time.strftime("%I:%M%p")
         to_time = time_sheet.to_time.strftime("%I:%M%p")
