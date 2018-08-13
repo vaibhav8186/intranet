@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe SlackController do
-  context 'get_projects' do
+  context 'projects' do
     let!(:user) { FactoryGirl.create(:user) }
     let!(:project_tpn) { user.projects.create(name: 'tpn') }
     let!(:project_ds) { user.projects.create(name: 'Dealsignal') }
@@ -18,17 +18,11 @@ RSpec.describe SlackController do
         'channel' => CHANNEL_ID,
         'text' => "1. tpn\n2. Dealsignal"
       }
-
-      VCR.use_cassette 'success' do
-        response = Net::HTTP.post_form(URI("https://slack.com/api/chat.postMessage"),slack_params)
-        resp = JSON.parse(response.body)
-        expect(resp['ok']).to eq(true)
-      end
-
-      stub_request(:post, "https://slack.com/api/chat.postMessage")
-
       post :projects, params
+
+      resp = JSON.parse(response.body)
       expect(response).to have_http_status(200)
+      expect(resp['text']).to eq("1. tpn\n2. Dealsignal")
     end
 
     it 'Should give message : You are not working on any project' do
