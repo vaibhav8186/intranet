@@ -158,8 +158,7 @@ class TimeSheet
   def parse_daily_status_command(params)
     split_text = params['text'].split
     if split_text.length < MAX_DAILY_STATUS_COMMAND_LENGTH
-      time_sheet_log = get_time_sheet_log_for_today(params) unless split_text.present?
-      time_sheet_log = get_time_sheet_log_for_date(params, split_text[0]) if split_text.present?
+      time_sheet_log = get_time_sheet_log(params, params['text'])
     else
       text = "\`Error :: Invalid command options. Use /daily_status <date> to view your timesheet log\`"
       SlackApiService.new.post_message_to_slack(params['channel_id'], text)
@@ -167,23 +166,16 @@ class TimeSheet
     time_sheet_log.present? ? time_sheet_log : false
   end
 
-  def get_time_sheet_log_for_today(params)
-    text = "\`No timesheet found for today.\`"
+  def get_time_sheet_log(params, date)
+    text = 'You have not filled timesheet for'
+    text = date.present? ? "\`#{text} #{date}.\`" : "\`#{text} today.\`"
+    if date.present?
+      return false unless valid_date_format?(date, params)
+    end
     user = load_user(params['user_id'])
-    time_sheets, time_sheet_message = load_time_sheets(user, Date.today)
+    time_sheets, time_sheet_message =
+    date.present? ? load_time_sheets(user, Date.parse(date)) : load_time_sheets(user, Date.today.to_s)
     return false unless time_sheet_present?(time_sheets, params, text)
-    time_sheets = remove_date_from_time(time_sheets, Date.today.to_s)
-    time_sheet_log = prepend_index(time_sheets)
-    time_sheet_message + ". Details are following\n\n" + time_sheet_log
-  end
-
-  def get_time_sheet_log_for_date(params, date)
-    text = "\`No timesheet found for given date.\`"
-    return false unless valid_date_format?(date, params)
-    user = load_user(params['user_id'])
-    time_sheets, time_sheet_message = load_time_sheets(user, Date.parse(date))
-    return false unless time_sheet_present?(time_sheets, params, text)
-    time_sheets = remove_date_from_time(time_sheets, date.to_date.to_s)
     time_sheet_log = prepend_index(time_sheets)
     time_sheet_message + ". Details are as follow\n\n" + time_sheet_log
   end
@@ -194,13 +186,6 @@ class TimeSheet
       return false
     end
     return true
-  end
-
-  def remove_date_from_time(time_sheets, date)
-    time_sheets.each do |time_sheet|
-      time_sheet[1] = time_sheet[1].to_s.remove("#{date} - ")
-      time_sheet[2] = time_sheet[2].to_s.remove("#{date} - ")
-    end
   end
 
   def prepend_index(time_sheets)
@@ -235,7 +220,9 @@ class TimeSheet
     user.first.projects.includes(:time_sheets).each do |project|
       project.time_sheets.where(date: date).each do |time_sheet|
         time_sheet_data = []
-        time_sheet_data.push(project.name, time_sheet.from_time, time_sheet.to_time, time_sheet.description)
+        from_time = time_sheet.from_time.strftime("%I:%M%p")
+        to_time = time_sheet.to_time.strftime("%I:%M%p")
+        time_sheet_data.push(project.name, from_time, to_time, time_sheet.description)
         time_sheet_log << time_sheet_data
         minutes = calculate_working_minutes(time_sheet)
         total_minutes += minutes
