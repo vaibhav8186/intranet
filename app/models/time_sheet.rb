@@ -214,9 +214,8 @@ class TimeSheet
 
   def self.search_user_and_send_reminder(users)
     users.each do |user|
-      last_filled_time_sheet_date = user.time_sheets.order(date: :asc).last.date + 1 if time_sheet_present_for_reminder?(user)
-      next if last_filled_time_sheet_date.nil?
-      date_difference = calculate_date_difference(last_filled_time_sheet_date)#TimeDifference.between(DateTime.current, DateTime.parse(last_filled_time_sheet_date.to_s)).in_days.round
+      last_filled_time_sheet_date = user.time_sheets.order(date: :asc).last.date + 1 if time_sheet_present_for_reminder?(user) last_filled_time_sheet_date.nil?
+      date_difference = calculate_date_difference(last_filled_time_sheet_date)
       if date_difference < 2 && last_filled_time_sheet_date < Date.today
         next if HolidayList.is_holiday?(last_filled_time_sheet_date)
         unless user_on_leave?(user, last_filled_time_sheet_date)
@@ -236,7 +235,7 @@ class TimeSheet
     end
   end
 
-  def self.time_sheet_present_for_reminder?(user)
+  def self.time_sheet_present_for_reminder?(user)    
     unless user.time_sheets.present?
       slack_uuid = user.public_profile.slack_handle
       text = "*Fill your time sheet of yesterday*"
