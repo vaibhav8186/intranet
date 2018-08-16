@@ -2,6 +2,7 @@ class TimeSheet
   include Mongoid::Document
   include Mongoid::Timestamps
   include CheckUser
+  include CalculateWorkedHours
 
   field :user_id
   field :project_id
@@ -234,16 +235,6 @@ class TimeSheet
       total_minutes = 0
     end
     return time_sheet_log, time_sheet_message
-  end
-
-  def calculate_hours_and_minutes(total_minutes)
-    hours = total_minutes / 60
-    minutes = total_minutes % 60
-    return hours, minutes
-  end
-
-  def calculate_working_minutes(time_sheet)
-    TimeDifference.between(time_sheet.to_time, time_sheet.from_time).in_minutes
   end
 
   def load_project(user, display_name)

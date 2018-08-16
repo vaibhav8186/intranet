@@ -35,6 +35,7 @@ class User
   has_many :leave_applications
   has_many :attachments
   has_many :time_sheets
+  has_many :daily_employee_timesheets
   has_and_belongs_to_many :projects
   has_and_belongs_to_many :schedules
 
