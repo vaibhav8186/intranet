@@ -21,7 +21,7 @@
     %li
       = link_to "Newsletter", main_app.light_path
   %li
-    = link_to "Leave Applications", main_app.view_leaves_path 
+    = link_to "Leave Applications", main_app.view_leaves_path
   - if ["Admin", "Super Admin"].include?(current_user.role)
     %li
       = link_to "Contacts", main_app.site_contacts_path, data: { 'no-turbolink' => true }
@@ -29,6 +29,9 @@
       = link_to "Manage Leave", main_app.leave_applications_path
   %li.hide
     = link_to "Calendar", main_app.calendar_path
+  - if ["Admin", "Super Admin"].include?(current_user.role)
+    %li
+      = link_to "Timesheet Report", main_app.time_sheets_path
   %li.divider
   %li
     = link_to 'Sign out', main_app.destroy_user_session_path, method: :delete

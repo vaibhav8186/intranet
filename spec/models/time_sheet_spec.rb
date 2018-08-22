@@ -287,6 +287,34 @@ RSpec.describe TimeSheet, type: :model do
     end
   end
 
+  context 'Employee timesheet report' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
+    let!(:project) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
+
+    it 'Should give the user name' do
+      first_name = user.public_profile.first_name
+      last_name = user.public_profile.last_name
+      expect(time_sheet.get_user_name(user)).to eq("#{first_name} #{last_name}")
+    end
+
+    it 'Should give the project name' do
+      expect(time_sheet.get_project_name(project.id)).to eq(project.name)
+    end
+
+    it 'Should give the correct hours and minutes' do
+      milliseconds = 7200000
+      local_var_hours = milliseconds / (1000 * 60 * 60)
+      local_var_minutes = milliseconds / (1000 * 60) % 60
+      expect(time_sheet.convert_milliseconds_to_hours(milliseconds)).to eq("#{local_var_hours}H #{local_var_minutes}M") 
+    end
+
+    it 'Should give the user leaves count' do
+      FactoryGirl.create(:leave_application, user_id: user.id)
+      expect(time_sheet.get_user_leaves_count(user, Date.today + 2, Date.today + 3)).to eq(1)
+    end
+  end
+
   context 'Api test' do
     it 'Invalid time sheet format : Should return true ' do
       slack_params = {

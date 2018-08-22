@@ -169,4 +169,24 @@ RSpec.describe TimeSheetsController, type: :controller do
       end
     end
   end
+
+  context 'index' do
+    let(:user) { FactoryGirl.create(:user, email: 'ajay@joshsoftware.com') }
+    let!(:tpn) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
+
+    it 'Should success' do
+      deal_signal = user.projects.create(name: 'Deal signal', display_name: 'deal_signal')
+      user.time_sheets.create(user_id: user.id, project_id: tpn.id,
+                              date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
+                              to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+
+      user.time_sheets.create(user_id: user.id, project_id: deal_signal.id,
+                              date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 11:00"),
+                              to_time: Time.parse("#{Date.yesterday} 12:00"), description: 'Today I finish the work')
+      params = {from_date: Date.yesterday - 1, to_time: Date.today}
+      get :index, params
+      expect(response).to have_http_status(200)
+      should render_template(:index)
+    end
+  end
 end
