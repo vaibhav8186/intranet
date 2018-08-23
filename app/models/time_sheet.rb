@@ -242,8 +242,37 @@ class TimeSheet
     return hours, minutes
   end
 
+  def generete_employee_timesheet_report(timesheets, from_date, to_date)
+    timesheet_reports = []
+    timesheets.each do |timesheet|
+      user = load_user_with_id(timesheet['_id'])
+      users_timesheet_data = {}
+      users_timesheet_data['user_name'] = user.name
+      project_details = []
+      total_work = 0
+      timesheet['working_status'].each do |working_status|
+        project_info = {}
+        project_info['project_name'] = get_project_name(working_status['project_id'])
+        project_info['worked_hours'] = convert_milliseconds_to_hours(working_status['total_time'])
+        total_work += working_status['total_time']
+        project_details << project_info
+        users_timesheet_data['project_details'] = project_details
+      end
+      users_timesheet_data['total_worked_hours'] = convert_milliseconds_to_hours(total_work)
+      users_timesheet_data['leaves'] = get_user_leaves_count(user, from_date, to_date)
+      timesheet_reports << users_timesheet_data
+    end
+    timesheet_reports.sort{|previous_record, next_record| previous_record['user_name'] <=> next_record['user_name']}
+  end
+
   def calculate_working_minutes(time_sheet)
     TimeDifference.between(time_sheet.to_time, time_sheet.from_time).in_minutes
+  end
+
+  def convert_milliseconds_to_hours(milliseconds)
+    hours = milliseconds / (1000 * 60 * 60)
+    minutes = milliseconds / (1000 * 60) % 60
+    "#{hours}H #{minutes}M"
   end
 
   def load_project(user, display_name)
@@ -256,6 +285,64 @@ class TimeSheet
 
   def fetch_email_and_associate_to_user(user_id)
     call_slack_api_service_and_fetch_email(user_id)
+  end
+
+  def get_user_leaves_count(user, from_date, to_date)
+    user.leave_applications.where({start_at: {"$gte" => from_date, "$lte" => to_date}}).count
+  end
+
+  def get_project_name(project_id)
+    Project.find_by(id: project_id).name
+  end
+
+  def from_date_less_than_to_date?(from_date, to_date)
+    from_date.to_date <= to_date.to_date
+  end
+
+  def load_user_with_id(user_id)
+    User.find_by(id: user_id)
+  end
+
+  def load_timesheet(from_date, to_date)
+    TimeSheet.collection.aggregate(
+      [
+        {
+          "$match" => {
+            "date" => {
+              "$gte" => from_date,
+              "$lte" => to_date
+            }
+          }
+        },
+        {
+          "$group" => {
+            "_id" => {
+              "user_id" => "$user_id",
+              "project_id" => "$project_id"
+            },
+            "totalSum" => {
+              "$sum" => {
+                "$subtract" => [
+                  "$to_time",
+                  "$from_time"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "$group" => {
+            "_id" => "$_id.user_id",
+            "working_status" => {
+              "$push" => {
+                "project_id" => "$_id.project_id",
+                "total_time" => "$totalSum"
+              }
+            }
+          }
+        }
+      ]
+    )
   end
 
 end

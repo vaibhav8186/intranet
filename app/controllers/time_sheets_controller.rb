@@ -11,6 +11,14 @@ class TimeSheetsController < ApplicationController
     end
   end
 
+  def index
+    @timesheet_obj = TimeSheet.new
+    @from_date = params[:from_date] || Date.today.beginning_of_month.to_s
+    @to_date = params[:to_date] || Date.today.to_s
+    timesheets = @timesheet_obj.load_timesheet(@from_date.to_date, @to_date.to_date) if @timesheet_obj.from_date_less_than_to_date?(@from_date, @to_date)
+    @timesheet_report = @timesheet_obj.generete_employee_timesheet_report(timesheets, @from_date.to_date, @to_date.to_date) if timesheets.present?
+  end
+
   def create_time_sheet(time_sheets_data, params)
     @time_sheet.attributes = time_sheets_data
     if @time_sheet.save
