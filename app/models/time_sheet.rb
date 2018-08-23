@@ -242,7 +242,7 @@ class TimeSheet
     return hours, minutes
   end
 
-  def generete_employee_timesheet_report(timesheets, params)
+  def generete_employee_timesheet_report(timesheets, from_date, to_date)
     timesheet_reports = []
     timesheets.each do |timesheet|
       user = load_user_with_id(timesheet['_id'])
@@ -259,10 +259,10 @@ class TimeSheet
         users_timesheet_data['project_details'] = project_details
       end
       users_timesheet_data['total_worked_hours'] = convert_milliseconds_to_hours(total_work)
-      users_timesheet_data['leaves'] = get_user_leaves_count(user, params[:from_date].to_date, params[:to_date].to_date)
+      users_timesheet_data['leaves'] = get_user_leaves_count(user, from_date, to_date)
       timesheet_reports << users_timesheet_data
     end
-    timesheet_reports
+    timesheet_reports.sort{|previous_record, next_record| previous_record['user_name'] <=> next_record['user_name']}
   end
 
   def calculate_working_minutes(time_sheet)
@@ -293,6 +293,10 @@ class TimeSheet
 
   def get_project_name(project_id)
     Project.find_by(id: project_id).name
+  end
+
+  def from_date_less_than_to_date?(from_date, to_date)
+    from_date.to_date <= to_date.to_date
   end
 
   def get_user_name(user)

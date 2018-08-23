@@ -12,11 +12,11 @@ class TimeSheetsController < ApplicationController
   end
 
   def index
-    if params[:from_date] && params[:to_date] && (params[:from_date].to_date <= params[:to_date].to_date)
-      @timesheet_obj = TimeSheet.new
-      timesheets = load_timesheet
-      @timesheet_report = @timesheet_obj.generete_employee_timesheet_report(timesheets, params) if timesheets.present?
-    end
+    @timesheet_obj = TimeSheet.new
+    @from_date = params[:from_date] || Date.today.beginning_of_month.to_s
+    @to_date = params[:to_date] || Date.today.end_of_month.to_s
+    timesheets = load_timesheet(@from_date.to_date, @to_date.to_date) if @timesheet_obj.from_date_less_than_to_date?(@from_date, @to_date)
+    @timesheet_report = @timesheet_obj.generete_employee_timesheet_report(timesheets, @from_date.to_date, @to_date.to_date) if timesheets.present?
   end
 
   def create_time_sheet(time_sheets_data, params)
@@ -42,29 +42,14 @@ class TimeSheetsController < ApplicationController
     end
   end
 
-  private
-
-  def user_exists?
-    load_user
-    @time_sheet = TimeSheet.new
-    @user = @time_sheet.fetch_email_and_associate_to_user(params['user_id']) if @user.blank?
-    unless @user
-      render json: { text: 'You are not part of organization contact to admin' }, status: :unauthorized
-    end
-  end
-
-  def load_user
-    @user = User.where('public_profile.slack_handle' => params['user_id']).first unless params['user_id'].nil?
-  end
-
-  def load_timesheet
+  def load_timesheet(from_date, to_date)
     TimeSheet.collection.aggregate(
       [
         {
           "$match" => {
             "date" => {
-              "$gte" => params[:from_date].to_date,
-              "$lte" => params[:to_date].to_date
+              "$gte" => from_date,
+              "$lte" => to_date
             }
           }
         },
@@ -97,5 +82,20 @@ class TimeSheetsController < ApplicationController
         }
       ]
     )
+  end
+
+  private
+
+  def user_exists?
+    load_user
+    @time_sheet = TimeSheet.new
+    @user = @time_sheet.fetch_email_and_associate_to_user(params['user_id']) if @user.blank?
+    unless @user
+      render json: { text: 'You are not part of organization contact to admin' }, status: :unauthorized
+    end
+  end
+
+  def load_user
+    @user = User.where('public_profile.slack_handle' => params['user_id']).first unless params['user_id'].nil?
   end
 end

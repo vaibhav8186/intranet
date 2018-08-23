@@ -291,7 +291,6 @@ RSpec.describe TimeSheet, type: :model do
     let!(:user) { FactoryGirl.create(:user) }
     let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
     let!(:project) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
-
     it 'Should give the user name' do
       first_name = user.public_profile.first_name
       last_name = user.public_profile.last_name
@@ -312,6 +311,38 @@ RSpec.describe TimeSheet, type: :model do
     it 'Should give the user leaves count' do
       FactoryGirl.create(:leave_application, user_id: user.id)
       expect(time_sheet.get_user_leaves_count(user, Date.today + 2, Date.today + 3)).to eq(1)
+    end
+
+    it 'Should return true because from date is less than to date' do
+      from_date = Date.today - 2
+      to_date = Date.today
+      expect(time_sheet.from_date_less_than_to_date?(from_date, to_date)).to eq(true)
+    end
+
+    it 'Should return true because from date is equal to to date' do
+      from_date = Date.today
+      to_date = Date.today
+      expect(time_sheet.from_date_less_than_to_date?(from_date, to_date)).to eq(true)
+    end
+
+    it 'Should return false because from date is greater than to date' do
+      from_date = Date.today + 2
+      to_date = Date.today
+      expect(time_sheet.from_date_less_than_to_date?(from_date, to_date)).to eq(false)
+    end
+
+    it 'Should give the expected JSON' do
+      user.time_sheets.create(user_id: user.id, project_id: project.id,
+                              date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
+                              to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+      params = {from_date: Date.yesterday - 1, to_date: Date.today}
+      timesheet_record = TimeSheetsController.new.load_timesheet(Date.yesterday - 1, Date.today)
+      timesheet_data = time_sheet.generete_employee_timesheet_report(timesheet_record, Date.yesterday - 1, Date.today)
+      expect(timesheet_data[0]['user_name']).to eq('fname lname')
+      expect(timesheet_data[0]['project_details'][0]['project_name']).to eq('The pediatric network')
+      expect(timesheet_data[0]['project_details'][0]['worked_hours']).to eq('1H 0M')
+      expect(timesheet_data[0]['total_worked_hours']).to eq('1H 0M')
+      expect(timesheet_data[0]['leaves']).to eq(0)
     end
   end
 

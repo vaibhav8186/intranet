@@ -1,20 +1,21 @@
-%table{border:2, class: "table"}
-  %thead
-  %th{id: 'employee-timesheet'} Name
-  %th{id: 'employee-timesheet'} Project
-  %th{id: 'employee-timesheet'} Time
-  %th{id: 'employee-timesheet'} Total Worked Hours
-  %th{id: 'employee-timesheet'} Leaves
-  %tbody
-    - if timesheet_reports.present?
-      - timesheet_reports.each do |timesheet_report|
-        %tr
-          %td{:rowspan => "#{timesheet_report['project_details'].count}"}= timesheet_report['user_name']
-          %td= "#{timesheet_report['project_details'].first["project_name"]}"
-          %td= "#{timesheet_report['project_details'].first["worked_hours"]}"
-          %td{:rowspan => "#{timesheet_report['project_details'].count}"}= "#{timesheet_report['total_worked_hours']}"
-          %td{:rowspan => "#{timesheet_report['project_details'].count}"}= "#{timesheet_report['leaves']}"
-        %tr
-          - timesheet_report['project_details'][1..-1].each do |project_detail|
-            %td= "#{project_detail['project_name']}"
-            %td= "#{project_detail['worked_hours']}"
+.form-horizontal
+  %table.table.table-hover
+    %thead
+    %th Name
+    %th Project
+    %th Time
+    %th Total Worked Hours
+    %th Leaves
+    %tbody
+      - if timesheet_reports.present?
+        - timesheet_reports.each do |timesheet_report|
+          %tr
+            %td{:rowspan => "#{timesheet_report['project_details'].count}"}= timesheet_report['user_name']
+            %td= "#{timesheet_report['project_details'].first["project_name"]}"
+            %td= "#{timesheet_report['project_details'].first["worked_hours"]}"
+            %td{:rowspan => "#{timesheet_report['project_details'].count}"}= "#{timesheet_report['total_worked_hours']}"
+            %td{:rowspan => "#{timesheet_report['project_details'].count}"}= "#{timesheet_report['leaves']}"
+          %tr
+            - timesheet_report['project_details'][1..-1].each do |project_detail|
+              %td= "#{project_detail['project_name']}"
+              %td= "#{project_detail['worked_hours']}"
