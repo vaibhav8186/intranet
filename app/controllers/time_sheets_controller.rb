@@ -15,7 +15,7 @@ class TimeSheetsController < ApplicationController
     @timesheet_obj = TimeSheet.new
     @from_date = params[:from_date] || Date.today.beginning_of_month.to_s
     @to_date = params[:to_date] || Date.today.to_s
-    timesheets = load_timesheet(@from_date.to_date, @to_date.to_date) if @timesheet_obj.from_date_less_than_to_date?(@from_date, @to_date)
+    timesheets = @timesheet_obj.load_timesheet(@from_date.to_date, @to_date.to_date) if @timesheet_obj.from_date_less_than_to_date?(@from_date, @to_date)
     @timesheet_report = @timesheet_obj.generete_employee_timesheet_report(timesheets, @from_date.to_date, @to_date.to_date) if timesheets.present?
   end
 
@@ -40,48 +40,6 @@ class TimeSheetsController < ApplicationController
     else
       render json: { text: 'Fail' }, status: :unprocessable_entity
     end
-  end
-
-  def load_timesheet(from_date, to_date)
-    TimeSheet.collection.aggregate(
-      [
-        {
-          "$match" => {
-            "date" => {
-              "$gte" => from_date,
-              "$lte" => to_date
-            }
-          }
-        },
-        {
-          "$group" => {
-            "_id" => {
-              "user_id" => "$user_id",
-              "project_id" => "$project_id"
-            },
-            "totalSum" => {
-              "$sum" => {
-                "$subtract" => [
-                  "$to_time",
-                  "$from_time"
-                ]
-              }
-            }
-          }
-        },
-        {
-          "$group" => {
-            "_id" => "$_id.user_id",
-            "working_status" => {
-              "$push" => {
-                "project_id" => "$_id.project_id",
-                "total_time" => "$totalSum"
-              }
-            }
-          }
-        }
-      ]
-    )
   end
 
   private

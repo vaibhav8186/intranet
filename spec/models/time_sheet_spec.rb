@@ -291,11 +291,6 @@ RSpec.describe TimeSheet, type: :model do
     let!(:user) { FactoryGirl.create(:user) }
     let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
     let!(:project) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
-    it 'Should give the user name' do
-      first_name = user.public_profile.first_name
-      last_name = user.public_profile.last_name
-      expect(time_sheet.get_user_name(user)).to eq("#{first_name} #{last_name}")
-    end
 
     it 'Should give the project name' do
       expect(time_sheet.get_project_name(project.id)).to eq(project.name)
@@ -336,7 +331,7 @@ RSpec.describe TimeSheet, type: :model do
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
       params = {from_date: Date.yesterday - 1, to_date: Date.today}
-      timesheet_record = TimeSheetsController.new.load_timesheet(Date.yesterday - 1, Date.today)
+      timesheet_record = time_sheet.load_timesheet(Date.yesterday - 1, Date.today)
       timesheet_data = time_sheet.generete_employee_timesheet_report(timesheet_record, Date.yesterday - 1, Date.today)
       expect(timesheet_data[0]['user_name']).to eq('fname lname')
       expect(timesheet_data[0]['project_details'][0]['project_name']).to eq('The pediatric network')

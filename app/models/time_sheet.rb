@@ -247,7 +247,7 @@ class TimeSheet
     timesheets.each do |timesheet|
       user = load_user_with_id(timesheet['_id'])
       users_timesheet_data = {}
-      users_timesheet_data['user_name'] = get_user_name(user)
+      users_timesheet_data['user_name'] = user.name
       project_details = []
       total_work = 0
       timesheet['working_status'].each do |working_status|
@@ -299,11 +299,50 @@ class TimeSheet
     from_date.to_date <= to_date.to_date
   end
 
-  def get_user_name(user)
-    "#{user.public_profile.first_name} #{user.public_profile.last_name}"
-  end
-
   def load_user_with_id(user_id)
     User.find_by(id: user_id)
   end
+
+  def load_timesheet(from_date, to_date)
+    TimeSheet.collection.aggregate(
+      [
+        {
+          "$match" => {
+            "date" => {
+              "$gte" => from_date,
+              "$lte" => to_date
+            }
+          }
+        },
+        {
+          "$group" => {
+            "_id" => {
+              "user_id" => "$user_id",
+              "project_id" => "$project_id"
+            },
+            "totalSum" => {
+              "$sum" => {
+                "$subtract" => [
+                  "$to_time",
+                  "$from_time"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "$group" => {
+            "_id" => "$_id.user_id",
+            "working_status" => {
+              "$push" => {
+                "project_id" => "$_id.project_id",
+                "total_time" => "$totalSum"
+              }
+            }
+          }
+        }
+      ]
+    )
+  end
+
 end

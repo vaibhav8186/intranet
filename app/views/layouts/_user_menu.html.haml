@@ -29,7 +29,7 @@
       = link_to "Manage Leave", main_app.leave_applications_path
   %li.hide
     = link_to "Calendar", main_app.calendar_path
-  - if ["Admin", "Super Admin"].include?(current_user.role)
+  - if can? :manage, TimeSheet
     %li
       = link_to "Timesheet Report", main_app.time_sheets_path
   %li.divider
