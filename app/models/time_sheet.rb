@@ -242,7 +242,7 @@ class TimeSheet
     return hours, minutes
   end
 
-  def generete_employee_timesheet_report(timesheets, from_date, to_date)
+  def self.generete_employee_timesheet_report(timesheets, from_date, to_date)
     timesheet_reports = []
     timesheets.each do |timesheet|
       user = load_user_with_id(timesheet['_id'])
@@ -295,7 +295,7 @@ class TimeSheet
     Project.find_by(id: project_id).name
   end
 
-  def from_date_less_than_to_date?(from_date, to_date)
+  def self.from_date_less_than_to_date?(from_date, to_date)
     from_date.to_date <= to_date.to_date
   end
 
@@ -303,7 +303,7 @@ class TimeSheet
     User.find_by(id: user_id)
   end
 
-  def load_timesheet(from_date, to_date)
+  def self.load_timesheet(from_date, to_date)
     TimeSheet.collection.aggregate(
       [
         {
