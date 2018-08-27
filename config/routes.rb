@@ -90,7 +90,10 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :time_sheets, only: :create
+  resources :time_sheets, only: [:create, :index] do
+    post :daily_status, on: :collection
+  end
+
   resources :slack, only: :projects do
     post :projects, on: :collection
   end

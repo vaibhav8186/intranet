@@ -15,8 +15,9 @@ class TimeSheet
 
   validates :from_time, :to_time, uniqueness: { scope: [:user_id, :date], message: "record is already present" }
 
-  MAX_COMMAND_LENGTH = 5
+  MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
+  MAX_DAILY_STATUS_COMMAND_LENGTH = 2
 
   def parse_timesheet_data(params)
     split_text = params['text'].split
@@ -31,7 +32,7 @@ class TimeSheet
   end
 
   def valid_command_format?(split_text, channel_id)
-    if split_text.length < MAX_COMMAND_LENGTH
+    if split_text.length < MAX_TIMESHEET_COMMAND_LENGTH
       text = "\`Error :: Invalid timesheet format. Format should be <project_name> <date> <from_time> <to_time> <description>\`"
       SlackApiService.new.post_message_to_slack(channel_id, text)
       return false
@@ -67,6 +68,7 @@ class TimeSheet
       return false
     end
 
+    return true if params['command'] == '/daily_status'
     check_date_range(date, params)
   end
   
@@ -153,6 +155,44 @@ class TimeSheet
     time_sheets_data
   end
 
+  def parse_daily_status_command(params)
+    split_text = params['text'].split
+    if split_text.length < MAX_DAILY_STATUS_COMMAND_LENGTH
+      time_sheet_log = get_time_sheet_log(params, params['text'])
+    else
+      text = "\`Error :: Invalid command options. Use /daily_status <date> to view your timesheet log\`"
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+    end
+    time_sheet_log.present? ? time_sheet_log : false
+  end
+
+  def get_time_sheet_log(params, date)
+    text = 'You have not filled timesheet for'
+    text = date.present? ? "\`#{text} #{date}.\`" : "\`#{text} today.\`"
+    if date.present?
+      return false unless valid_date_format?(date, params)
+    end
+    user = load_user(params['user_id'])
+    time_sheets, time_sheet_message =
+    date.present? ? load_time_sheets(user, Date.parse(date)) : load_time_sheets(user, Date.today.to_s)
+    return false unless time_sheet_present?(time_sheets, params, text)
+    time_sheet_log = prepend_index(time_sheets)
+    time_sheet_message + ". Details are as follow\n\n" + time_sheet_log
+  end
+
+  def time_sheet_present?(time_sheets, params, text)
+    unless time_sheets.present?
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+      return false
+    end
+    return true
+  end
+
+  def prepend_index(time_sheets)
+    time_sheet_log = time_sheets.each_with_index.map{|time_sheet, index| time_sheet.join(' ').prepend("#{index + 1}. ") + " \n"}
+    time_sheet_log.join('')
+  end
+
   def check_time_sheet(user)
     return false unless user.time_sheets.present?
     return true
@@ -173,6 +213,68 @@ class TimeSheet
     return true
   end
 
+  def load_time_sheets(user, date)
+    time_sheet_log = []
+    total_minutes = 0
+    time_sheet_message = 'You worked on'
+    user.first.projects.includes(:time_sheets).each do |project|
+      project.time_sheets.where(user_id: user.first.id, date: date).each do |time_sheet|
+        time_sheet_data = []
+        from_time = time_sheet.from_time.strftime("%I:%M%p")
+        to_time = time_sheet.to_time.strftime("%I:%M%p")
+        time_sheet_data.push(project.name, from_time, to_time, time_sheet.description)
+        time_sheet_log << time_sheet_data
+        minutes = calculate_working_minutes(time_sheet)
+        total_minutes += minutes
+        time_sheet_data = []
+      end
+      hours, minitues = calculate_hours_and_minutes(total_minutes.to_i)
+      next if hours == 0 && minitues == 0
+      time_sheet_message += " *#{project.name}: #{hours}H #{minitues}M*"
+      total_minutes = 0
+    end
+    return time_sheet_log, time_sheet_message
+  end
+
+  def calculate_hours_and_minutes(total_minutes)
+    hours = total_minutes / 60
+    minutes = total_minutes % 60
+    return hours, minutes
+  end
+
+  def generete_employee_timesheet_report(timesheets, from_date, to_date)
+    timesheet_reports = []
+    timesheets.each do |timesheet|
+      user = load_user_with_id(timesheet['_id'])
+      users_timesheet_data = {}
+      users_timesheet_data['user_name'] = user.name
+      project_details = []
+      total_work = 0
+      timesheet['working_status'].each do |working_status|
+        project_info = {}
+        project_info['project_name'] = get_project_name(working_status['project_id'])
+        project_info['worked_hours'] = convert_milliseconds_to_hours(working_status['total_time'])
+        total_work += working_status['total_time']
+        project_details << project_info
+        users_timesheet_data['project_details'] = project_details
+      end
+      users_timesheet_data['total_worked_hours'] = convert_milliseconds_to_hours(total_work)
+      users_timesheet_data['leaves'] = get_user_leaves_count(user, from_date, to_date)
+      timesheet_reports << users_timesheet_data
+    end
+    timesheet_reports.sort{|previous_record, next_record| previous_record['user_name'] <=> next_record['user_name']}
+  end
+
+  def calculate_working_minutes(time_sheet)
+    TimeDifference.between(time_sheet.to_time, time_sheet.from_time).in_minutes
+  end
+
+  def convert_milliseconds_to_hours(milliseconds)
+    hours = milliseconds / (1000 * 60 * 60)
+    minutes = milliseconds / (1000 * 60) % 60
+    "#{hours}H #{minutes}M"
+  end
+
   def load_project(user, display_name)
     user.first.projects.where(display_name: /^#{display_name}$/i).first
   end
@@ -183,6 +285,64 @@ class TimeSheet
 
   def fetch_email_and_associate_to_user(user_id)
     call_slack_api_service_and_fetch_email(user_id)
+  end
+
+  def get_user_leaves_count(user, from_date, to_date)
+    user.leave_applications.where({start_at: {"$gte" => from_date, "$lte" => to_date}}).count
+  end
+
+  def get_project_name(project_id)
+    Project.find_by(id: project_id).name
+  end
+
+  def from_date_less_than_to_date?(from_date, to_date)
+    from_date.to_date <= to_date.to_date
+  end
+
+  def load_user_with_id(user_id)
+    User.find_by(id: user_id)
+  end
+
+  def load_timesheet(from_date, to_date)
+    TimeSheet.collection.aggregate(
+      [
+        {
+          "$match" => {
+            "date" => {
+              "$gte" => from_date,
+              "$lte" => to_date
+            }
+          }
+        },
+        {
+          "$group" => {
+            "_id" => {
+              "user_id" => "$user_id",
+              "project_id" => "$project_id"
+            },
+            "totalSum" => {
+              "$sum" => {
+                "$subtract" => [
+                  "$to_time",
+                  "$from_time"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "$group" => {
+            "_id" => "$_id.user_id",
+            "working_status" => {
+              "$push" => {
+                "project_id" => "$_id.project_id",
+                "total_time" => "$totalSum"
+              }
+            }
+          }
+        }
+      ]
+    )
   end
 
 end

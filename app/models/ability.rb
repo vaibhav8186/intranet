@@ -30,6 +30,7 @@ class Ability
     can :manage, LeaveApplication
     can :manage, Schedule
     can :manage, Company
+    can :manage, TimeSheet
   end
 
   def intern_abilities
