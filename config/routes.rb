@@ -12,7 +12,8 @@ Rails.application.routes.draw do
 
   resources :policies
   get '/unsubscribe/:id' => 'light/users#unsubscribe', as: 'users/unsubscribe'
-  match '/subscribe/:id' => 'light/users#subscribe', as: 'users/subscribe', via: [:get, :post]
+  match '/subscribe' => 'light/users#subscribe', as: 'users/subscribe', via: [:get, :post]
+  get '/remove' => 'light/users#remove', as: 'users/remove'
   get '/web-version/:id' => 'light/newsletters#web_version', as: 'newsletter/web_version'
 
   devise_scope :user do
