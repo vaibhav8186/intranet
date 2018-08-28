@@ -15,7 +15,6 @@ class Project
   field :is_active, type: Boolean, default: true
   field :start_date, type: Date
   field :end_date, type: Date
-  field :managed_by
   field :image
   field :description
   field :url
@@ -50,10 +49,10 @@ class Project
   slug :name
 
   has_many :time_sheets
-  has_and_belongs_to_many :users
+  has_and_belongs_to_many :users, inverse_of: :projects
   accepts_nested_attributes_for :users
   belongs_to :company
-
+  has_and_belongs_to_many :managers, class_name: 'User', foreign_key: 'manager_ids', inverse_of: :managed_projects
   validates_presence_of :name
   validate :project_code
 

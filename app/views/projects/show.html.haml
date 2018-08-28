@@ -3,47 +3,47 @@
     = @project.name
     .offset4{style: "float: right;"}
       = render partial: "layouts/project_menu"
+  - if can? :manage, Project
+    %div
+      %table.table.table-hover.table-striped
+        %tr
+          %th Project Name
+          %td= @project.name
+        %tr
+          %th Start Date
+          %td= @project.start_date
+        %tr
+          %th End Date
+          %td= @project.end_date
+        %tr
+          %th End Date
+          %td= @project.end_date
+        %tr
+          %th Invoice Date
+          %td= @project.invoice_date
+        %tr
+          %th URL
+          %td= link_to @project.url
+        %tr
+          %th Project Code
+          %td= @project.code
+        %tr
+          %th Project Description
+          %td= @project.description
+        %tr
+          %th Code climate snippet
+          %td=raw @project.code_climate_snippet
+        %tr
+          %th Comapny
+          %td= link_to @project.company.try(:name), @project.company
+        %tr
+          %th Number of Employees
+          %td= @project.number_of_employees
+  %table.table.table-hover.table-stripe
+    %tr
+      %th Logo
+      %td= image_tag @project.logo.try(:url, :thumb)
 
-  %div
-    %table.table.table-hover.table-striped
-      %tr
-        %th Project Name
-        %td= @project.name
-      %tr
-        %th Start Date
-        %td= @project.start_date
-      %tr
-        %th End Date
-        %td= @project.end_date
-      %tr
-        %th End Date
-        %td= @project.end_date
-      %tr
-        %th Invoice Date
-        %td= @project.invoice_date
-      %tr
-        %th URL
-        %td= link_to @project.url
-      %tr
-        %th Project Code
-        %td= @project.code
-      %tr
-        %th Project Description
-        %td= @project.description
-      %tr
-        %th Code climate snippet
-        %td=raw @project.code_climate_snippet
-      %tr
-        %th Comapny
-        %td= link_to @project.company.try(:name), @project.company
-      %tr
-        %th Number of Employees
-        %td= @project.number_of_employees
-      %tr
-        %th Logo
-        %td= image_tag @project.logo.try(:url, :thumb)
-
--if @users.present?
-  %div.team-member-list
-    = render 'users'
+%div.team-member-list
+  = render 'users'
 
