@@ -1,5 +1,4 @@
 class ProjectsController < ApplicationController
-
   load_and_authorize_resource
   skip_load_and_authorize_resource :only => :create
   before_action :authenticate_user!
@@ -8,7 +7,6 @@ class ProjectsController < ApplicationController
   include RestfulAction
 
   def index
-    @manager_name = ''
     @projects = Project.sort_by_position
     @projects.init_list!
     respond_to do |format|
@@ -85,7 +83,7 @@ class ProjectsController < ApplicationController
   private
   def safe_params
     params.require(:project).permit(:name, :display_name, :start_date, :end_date, :manager_ids, :code_climate_id, :code_climate_snippet,
-    :code_climate_coverage_snippet, :is_active, :ruby_version, :rails_version, :database, :database_version, :deployment_server,
+    :code_climate_coverage_snippet, :is_active, :is_free, :ruby_version, :rails_version, :database, :database_version, :deployment_server,
     :deployment_script, :web_server, :app_server, :payment_gateway, :image_store, :index_server, :background_jobs, :sms_gateway,
     :other_frameworks,:other_details, :image, :url, :description, :case_study,:logo, :visible_on_website, :website_sequence_number,
     :code, :number_of_employees, :invoice_date, :company_id,

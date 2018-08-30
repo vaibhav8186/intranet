@@ -10,15 +10,16 @@
         = f.input :display_name, required: false
         = f.input :description, as: :text, input_html: {class: "text-description"}
         = f.input :url
-        = f.label "Is Active"
-        .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "True", "data-off-label" => "False"}
-          = f.check_box :is_active, {}, 'true', 'false'
+        %div
+          = f.label "Is Active"
+          .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "True", "data-off-label" => "False"}
+            = f.check_box :is_active, {}, 'true', 'false'
+        %div
+          = f.label "Is Free"
+          .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "True", "data-off-label" => "False"}
+            = f.check_box :is_free, {}, 'true', 'false'
         = f.input :start_date, input_html: {class: :datepicker}, value: f.object.start_date.try(:strftime, '%d-%m-%Y')
         = f.input :end_date, input_html: {class: :datepicker}, value: f.object.end_date.try(:strftime, '%d-%m-%Y')
-        .control-group
-          = label_tag "Managed By", nil, class: 'control-label'
-          .controls
-            = select_tag :manager_ids, options_from_collection_for_select(User.where(role: 'Manager', status: STATUS[2]).to_a, :id, :name, @project.managers.collect{|user| user.id}), class: 'members', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple managers", name: "project[manager_ids][]"
         = label_tag "Case Study", nil, class: 'control-label'
         = f.file_field :case_study, required: true, class: 'case_study_upload', accept: "application/pdf"
         = f.input :code_climate_id, label: "Code climate id"
@@ -28,6 +29,10 @@
         .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "Yes", "data-off-label" => "No"}
           = f.check_box :visible_on_website, {}, 'true', 'false'
         = f.input :number_of_employees
+        .control-group
+          = label_tag "Managed By", nil, class: 'control-label'
+          .controls
+            = select_tag :manager_ids, options_from_collection_for_select(User.where(role: 'Manager', status: STATUS[2]).to_a, :id, :name, @project.managers.collect{|user| user.id}), class: 'members', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple managers", name: "project[manager_ids][]"
         .control-group
           = label_tag "Team Members", nil, class: 'control-label'
           .controls

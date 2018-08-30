@@ -49,6 +49,14 @@ describe ProjectsController do
       get :show, id: project.id
       expect(assigns(:project)).to eq(project)
     end
+
+    it 'Should equal to managers' do
+      user = FactoryGirl.create(:user, role: 'Manager')
+      project = FactoryGirl.create(:project)
+      project.managers << user
+      get :show, id: project.id
+      expect(assigns(:managers)).to eq(project.managers)
+    end
   end
 
   describe "GET generate_code" do
@@ -72,6 +80,27 @@ describe ProjectsController do
       expect(last.position).to eq(3)
       xhr :post, :update_sequence_number, id:  projects.last.id, position: 1
       expect(last.reload.position).to eq(1)
+    end
+  end
+
+  describe 'DELETE team member' do
+    let!(:project) { FactoryGirl.build(:project) }
+    it 'Should delete manager' do
+      user = FactoryGirl.build(:user, role: 'Manager')
+      project.managers << user
+      project.save
+      user.save
+      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: user.role
+      expect(project.reload.manager_ids.include?(user.id)).to eq(false)
+    end
+
+    it 'Should delete employee' do
+      user = FactoryGirl.build(:user, role: 'Employee')
+      project.users << user
+      project.save
+      user.save
+      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: user.role
+      expect(project.reload.user_ids.include?(user.id)).to eq(false)
     end
   end
 end

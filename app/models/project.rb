@@ -44,7 +44,7 @@ class Project
   field :invoice_date, type: Date
 
   field :display_name
-
+  field :is_free, type: Boolean, default: false
 
   slug :name
 
@@ -60,7 +60,7 @@ class Project
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :sort_by_position, -> { asc(:position)}
 
-
+  attr_accessor :allocated_employees, :manager_name, :employee_names
   # validates_uniqueness_of :code, allow_blank: true, allow_nil: true
 
   validates :display_name, format: { with: /\A[ ]*[\S]*[ ]*\Z/, message: "Name should not contain white space" }
@@ -108,13 +108,33 @@ class Project
   end
 
   def self.to_csv(options = {})
-    column_names = ['name', 'code_climate_id', 'code_climate_snippet', 'code_climate_coverage_snippet', 'is_active', 'start_date', 'end_date', 'managed_by', 'ruby_version', 'rails_version', 'database', 'database_version', 'deployment_server', 'deployment_script', 'web_server', 'app_server', 'payment_gateway', 'image_store', 'index_server', 'background_jobs', 'sms_gateway', 'other_frameworks', 'other_details']
+    column_names = ['name', 'code_climate_id', 'code_climate_snippet', 'code_climate_coverage_snippet', 'is_active', 'is_free', 'start_date', 'end_date', 'manager_name', 'number_of_employees', 'allocated_employees', 'employee_names', 'ruby_version', 'rails_version', 'database', 'database_version', 'deployment_server', 'deployment_script', 'web_server', 'app_server', 'payment_gateway', 'image_store', 'index_server', 'background_jobs', 'sms_gateway', 'other_frameworks', 'other_details']
     CSV.generate(options) do |csv|
       csv << column_names.collect(&:titleize)
       all.each do |project|
+        project[:is_free] = project[:is_free] == false ? 'No' : 'Yes'
+        project[:allocated_employees] = project.users.count
+        project[:manager_name] = get_manager_names(project)
+        project[:employee_names] = get_employee_names(project)
         csv << project.attributes.values_at(*column_names)
       end
     end
+  end
+
+  def self.get_manager_names(project)
+    manager_names = []
+    project.managers.each do |manager|
+      manager_names << manager.name
+    end
+    manager_names.join(' | ')
+  end
+
+  def self.get_employee_names(project)
+    employee_names = []
+    project.users.each do |user|
+      employee_names << user.name
+    end
+    employee_names.join(' | ')
   end
 
   def project_code

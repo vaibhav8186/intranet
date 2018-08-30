@@ -16,7 +16,7 @@
     %tbody
       - if @managers.present?
         -@managers.each do |manager|
-          %tr
+          %tr{style: "background-color: lightgreen;"}
             %td= image_tag(manager.public_profile.image.thumb.url, class: 'img-polaroid') if manager.public_profile
             %td= link_to manager.public_profile.name, user_path(manager)
             %td= manager.email
