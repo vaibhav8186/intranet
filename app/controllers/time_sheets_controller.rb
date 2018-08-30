@@ -1,5 +1,6 @@
 class TimeSheetsController < ApplicationController
   skip_before_filter :verify_authenticity_token
+  load_and_authorize_resource only: :index
   before_action :user_exists?, only: [:create, :daily_status]
 
   def create
