@@ -15,7 +15,7 @@
             %td= "#{timesheet_report['project_details'].first["worked_hours"]}"
             %td{:rowspan => "#{timesheet_report['project_details'].count}"}= "#{timesheet_report['total_worked_hours']}"
             %td{:rowspan => "#{timesheet_report['project_details'].count}"}= "#{timesheet_report['leaves']}"
-          %tr
-            - timesheet_report['project_details'][1..-1].each do |project_detail|
+          - timesheet_report['project_details'].drop(1).each do |project_detail|
+            %tr
               %td= "#{project_detail['project_name']}"
               %td= "#{project_detail['worked_hours']}"

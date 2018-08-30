@@ -269,7 +269,7 @@ class TimeSheet
     TimeDifference.between(time_sheet.to_time, time_sheet.from_time).in_minutes
   end
 
-  def convert_milliseconds_to_hours(milliseconds)
+  def self.convert_milliseconds_to_hours(milliseconds)
     hours = milliseconds / (1000 * 60 * 60)
     minutes = milliseconds / (1000 * 60) % 60
     "#{hours}H #{minutes}M"
@@ -287,11 +287,11 @@ class TimeSheet
     call_slack_api_service_and_fetch_email(user_id)
   end
 
-  def get_user_leaves_count(user, from_date, to_date)
+  def self.get_user_leaves_count(user, from_date, to_date)
     user.leave_applications.where({start_at: {"$gte" => from_date, "$lte" => to_date}}).count
   end
 
-  def get_project_name(project_id)
+  def self.get_project_name(project_id)
     Project.find_by(id: project_id).name
   end
 
@@ -299,7 +299,7 @@ class TimeSheet
     from_date.to_date <= to_date.to_date
   end
 
-  def load_user_with_id(user_id)
+  def self.load_user_with_id(user_id)
     User.find_by(id: user_id)
   end
 
