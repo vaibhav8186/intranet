@@ -171,7 +171,7 @@ RSpec.describe TimeSheetsController, type: :controller do
   end
 
   context 'index' do
-    let(:user) { FactoryGirl.create(:user, email: 'ajay@joshsoftware.com') }
+    let!(:user) { FactoryGirl.create(:user, email: 'ajay@joshsoftware.com', role: 'Admin') }
     let!(:tpn) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
 
     it 'Should success' do
@@ -184,9 +184,22 @@ RSpec.describe TimeSheetsController, type: :controller do
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 11:00"),
                               to_time: Time.parse("#{Date.yesterday} 12:00"), description: 'Today I finish the work')
       params = {from_date: Date.yesterday - 1, to_time: Date.today}
+      sign_in user
       get :index, params
       expect(response).to have_http_status(200)
       should render_template(:index)
+    end
+
+    it 'Should fail because user is not authorized' do
+      user = FactoryGirl.create(:user, email: 'vijay@joshsoftware.com', role: 'Employee')
+      deal_signal = user.projects.create(name: 'Deal signal', display_name: 'deal_signal')
+      user.time_sheets.create(user_id: user.id, project_id: tpn.id,
+                              date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
+                              to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+      params = {from_date: Date.yesterday - 1, to_time: Date.today}
+      sign_in user
+      get :index, params
+      expect(response).to have_http_status(302)
     end
   end
 end
