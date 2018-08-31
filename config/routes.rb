@@ -11,7 +11,8 @@ Rails.application.routes.draw do
   # See how all your routes lay out with "rake routes".
 
   resources :policies
-  get '/unsubscribe/:id' => 'light/users#unsubscribe', as: 'users/unsubscribe'
+  get '/unsubscribe' => 'light/users#unsubscribe', as: 'users/unsubscribe'
+  #get '/unsubscribe/:id' => 'light/users#unsubscribe', as: 'users/unsubscribe'
   match '/subscribe' => 'light/users#subscribe', as: 'users/subscribe', via: [:get, :post]
   get '/remove' => 'light/users#remove', as: 'users/remove'
   get '/web-version/:id' => 'light/newsletters#web_version', as: 'newsletter/web_version'
