@@ -1,0 +1,64 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://slack.com/api/chat.postMessage
+    body:
+      encoding: US-ASCII
+      string: token=abcd.efghi.gklmno&channel=ABCD123&text=%60Error+%3A%3A+Invalid+time+format%60
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - slack.com
+      Content-Type:
+      - application/x-www-form-urlencoded
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '55'
+      Connection:
+      - keep-alive
+      Date:
+      - Tue, 17 Jul 2018 11:13:40 GMT
+      Server:
+      - Apache
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Referrer-Policy:
+      - no-referrer
+      X-Content-Type-Options:
+      - nosniff
+      X-Slack-Req-Id:
+      - 57604282-4eb4-49c2-8411-c66fc4b44dfb
+      X-Xss-Protection:
+      - '0'
+      X-Slack-Backend:
+      - h
+      Vary:
+      - Accept-Encoding
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Via:
+      - haproxy-www-npmn
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 b25e11574059cb446d7bface97673c46.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - PU3zhTTI5hvrdDz4BRXMNbgemOqJsgKWizV_R7PAo2wNJnh6AIf_2A==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"ok":false,"error":"invalid_auth"}'
+    http_version: 
+  recorded_at: Tue, 17 Jul 2018 11:13:40 GMT
+recorded_with: VCR 2.4.0

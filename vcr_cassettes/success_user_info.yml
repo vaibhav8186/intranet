@@ -1,0 +1,74 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://slack.com/api/users.info
+    body:
+      encoding: US-ASCII
+      string: token=xoxb-12345-abcdr-fhcti&user=ABCD123
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - slack.com
+      Content-Type:
+      - application/x-www-form-urlencoded
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '572'
+      Connection:
+      - keep-alive
+      Date:
+      - Thu, 02 Aug 2018 13:11:44 GMT
+      Server:
+      - Apache
+      Expires:
+      - Mon, 26 Jul 1997 05:00:00 GMT
+      X-Content-Type-Options:
+      - nosniff
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Referrer-Policy:
+      - no-referrer
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      X-Oauth-Scopes:
+      - identify,bot:basic
+      Pragma:
+      - no-cache
+      X-Accepted-Oauth-Scopes:
+      - users:read,read
+      X-Xss-Protection:
+      - '0'
+      X-Slack-Req-Id:
+      - f3f49177-b06f-47d4-af21-f6c22b382cc7
+      X-Slack-Backend:
+      - h
+      Vary:
+      - Accept-Encoding
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Via:
+      - haproxy-www-19gm
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 ea150974870a112692163773da9a400b.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - qXbvA87wsQmtekMGGXwvVN0OJVS8JcZtJ_R9NnWjb9vrkhD14PmeyQ==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"ok":true,"user":{"id":"ABCD123","team_id":"TTTT123","name":"test","deleted":false,"color":"df3dc0","real_name":"first middle last","tz":"Asia\/Kolkata","tz_label":"India Standard Time","tz_offset":19800,"profile":{"title":"","phone":"","skype":"","real_name":"first middle last","real_name_normalized":"First Second Last ","display_name":"First","display_name_normalized":"First","status_text":"","status_emoji":"","status_expiration":0,"avatar_hash":"g78d836ce82c","email":"First@gamil.com","image_24":"https:\/\/secure.gravatar.com\/avatar\/78d836ce82c5af3c688cce96d7ace65d.jpg?s=24&d=https%3A%2F%2Fa.slack-edge.com%2F0180%2Fimg%2Favatars%2Fava_0021-24.png","image_32":"https:\/\/secure.gravatar.com\/avatar\/78d836ce82c5af3c688cce96d7ace65d.jpg?s=32&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0021-32.png","image_48":"https:\/\/secure.gravatar.com\/avatar\/78d836ce82c5af3c688cce96d7ace65d.jpg?s=48&d=https%3A%2F%2Fa.slack-edge.com%2F3654%2Fimg%2Favatars%2Fava_0021-48.png","image_72":"https:\/\/secure.gravatar.com\/avatar\/78d836ce82c5af3c688cce96d7ace65d.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0021-72.png","image_192":"https:\/\/secure.gravatar.com\/avatar\/78d836ce82c5af3c688cce96d7ace65d.jpg?s=192&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0021-192.png","image_512":"https:\/\/secure.gravatar.com\/avatar\/78d836ce82c5af3c688cce96d7ace65d.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0021-512.png","status_text_canonical":"","team":"TTTT123"},"is_admin":false,"is_owner":false,"is_primary_owner":false,"is_restricted":false,"is_ultra_restricted":false,"is_bot":false,"is_app_user":false,"updated":1521152373}}'
+    http_version: 
+  recorded_at: Thu, 02 Aug 2018 13:11:44 GMT
+recorded_with: VCR 2.4.0
