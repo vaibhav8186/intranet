@@ -114,14 +114,14 @@ class Project
       all.each do |project|
         project[:is_free] = project[:is_free] == false ? 'No' : 'Yes'
         project[:allocated_employees] = project.users.count
-        project[:manager_name] = get_manager_names(project)
-        project[:employee_names] = get_employee_names(project)
+        project[:manager_name] = manager_names(project)
+        project[:employee_names] = employee_names(project)
         csv << project.attributes.values_at(*column_names)
       end
     end
   end
 
-  def self.get_manager_names(project)
+  def self.manager_names(project)
     manager_names = []
     project.managers.each do |manager|
       manager_names << manager.name
@@ -129,7 +129,7 @@ class Project
     manager_names.join(' | ')
   end
 
-  def self.get_employee_names(project)
+  def self.employee_names(project)
     employee_names = []
     project.users.each do |user|
       employee_names << user.name

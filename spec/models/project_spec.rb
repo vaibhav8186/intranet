@@ -66,13 +66,13 @@ describe Project do
       project.managers << user
       project.managers << manager
 
-      manager_names = Project.get_manager_names(project)
+      manager_names = Project.manager_names(project)
       expect(manager_names).to eq("fname lname | fname lname")
     end
 
     it 'Should match employee name' do
       project = user.projects.create(name: 'test1')
-      employee_names = Project.get_employee_names(project)
+      employee_names = Project.employee_names(project)
       expect(employee_names).to eq("fname lname")
     end
   end

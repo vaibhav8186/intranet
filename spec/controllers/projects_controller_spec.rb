@@ -43,6 +43,19 @@ describe ProjectsController do
     end
   end
 
+  describe 'PATCH update' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should update manager ids and managed_project_ids' do
+      user_id = []
+      user_id << user.id
+      patch :update, id: project.id, project: { manager_ids: user_id }
+      expect(project.reload.manager_ids.include?(user.id)).to eq(true)
+      expect(user.reload.managed_project_ids.include?(project.id)).to eq(true)
+    end
+  end
+
   describe "GET show" do
     it "should find one project record" do
       project = FactoryGirl.create(:project)
@@ -92,6 +105,7 @@ describe ProjectsController do
       user.save
       delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: user.role
       expect(project.reload.manager_ids.include?(user.id)).to eq(false)
+      expect(user.reload.managed_project_ids.include?(user.id)).to eq(false)
     end
 
     it 'Should delete employee' do
@@ -101,6 +115,7 @@ describe ProjectsController do
       user.save
       delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: user.role
       expect(project.reload.user_ids.include?(user.id)).to eq(false)
+      expect(user.reload.managed_project_ids.include?(user.id)).to eq(false)
     end
   end
 end

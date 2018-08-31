@@ -3,10 +3,10 @@ class SlackController < ApplicationController
   before_action :user_exists?, only: :projects
   def projects
     projects =
-      unless @user.role == 'Manager'
-        @user.projects.pluck(:display_name) unless @user.nil?
-      else
+      if @user.role == 'Manager'
         @user.managed_projects.pluck(:name) unless @user.nil?
+      else
+        @user.projects.pluck(:display_name) unless @user.nil?
       end
     projects = @slack_bot.prepend_index(projects) unless projects.blank?
     render json: { text: 'You are not working on any project' } and return if projects.blank?

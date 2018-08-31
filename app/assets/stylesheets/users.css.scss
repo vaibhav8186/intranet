@@ -68,6 +68,16 @@
   box-shadow: 2px 2px 23px 0px;
   border-radius: 10px;*/
 }
+
+.managers{
+  position: absolute;
+  max-width: 20%;
+  min-width: 20%;
+  max-height: 68%;
+  overflow-y: auto;
+  top: 43%;
+  left: 28%;
+}
 .active-projects{
   position: absolute;  
   max-width: 30%; 
