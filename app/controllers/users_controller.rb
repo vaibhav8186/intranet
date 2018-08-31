@@ -22,6 +22,7 @@ class UsersController < ApplicationController
 
   def show
     @projects = @user.projects
+    @managed_projects = @user.managed_projects
   end
 
   def update
