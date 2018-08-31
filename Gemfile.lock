@@ -55,7 +55,7 @@ GIT
 
 GIT
   remote: git@github.com:joshsoftware/lightair.git
-  revision: 5833593184e4b0034a7878cdecd6c68510a2d693
+  revision: b49054283c7051a91d081ee292c25849955433f6
   branch: engine
   specs:
     light (0.0.1)
