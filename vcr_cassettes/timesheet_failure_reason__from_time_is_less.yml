@@ -1,0 +1,75 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://slack.com/api/chat.postMessage
+    body:
+      encoding: US-ASCII
+      string: token=xoxb-abcd.efghi.gklmno&channel=XYZ123&text=%60Error+%3A%3A+From+time+must+be+less+than+to+time%60
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - slack.com
+      Content-Type:
+      - application/x-www-form-urlencoded
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '181'
+      Connection:
+      - keep-alive
+      Date:
+      - Tue, 17 Jul 2018 11:02:05 GMT
+      Server:
+      - Apache
+      Expires:
+      - Mon, 26 Jul 1997 05:00:00 GMT
+      X-Accepted-Oauth-Scopes:
+      - chat:write:bot,post
+      X-Content-Type-Options:
+      - nosniff
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Referrer-Policy:
+      - no-referrer
+      Pragma:
+      - no-cache
+      X-Xss-Protection:
+      - '0'
+      X-Slack-Req-Id:
+      - d1075d63-1fdb-49d2-967d-63964f867181
+      X-Oauth-Scopes:
+      - identify,read,post,client,apps
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      X-Slack-Backend:
+      - h
+      Vary:
+      - Accept-Encoding
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Via:
+      - haproxy-www-fkog
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 cae967a4c7def5a919d0430f7422404e.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - aXShd1P2vOb7CyxM_197L1MeFg-PPdwktU1HKeb8RPS3_reu7MBpzQ==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"ok":true,"channel":"ABCD123","ts":"1531825325.000012","message":{"text":"`Error
+        :: From time must be less than to time`","username":"bot","bot_id":"XYZ123","type":"message","subtype":"bot_message","ts":"1531825325.000012"}}'
+    http_version: 
+  recorded_at: Tue, 17 Jul 2018 11:02:05 GMT
+recorded_with: VCR 2.4.0

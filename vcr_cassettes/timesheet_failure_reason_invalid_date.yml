@@ -1,0 +1,75 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://slack.com/api/chat.postMessage
+    body:
+      encoding: US-ASCII
+      string: token=xoxb-12345-abcdr-fhcti=XYZ1234&text=%60Error+%3A%3A+Invalid+timesheet+format%60
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - slack.com
+      Content-Type:
+      - application/x-www-form-urlencoded
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '176'
+      Connection:
+      - keep-alive
+      Date:
+      - Tue, 17 Jul 2018 07:07:17 GMT
+      Server:
+      - Apache
+      Expires:
+      - Mon, 26 Jul 1997 05:00:00 GMT
+      X-Accepted-Oauth-Scopes:
+      - chat:write:bot,post
+      X-Content-Type-Options:
+      - nosniff
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Referrer-Policy:
+      - no-referrer
+      Pragma:
+      - no-cache
+      X-Xss-Protection:
+      - '0'
+      X-Slack-Req-Id:
+      - c015d5b9-4579-48a7-a1af-95611e79257a
+      X-Oauth-Scopes:
+      - identify,read,post,client,apps
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      X-Slack-Backend:
+      - h
+      Vary:
+      - Accept-Encoding
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Via:
+      - haproxy-www-gqys
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 ea5d711fdce750991b725e09c07704b0.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - LvnN5AsgULcloUkRD_X_sJcGbQ-g_a2nvd0XQBVdVdCvysWyDwSKjQ==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"ok":true,"channel":"ABCD123","ts":"1531811237.000181","message":{"text":"`Error
+        :: Invalid timesheet format`","username":"bot","bot_id":"XYZ123","type":"message","subtype":"bot_message","ts":"1531811237.000181"}}'
+    http_version: 
+  recorded_at: Tue, 17 Jul 2018 07:07:17 GMT
+recorded_with: VCR 2.4.0

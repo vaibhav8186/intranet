@@ -1,0 +1,75 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://slack.com/api/chat.postMessage
+    body:
+      encoding: US-ASCII
+      string: token=xoxb-12345-abcdr-fhcti=XYZ123&text=%60+Error+%3A%3A+From+time+record+is+already+present%2C+To+time+record+is+already+present%60
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - slack.com
+      Content-Type:
+      - application/x-www-form-urlencoded
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '189'
+      Connection:
+      - keep-alive
+      Date:
+      - Mon, 23 Jul 2018 05:24:54 GMT
+      Server:
+      - Apache
+      Expires:
+      - Mon, 26 Jul 1997 05:00:00 GMT
+      X-Accepted-Oauth-Scopes:
+      - chat:write:bot,post
+      X-Content-Type-Options:
+      - nosniff
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Referrer-Policy:
+      - no-referrer
+      Pragma:
+      - no-cache
+      X-Xss-Protection:
+      - '0'
+      X-Slack-Req-Id:
+      - ace4ef92-9629-45d6-9c62-c78a07a0fcac
+      X-Oauth-Scopes:
+      - identify,read,post,client,apps
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      X-Slack-Backend:
+      - h
+      Vary:
+      - Accept-Encoding
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Via:
+      - haproxy-www-xn49
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 959f1c0dd5f993e57215eeb223506839.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - rDufdfT928260pjf1eZb174ng4ZyQO6JUSBy8KzZHhYPa9EtQXuQLA==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"ok":true,"channel":"ABCD123","ts":"1532323494.000079","message":{"text":"`
+        Error :: From time record is already present, To time record is already present`","username":"bot","bot_id":"XYZ123","type":"message","subtype":"bot_message","ts":"1532323494.000079"}}'
+    http_version: 
+  recorded_at: Mon, 23 Jul 2018 05:24:54 GMT
+recorded_with: VCR 2.4.0
