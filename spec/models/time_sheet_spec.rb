@@ -341,6 +341,35 @@ RSpec.describe TimeSheet, type: :model do
     end
   end
 
+  context 'Individual timesheet report' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
+    let!(:tpn) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
+    let!(:intranet) { user.projects.create(name: 'Intranet', display_name: 'Intranet') }
+
+    it 'Should give expected JSON' do
+      user.time_sheets.create(user_id: user.id, project_id: tpn.id,
+                              date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
+                              to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+
+      user.time_sheets.create(user_id: user.id, project_id: intranet.id,
+                              date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 11:00"),
+                              to_time: Time.parse("#{Date.yesterday} 13:30"), description: 'Today I finish the work')
+      params = { from_date: Date.yesterday - 1, to_date: Date.today }
+      individual_time_sheet_data, total_work_and_leaves = time_sheet.generate_individual_timesheet_report(user, params)
+      expect(individual_time_sheet_data.count).to eq(2)
+      expect(individual_time_sheet_data['The pediatric network']['total_worked_hours']).to eq('1H 0M')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0].to_s).to eq('03/09/2018')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][1]).to eq('09:00AM')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][2]).to eq('10:00AM')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][3]).to eq('1H 0M')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][4]).to eq('Today I finish the work')
+      expect(individual_time_sheet_data['Intranet']['total_worked_hours']).to eq('2H 30M')
+      expect(total_work_and_leaves['total_work']).to eq('3H 30M')
+      expect(total_work_and_leaves['leaves']).to eq(0)
+    end
+  end
+
   context 'Api test' do
     it 'Invalid time sheet format : Should return true ' do
       slack_params = {

@@ -248,6 +248,7 @@ class TimeSheet
       user = load_user_with_id(timesheet['_id'])
       users_timesheet_data = {}
       users_timesheet_data['user_name'] = user.name
+      users_timesheet_data['user_id'] = user.id
       project_details = []
       total_work = 0
       timesheet['working_status'].each do |working_status|
@@ -263,6 +264,41 @@ class TimeSheet
       timesheet_reports << users_timesheet_data
     end
     timesheet_reports.sort{|previous_record, next_record| previous_record['user_name'] <=> next_record['user_name']}
+  end
+
+  def generate_individual_timesheet_report(user, params)
+    time_sheet_log = []
+    individual_time_sheet_data = {}
+    total_work_and_leaves = {}
+    total_minutes = 0
+    total_minutes_worked_on_projects = 0
+    user.projects.includes(:time_sheets).each do |project|
+      project.time_sheets.where(user_id: user.id, date: {"$gte" => params[:from_date], "$lte" => params[:to_date]}).order_by(date: :asc).each do |time_sheet|
+        time_sheet_data = []
+        date = time_sheet.date
+        from_time = time_sheet.from_time.strftime("%I:%M%p")
+        to_time = time_sheet.to_time.strftime("%I:%M%p")
+        working_minutes = calculate_working_minutes(time_sheet)
+        hours, minutes = calculate_hours_and_minutes(working_minutes.to_i)
+        time_sheet_data.push(date, from_time, to_time,"#{hours}H #{minutes}M", time_sheet.description)
+        time_sheet_log << time_sheet_data
+        total_minutes += working_minutes
+        total_minutes_worked_on_projects += working_minutes
+        time_sheet_data = []
+      end
+      working_details = {}
+      hours, minitues = calculate_hours_and_minutes(total_minutes.to_i)
+      working_details['daily_status'] = time_sheet_log
+      working_details['total_worked_hours'] = "#{hours}H #{minitues}M"
+      individual_time_sheet_data["#{project.name}"] = working_details
+      time_sheet_log = []
+      working_details = {}
+      total_minutes = 0
+    end
+    total_worked_hours, total_work_minutes = calculate_hours_and_minutes(total_minutes_worked_on_projects.to_i)
+    total_work_and_leaves['total_work'] = "#{total_worked_hours}H #{total_work_minutes}M"
+    total_work_and_leaves['leaves'] = TimeSheet.get_user_leaves_count(user, params[:from_date], params[:to_date])
+    return individual_time_sheet_data, total_work_and_leaves
   end
 
   def calculate_working_minutes(time_sheet)

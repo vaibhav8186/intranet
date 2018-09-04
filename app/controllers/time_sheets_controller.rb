@@ -19,6 +19,14 @@ class TimeSheetsController < ApplicationController
     @timesheet_report = TimeSheet.generete_employee_timesheet_report(timesheets, @from_date.to_date, @to_date.to_date) if timesheets.present?
   end
 
+  def show
+    @from_date = params[:from_date]
+    @to_date = params[:to_date]
+    @time_sheet = TimeSheet.new
+    @user = User.find(params[:id])
+    @individual_timesheet_report, @total_work_and_leaves = @time_sheet.generate_individual_timesheet_report(@user, params)
+  end
+
   def create_time_sheet(time_sheets_data, params)
     @time_sheet.attributes = time_sheets_data
     if @time_sheet.save
