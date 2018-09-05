@@ -18,6 +18,7 @@ class TimeSheet
   MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
   MAX_DAILY_STATUS_COMMAND_LENGTH = 2
+  WORKED_HOURSE = 8
 
   def parse_timesheet_data(params)
     split_text = params['text'].split
@@ -265,6 +266,21 @@ class TimeSheet
     timesheet_reports.sort{|previous_record, next_record| previous_record['user_name'] <=> next_record['user_name']}
   end
 
+  def self.create_projects_report_in_json_format(projects_report, from_date, to_date)
+    projects_report_in_json = []
+    projects_report.each do |project_report|
+      project_details = {}
+      project = load_project_with_id(project_report['_id']['project_id'])
+      project_details['project_name'] = project.name
+      project_details['no_of_employee'] = project.users.count
+      project_details['total_hours'] = convert_milliseconds_to_hours(project_report['totalSum'])
+      project_details['allocated_hours'] = get_allocated_hours(from_date, to_date)
+      projects_report_in_json << project_details
+      project_details = {}
+    end
+    projects_report_in_json
+  end
+
   def calculate_working_minutes(time_sheet)
     TimeDifference.between(time_sheet.to_time, time_sheet.from_time).in_minutes
   end
@@ -275,7 +291,18 @@ class TimeSheet
     "#{hours}H #{minutes}M"
   end
 
-  def load_project(user, display_name)
+  def self.get_allocated_hours(from_date, to_date)
+    working_days = from_date.business_days_until(to_date)
+    no_of_holiday = get_holiday_count(from_date, to_date)
+    working_days -= no_of_holiday
+    working_days * WORKED_HOURSE 
+  end
+
+  def self.get_holiday_count(from_date, to_date)
+    HolidayList.where(holiday_date: {"$gte" => from_date, "$lte" => to_date}).count
+  end
+
+  def self.load_project(user, display_name)
     user.first.projects.where(display_name: /^#{display_name}$/i).first
   end
 
@@ -301,6 +328,10 @@ class TimeSheet
 
   def self.load_user_with_id(user_id)
     User.find_by(id: user_id)
+  end
+  
+  def self.load_project_with_id(project_id)
+    Project.find_by(id: project_id)
   end
 
   def self.load_timesheet(from_date, to_date)
@@ -344,5 +375,32 @@ class TimeSheet
       ]
     )
   end
-
+  
+  def self.load_projects_report(from_date, to_date)
+    TimeSheet.collection.aggregate([
+      {
+        "$match"=>{
+          "date"=>{
+            "$gte"=>Date.today-4,
+            "$lte"=>Date.today
+          }
+        }
+      },
+      {
+        "$group"=>{
+          "_id"=>{
+            "project_id"=>"$project_id"
+          },
+          "totalSum"=>{
+            "$sum"=>{
+              "$subtract"=>[
+                "$to_time",
+                "$from_time"
+              ]
+            }
+          }
+        }
+      }
+    ])
+  end
 end
