@@ -20,7 +20,7 @@ RSpec.describe TimeSheet, type: :model do
         'text' => "England_Hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
-      ret = time_sheet.parse_timesheet_data(params)
+      ret = TimeSheet.parse_timesheet_data(params)
       expect(ret[0]).to eq(true)
     end
 
@@ -31,7 +31,7 @@ RSpec.describe TimeSheet, type: :model do
         'text' => "england_hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
-      ret = time_sheet.parse_timesheet_data(params)
+      ret = TimeSheet.parse_timesheet_data(params)
       expect(ret[0]).to eq(true)
     end
 
@@ -49,7 +49,7 @@ RSpec.describe TimeSheet, type: :model do
         'text' => 'England_Hockey 22-07-2018  6'
       }
 
-      expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+      expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
     end
 
     it 'Should return false because user does not assign to this project' do
@@ -58,7 +58,7 @@ RSpec.describe TimeSheet, type: :model do
         'channel_id' => CHANNEL_ID,
         'text' => 'England 14-07-2018  6 7 abcd efgh'
       }
-      expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+      expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
     end
 
     context 'Validation - date' do
@@ -68,7 +68,7 @@ RSpec.describe TimeSheet, type: :model do
           'channel_id' => CHANNEL_ID,
           'text' => 'England_Hockey 14-2018  6 7 abcd efgh'
         }
-        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because date is not within this week' do
@@ -77,7 +77,7 @@ RSpec.describe TimeSheet, type: :model do
           'channel_id' => CHANNEL_ID,
           'text' => 'England_Hockey 1/07/2018  6 7 abcd efgh'
         }
-        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because date is invalid' do
@@ -86,7 +86,7 @@ RSpec.describe TimeSheet, type: :model do
           'channel_id' => CHANNEL_ID,
           'text' => 'England_Hockey 1/32/2018  6 7 abcd efgh'
         }
-        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because date and time is greater than current date and time' do
@@ -96,7 +96,7 @@ RSpec.describe TimeSheet, type: :model do
           'text' => "England_Hockey #{Date.today}  20:00 20:30 abcd efgh"
         }
 
-        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
       end
     end
 
@@ -107,7 +107,7 @@ RSpec.describe TimeSheet, type: :model do
           'channel_id' => CHANNEL_ID,
           'text' => "England_Hockey #{Date.yesterday} 15.30 16 abcd efgh"
         }
-        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because invalid to time format' do
@@ -116,7 +116,7 @@ RSpec.describe TimeSheet, type: :model do
           'channel_id' => CHANNEL_ID,
           'text' => "England_Hockey #{Date.yesterday} 6 7.00 abcd efgh"
         }
-        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because from time is greater than to time' do
@@ -125,7 +125,7 @@ RSpec.describe TimeSheet, type: :model do
           'channel_id' => CHANNEL_ID,
           'text' => "England_Hockey #{Date.yesterday} 8 7 abcd efgh"
         }
-        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
+        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
       end
     end
   end
@@ -140,12 +140,12 @@ RSpec.describe TimeSheet, type: :model do
 
     context 'check timesheet' do
       it 'Should return false because timesheet is not present' do
-        expect(time_sheet.check_time_sheet(user)).to eq(false)
+        expect(TimeSheet.check_time_sheet(user)).to eq(false)
       end
 
       it 'should return true because timesheet is present' do
         user.time_sheets.create(date: 1.days.ago, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
-        expect(time_sheet.check_time_sheet(user)).to eq(true)
+        expect(TimeSheet.check_time_sheet(user)).to eq(true)
       end
     end
 
@@ -157,27 +157,27 @@ RSpec.describe TimeSheet, type: :model do
       end
 
       it 'Should return false because timesheet is not filled' do
-        expect(time_sheet.time_sheet_filled?(user, 4.days.ago.utc)).to eq(false)
+        expect(TimeSheet.time_sheet_filled?(user, 4.days.ago.utc)).to eq(false)
       end
 
       it 'Should return true because timesheet is filled' do
-        expect(time_sheet.time_sheet_filled?(user, Date.today - 1)).to eq(true)
+        expect(TimeSheet.time_sheet_filled?(user, Date.today - 1)).to eq(true)
       end
     end
 
     context 'user on leave' do
       it 'Should return false because leave application is not present' do
-        expect(time_sheet.user_on_leave?(user, Date.today - 2)).to eq(false)
+        expect(TimeSheet.user_on_leave?(user, Date.today - 2)).to eq(false)
       end
 
       it 'Should return true because user is on leave' do
         FactoryGirl.create(:leave_application, user_id: user.id)
-        expect(time_sheet.user_on_leave?(user, Date.today + 2)).to eq(true)
+        expect(TimeSheet.user_on_leave?(user, Date.today + 2)).to eq(true)
       end
 
       it 'Should return false because user is not on leave' do
         FactoryGirl.create(:leave_application, user_id: user.id)
-        expect(time_sheet.user_on_leave?(user, Date.today + 4)).to eq(false)
+        expect(TimeSheet.user_on_leave?(user, Date.today + 4)).to eq(false)
       end
     end
   end
@@ -204,7 +204,7 @@ RSpec.describe TimeSheet, type: :model do
           'text' => ""
         }
 
-        time_sheets = time_sheet.parse_daily_status_command(params)
+        time_sheets = TimeSheet.parse_daily_status_command(params)
         expect(time_sheets).to eq("#{time_sheets}")
       end
 
@@ -215,7 +215,7 @@ RSpec.describe TimeSheet, type: :model do
           'text' => ""
         }
 
-        time_sheets = time_sheet.parse_daily_status_command(params)
+        time_sheets = TimeSheet.parse_daily_status_command(params)
         expect(time_sheets).to eq(false)
       end
     end
@@ -230,7 +230,7 @@ RSpec.describe TimeSheet, type: :model do
           'channel_id' => CHANNEL_ID,
           'text' => Date.yesterday.to_s
         }
-        time_sheets = time_sheet.parse_daily_status_command(params)
+        time_sheets = TimeSheet.parse_daily_status_command(params)
         expect(time_sheets).to eq("#{time_sheets}")
       end
 
@@ -240,7 +240,7 @@ RSpec.describe TimeSheet, type: :model do
           'channel_id' => CHANNEL_ID,
           'text' => Date.yesterday.to_s
         }
-        time_sheets = time_sheet.parse_daily_status_command(params)
+        time_sheets = TimeSheet.parse_daily_status_command(params)
         expect(time_sheets).to eq(false)
       end
 
@@ -251,7 +251,7 @@ RSpec.describe TimeSheet, type: :model do
           'text' => '06/07'
         }
 
-        time_sheets = time_sheet.parse_daily_status_command(params)
+        time_sheets = TimeSheet.parse_daily_status_command(params)
         expect(time_sheets).to eq(false)
       end
 
@@ -262,7 +262,7 @@ RSpec.describe TimeSheet, type: :model do
           'text' => '06/13/2018'
         }
 
-        time_sheets = time_sheet.parse_daily_status_command(params)
+        time_sheets = TimeSheet.parse_daily_status_command(params)
         expect(time_sheets).to eq(false)
       end
     end
@@ -271,7 +271,7 @@ RSpec.describe TimeSheet, type: :model do
       total_minutes = 359
       local_var_hours = total_minutes / 60
       local_var_minutes = total_minutes % 60
-      hours, minutes = time_sheet.calculate_hours_and_minutes(total_minutes)
+      hours, minutes = TimeSheet.calculate_hours_and_minutes(total_minutes)
       expect(hours).to eq(local_var_hours)
       expect(minutes).to eq(local_var_minutes)
     end
@@ -282,7 +282,7 @@ RSpec.describe TimeSheet, type: :model do
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
       user_time_sheet = user.time_sheets[0]
       time_diff = TimeDifference.between(user_time_sheet.to_time, user_time_sheet.from_time).in_minutes
-      minutes = time_sheet.calculate_working_minutes(user_time_sheet)
+      minutes = TimeSheet.calculate_working_minutes(user_time_sheet)
       expect(minutes).to eq(time_diff)
     end
   end
@@ -338,6 +338,35 @@ RSpec.describe TimeSheet, type: :model do
       expect(timesheet_data[0]['project_details'][0]['worked_hours']).to eq('1H 0M')
       expect(timesheet_data[0]['total_worked_hours']).to eq('1H 0M')
       expect(timesheet_data[0]['leaves']).to eq(0)
+    end
+  end
+
+  context 'Individual timesheet report' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
+    let!(:tpn) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
+    let!(:intranet) { user.projects.create(name: 'Intranet', display_name: 'Intranet') }
+
+    it 'Should give expected JSON' do
+      user.time_sheets.create(user_id: user.id, project_id: tpn.id,
+                              date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
+                              to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
+
+      user.time_sheets.create(user_id: user.id, project_id: intranet.id,
+                              date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 11:00"),
+                              to_time: Time.parse("#{Date.yesterday} 13:30"), description: 'Today I finish the work')
+      params = { from_date: Date.yesterday - 1, to_date: Date.today }
+      individual_time_sheet_data, total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(user, params)
+      expect(individual_time_sheet_data.count).to eq(2)
+      expect(individual_time_sheet_data['The pediatric network']['total_worked_hours']).to eq('1H 0M')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0].to_s).to eq(DateTime.yesterday.to_s)
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][1]).to eq('09:00AM')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][2]).to eq('10:00AM')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][3]).to eq('1H 0M')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][4]).to eq('Today I finish the work')
+      expect(individual_time_sheet_data['Intranet']['total_worked_hours']).to eq('2H 30M')
+      expect(total_work_and_leaves['total_work']).to eq('3H 30M')
+      expect(total_work_and_leaves['leaves']).to eq(0)
     end
   end
 

@@ -4,7 +4,7 @@ class TimeSheetsController < ApplicationController
   before_action :user_exists?, only: [:create, :daily_status]
 
   def create
-    return_value, time_sheets_data = @time_sheet.parse_timesheet_data(params) unless params['user_id'].nil?
+    return_value, time_sheets_data = TimeSheet.parse_timesheet_data(params) unless params['user_id'].nil?
     if return_value == true
       create_time_sheet(time_sheets_data, params)
     else
@@ -17,6 +17,13 @@ class TimeSheetsController < ApplicationController
     @to_date = params[:to_date] || Date.today.to_s
     timesheets = TimeSheet.load_timesheet(@from_date.to_date, @to_date.to_date) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
     @timesheet_report = TimeSheet.generete_employee_timesheet_report(timesheets, @from_date.to_date, @to_date.to_date) if timesheets.present?
+  end
+
+  def show
+    @from_date = params[:from_date]
+    @to_date = params[:to_date]
+    @user = User.find(params[:id])
+    @individual_timesheet_report, @total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(@user, params)
   end
 
   def create_time_sheet(time_sheets_data, params)
@@ -34,7 +41,7 @@ class TimeSheetsController < ApplicationController
 
   def daily_status
     @time_sheet = TimeSheet.new
-    time_sheet_log = @time_sheet.parse_daily_status_command(params)
+    time_sheet_log = TimeSheet.parse_daily_status_command(params)
     if time_sheet_log
       render json: { text: time_sheet_log }, status: :ok
     else
@@ -47,7 +54,7 @@ class TimeSheetsController < ApplicationController
   def user_exists?
     load_user
     @time_sheet = TimeSheet.new
-    @user = @time_sheet.fetch_email_and_associate_to_user(params['user_id']) if @user.blank?
+    @user = TimeSheet.fetch_email_and_associate_to_user(params['user_id']) if @user.blank?
     unless @user
       render json: { text: 'You are not part of organization contact to admin' }, status: :unauthorized
     end
