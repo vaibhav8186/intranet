@@ -63,6 +63,7 @@ class Project
   attr_accessor :allocated_employees, :manager_name, :employee_names
   # validates_uniqueness_of :code, allow_blank: true, allow_nil: true
 
+  MANERIAL_ROLE = ['Admin', 'Manager']
   validates :display_name, format: { with: /\A[ ]*[\S]*[ ]*\Z/, message: "Name should not contain white space" }
   before_save do
     if name_changed? && display_name.blank?
@@ -144,5 +145,9 @@ class Project
       self.errors.add(:base, "Code already exists") unless
         project.company_id == self.company_id
     end
+  end
+
+  def self.approved_manager_and_admin
+    User.where("$and" => [status: STATUS[2], "$or" => [{role: MANERIAL_ROLE[0]}, {role: MANERIAL_ROLE[1]}]])
   end
 end

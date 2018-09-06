@@ -32,7 +32,7 @@
         .control-group
           = label_tag "Managed By", nil, class: 'control-label'
           .controls
-            = select_tag :manager_ids, options_from_collection_for_select(User.where("$and" => [status: STATUS[2], "$or" => [{role: 'Admin'}, {role: 'Manager'}]]).to_a, :id, :name, @project.managers.collect{|user| user.id}), class: 'members', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple managers", name: "project[manager_ids][]"
+            = select_tag :manager_ids, options_from_collection_for_select(Project.approved_manager_and_admin.to_a, :id, :name, @project.managers.collect{|user| user.id}), class: 'members', multiple: true, style: "width: 340px;", "data-placeholder"=> "You can add multiple managers", name: "project[manager_ids][]"
         .control-group
           = label_tag "Team Members", nil, class: 'control-label'
           .controls
