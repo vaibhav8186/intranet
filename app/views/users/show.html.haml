@@ -1,12 +1,9 @@
 = render 'profile'
-- unless @projects.empty?
-  .projects
-    %table
-      = render partial: 'project', collection: @projects
-- unless @managed_projects.empty?
-  .managers
-    %table
-      = render partial: 'managed_project', collection: @managed_projects
+.projects
+  - unless @projects.empty?
+    =render partial: 'project', collection: @projects
+  - unless @managed_projects.empty?
+    =render partial: 'managed_project', collection: @managed_projects
 - unless @user.role.eql?('Admin')
   .bonusly-updates.common-bonusly-updates
     %ul.nav.nav-tabs
