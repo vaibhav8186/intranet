@@ -269,18 +269,15 @@ class TimeSheet
   def self.generate_individual_timesheet_report(user, params)
     time_sheet_log = []
     individual_time_sheet_data = {}
-    total_work_and_leaves = {}
     total_minutes = 0
     total_minutes_worked_on_projects = 0
     user.projects.includes(:time_sheets).each do |project|
       project.time_sheets.where(user_id: user.id, date: {"$gte" => params[:from_date], "$lte" => params[:to_date]}).order_by(date: :asc).each do |time_sheet|
         time_sheet_data = []
-        date = time_sheet.date
-        from_time = time_sheet.from_time.strftime("%I:%M%p")
-        to_time = time_sheet.to_time.strftime("%I:%M%p")
+        from_time, to_time = format_time(time_sheet)
         working_minutes = calculate_working_minutes(time_sheet)
         hours, minutes = calculate_hours_and_minutes(working_minutes.to_i)
-        time_sheet_data.push(date, from_time, to_time,"#{hours}H #{minutes}M", time_sheet.description)
+        time_sheet_data.push(time_sheet.date, from_time, to_time,"#{hours}H #{minutes}M", time_sheet.description)
         time_sheet_log << time_sheet_data
         total_minutes += working_minutes
         total_minutes_worked_on_projects += working_minutes
@@ -295,10 +292,23 @@ class TimeSheet
       working_details = {}
       total_minutes = 0
     end
+    total_work_and_leaves = get_total_work_and_leaves(user, params, total_minutes_worked_on_projects.to_i)
+    return individual_time_sheet_data, total_work_and_leaves
+  end
+
+  def self.format_time(time_sheet)
+    from_time = time_sheet.from_time.strftime("%I:%M%p")
+    to_time = time_sheet.to_time.strftime("%I:%M%p")
+
+    return from_time, to_time
+  end
+
+  def self.get_total_work_and_leaves(user, params, total_minutes_worked_on_projects)
+    total_work_and_leaves = {}
     total_worked_hours, total_work_minutes = calculate_hours_and_minutes(total_minutes_worked_on_projects.to_i)
     total_work_and_leaves['total_work'] = "#{total_worked_hours}H #{total_work_minutes}M"
     total_work_and_leaves['leaves'] = get_user_leaves_count(user, params[:from_date], params[:to_date])
-    return individual_time_sheet_data, total_work_and_leaves
+    total_work_and_leaves
   end
 
   def self.calculate_working_minutes(time_sheet)
