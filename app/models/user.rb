@@ -35,7 +35,8 @@ class User
   has_many :leave_applications
   has_many :attachments
   has_many :time_sheets
-  has_and_belongs_to_many :projects, inverse_of: :users
+  has_and_belongs_to_many :projects
+  has_many :user_projects
   has_and_belongs_to_many :schedules
   has_and_belongs_to_many :managed_projects, class_name: 'Project', foreign_key: 'managed_project_ids', inverse_of: :managers
 
