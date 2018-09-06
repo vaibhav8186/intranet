@@ -49,7 +49,8 @@ class Project
   slug :name
 
   has_many :time_sheets
-  has_and_belongs_to_many :users, inverse_of: :projects
+  has_and_belongs_to_many :users
+  has_many :user_projects
   accepts_nested_attributes_for :users
   belongs_to :company
   has_and_belongs_to_many :managers, class_name: 'User', foreign_key: 'manager_ids', inverse_of: :managed_projects
