@@ -57,4 +57,23 @@ describe Project do
     end
   end
 
+  context 'manager name and employee name' do
+    let!(:user) { FactoryGirl.create(:user) }
+
+    it 'Should match manager name' do
+      manager = FactoryGirl.create(:user)
+      project = FactoryGirl.create(:project)
+      project.managers << user
+      project.managers << manager
+
+      manager_names = Project.manager_names(project)
+      expect(manager_names).to eq("fname lname | fname lname")
+    end
+
+    it 'Should match employee name' do
+      project = user.projects.create(name: 'test1')
+      employee_names = Project.employee_names(project)
+      expect(employee_names).to eq("fname lname")
+    end
+  end
 end

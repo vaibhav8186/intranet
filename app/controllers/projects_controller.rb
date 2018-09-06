@@ -1,5 +1,4 @@
 class ProjectsController < ApplicationController
-
   load_and_authorize_resource
   skip_load_and_authorize_resource :only => :create
   before_action :authenticate_user!
@@ -38,6 +37,7 @@ class ProjectsController < ApplicationController
 
   def show
     @users = @project.users
+    @managers = @project.managers
   end
 
   def destroy
@@ -55,8 +55,13 @@ class ProjectsController < ApplicationController
   end
 
   def remove_team_member
-    team_member = @project.users.find(params[:user_id])
-    @project.user_ids.delete(team_member.id)
+    if params[:role] == 'Manager'
+      team_member = @project.managers.find(params[:user_id])
+      @project.manager_ids.delete(team_member.id)
+    else
+      team_member = @project.users.find(params[:user_id])
+      @project.user_ids.delete(team_member.id)
+    end
     @project.save
     @users = @project.reload.users
   end
@@ -77,12 +82,12 @@ class ProjectsController < ApplicationController
 
   private
   def safe_params
-    params.require(:project).permit(:name, :display_name, :start_date, :end_date, :managed_by, :code_climate_id, :code_climate_snippet,
-    :code_climate_coverage_snippet, :is_active, :ruby_version, :rails_version, :database, :database_version, :deployment_server,
+    params.require(:project).permit(:name, :display_name, :start_date, :end_date, :code_climate_id, :code_climate_snippet,
+    :code_climate_coverage_snippet, :is_active, :is_free, :ruby_version, :rails_version, :database, :database_version, :deployment_server,
     :deployment_script, :web_server, :app_server, :payment_gateway, :image_store, :index_server, :background_jobs, :sms_gateway,
     :other_frameworks,:other_details, :image, :url, :description, :case_study,:logo, :visible_on_website, :website_sequence_number,
     :code, :number_of_employees, :invoice_date, :company_id,
-    :user_ids => [])
+    :user_ids => [], :manager_ids => [])
   end
 
   def load_project

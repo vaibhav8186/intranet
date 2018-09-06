@@ -21,7 +21,8 @@ class UsersController < ApplicationController
   end
 
   def show
-    @projects = @user.projects
+    @projects = @user.projects.where(is_active: 'true')
+    @managed_projects = @user.managed_projects.where(:_id.nin => @projects.pluck(:id), is_active: 'true')
   end
 
   def update
