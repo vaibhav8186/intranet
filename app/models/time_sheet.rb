@@ -239,6 +239,7 @@ class TimeSheet
   def self.calculate_hours_and_minutes(total_minutes)
     hours = total_minutes / 60
     minutes = total_minutes % 60
+    minutes = '%02i'%minutes
     return hours, minutes
   end
 
@@ -277,7 +278,7 @@ class TimeSheet
         from_time, to_time = format_time(time_sheet)
         working_minutes = calculate_working_minutes(time_sheet)
         hours, minutes = calculate_hours_and_minutes(working_minutes.to_i)
-        time_sheet_data.push(time_sheet.date, from_time, to_time,"#{hours}H #{minutes}M", time_sheet.description)
+        time_sheet_data.push(time_sheet.date, from_time, to_time,"#{hours}:#{minutes}", time_sheet.description)
         time_sheet_log << time_sheet_data
         total_minutes += working_minutes
         total_minutes_worked_on_projects += working_minutes
@@ -286,7 +287,7 @@ class TimeSheet
       working_details = {}
       hours, minitues = calculate_hours_and_minutes(total_minutes.to_i)
       working_details['daily_status'] = time_sheet_log
-      working_details['total_worked_hours'] = "#{hours}H #{minitues}M"
+      working_details['total_worked_hours'] = "#{hours}:#{minitues}"
       individual_time_sheet_data["#{project.name}"] = working_details
       time_sheet_log = []
       working_details = {}
@@ -306,7 +307,7 @@ class TimeSheet
   def self.get_total_work_and_leaves(user, params, total_minutes_worked_on_projects)
     total_work_and_leaves = {}
     total_worked_hours, total_work_minutes = calculate_hours_and_minutes(total_minutes_worked_on_projects.to_i)
-    total_work_and_leaves['total_work'] = "#{total_worked_hours}H #{total_work_minutes}M"
+    total_work_and_leaves['total_work'] = "#{total_worked_hours}:#{total_work_minutes}"
     total_work_and_leaves['leaves'] = get_user_leaves_count(user, params[:from_date], params[:to_date])
     total_work_and_leaves
   end
@@ -318,7 +319,8 @@ class TimeSheet
   def self.convert_milliseconds_to_hours(milliseconds)
     hours = milliseconds / (1000 * 60 * 60)
     minutes = milliseconds / (1000 * 60) % 60
-    "#{hours}H #{minutes}M"
+    minutes = '%02i'%minutes
+    "#{hours}:#{minutes}"
   end
 
   def self.load_project(user, display_name)

@@ -273,7 +273,7 @@ RSpec.describe TimeSheet, type: :model do
       local_var_minutes = total_minutes % 60
       hours, minutes = TimeSheet.calculate_hours_and_minutes(total_minutes)
       expect(hours).to eq(local_var_hours)
-      expect(minutes).to eq(local_var_minutes)
+      expect(minutes).to eq("#{local_var_minutes}")
     end
 
     it 'Should give right difference between time' do
@@ -300,7 +300,8 @@ RSpec.describe TimeSheet, type: :model do
       milliseconds = 7200000
       local_var_hours = milliseconds / (1000 * 60 * 60)
       local_var_minutes = milliseconds / (1000 * 60) % 60
-      expect(TimeSheet.convert_milliseconds_to_hours(milliseconds)).to eq("#{local_var_hours}H #{local_var_minutes}M") 
+      local_var_minutes = '%02i'%local_var_minutes
+      expect(TimeSheet.convert_milliseconds_to_hours(milliseconds)).to eq("#{local_var_hours}:#{local_var_minutes}") 
     end
 
     it 'Should give the user leaves count' do
@@ -335,8 +336,8 @@ RSpec.describe TimeSheet, type: :model do
       timesheet_data = TimeSheet.generete_employee_timesheet_report(timesheet_record, Date.yesterday - 1, Date.today)
       expect(timesheet_data[0]['user_name']).to eq('fname lname')
       expect(timesheet_data[0]['project_details'][0]['project_name']).to eq('The pediatric network')
-      expect(timesheet_data[0]['project_details'][0]['worked_hours']).to eq('1H 0M')
-      expect(timesheet_data[0]['total_worked_hours']).to eq('1H 0M')
+      expect(timesheet_data[0]['project_details'][0]['worked_hours']).to eq('1:00')
+      expect(timesheet_data[0]['total_worked_hours']).to eq('1:00')
       expect(timesheet_data[0]['leaves']).to eq(0)
     end
   end
@@ -358,14 +359,14 @@ RSpec.describe TimeSheet, type: :model do
       params = { from_date: Date.yesterday - 1, to_date: Date.today }
       individual_time_sheet_data, total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(user, params)
       expect(individual_time_sheet_data.count).to eq(2)
-      expect(individual_time_sheet_data['The pediatric network']['total_worked_hours']).to eq('1H 0M')
+      expect(individual_time_sheet_data['The pediatric network']['total_worked_hours']).to eq('1:00')
       expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0].to_s).to eq(DateTime.yesterday.to_s)
       expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][1]).to eq('09:00AM')
       expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][2]).to eq('10:00AM')
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][3]).to eq('1H 0M')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][3]).to eq('1:00')
       expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][4]).to eq('Today I finish the work')
-      expect(individual_time_sheet_data['Intranet']['total_worked_hours']).to eq('2H 30M')
-      expect(total_work_and_leaves['total_work']).to eq('3H 30M')
+      expect(individual_time_sheet_data['Intranet']['total_worked_hours']).to eq('2:30')
+      expect(total_work_and_leaves['total_work']).to eq('3:30')
       expect(total_work_and_leaves['leaves']).to eq(0)
     end
   end
