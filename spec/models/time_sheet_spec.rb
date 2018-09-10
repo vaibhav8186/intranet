@@ -3,12 +3,13 @@ require 'rails_helper'
 RSpec.describe TimeSheet, type: :model do
   context 'Validation' do
     let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
     # let!(:user) { user.projects.create(:project)}
     let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
 
     before do
       user.public_profile.slack_handle = USER_ID
-      user.projects.create(name: 'England Hockey', display_name: 'England_Hockey')
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now, end_date: nil)
       user.save
       stub_request(:post, "https://slack.com/api/chat.postMessage")
     end
@@ -17,7 +18,7 @@ RSpec.describe TimeSheet, type: :model do
       params = {
         'user_id' => USER_ID, 
         'channel_id' => CHANNEL_ID, 
-        'text' => "England_Hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
+        'text' => "The_pediatric_network #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
       ret = TimeSheet.parse_timesheet_data(params)
@@ -28,7 +29,7 @@ RSpec.describe TimeSheet, type: :model do
       params = {
         'user_id' => USER_ID,
         'channel_id' => CHANNEL_ID,
-        'text' => "england_hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
+        'text' => "the_pediatric_network #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
       ret = TimeSheet.parse_timesheet_data(params)
@@ -205,7 +206,7 @@ RSpec.describe TimeSheet, type: :model do
         }
 
         time_sheets = TimeSheet.parse_daily_status_command(params)
-        expect(time_sheets).to eq("#{time_sheets}")
+        expect(time_sheets).to eq(time_sheets)
       end
 
       it 'Should return false because timesheet record not present' do
@@ -231,7 +232,7 @@ RSpec.describe TimeSheet, type: :model do
           'text' => Date.yesterday.to_s
         }
         time_sheets = TimeSheet.parse_daily_status_command(params)
-        expect(time_sheets).to eq("#{time_sheets}")
+        expect(time_sheets).to eq(false)
       end
 
       it 'Should return false because timesheet record not present' do
@@ -345,10 +346,12 @@ RSpec.describe TimeSheet, type: :model do
   context 'Individual timesheet report' do
     let!(:user) { FactoryGirl.create(:user) }
     let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
-    let!(:tpn) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
-    let!(:intranet) { user.projects.create(name: 'Intranet', display_name: 'Intranet') }
+    let!(:tpn) { FactoryGirl.create(:project, name: 'The pediatric network', display_name: 'The_pediatric_network') }
+    let!(:intranet) { FactoryGirl.create(:project, name: 'Intranet', display_name: 'Intranet') }
 
     it 'Should give expected JSON' do
+      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: intranet.id, start_date: DateTime.now, end_date: nil)
       user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')

@@ -31,7 +31,7 @@ class ProjectsController < ApplicationController
   end
 
   def update
-    @project.user_ids = [] if params[:user_ids].blank? and params['tech_details'].nil?
+    @project.add_or_remove_team_member(params) 
     update_obj(@project, safe_params, projects_path)
   end
 
@@ -60,15 +60,15 @@ class ProjectsController < ApplicationController
       @project.manager_ids.delete(team_member.id)
     else
       team_member = @project.users.find(params[:user_id])
-      @project.user_ids.delete(team_member.id)
+      user_project = UserProject.where(user_id: team_member.id, project_id: @project.id, end_date: nil).first
+      user_project.update_attributes(end_date: DateTime.now)
     end
     @project.save
     @users = @project.reload.users
   end
 
   def add_team_member
-    @project.user_ids = params[:project][:user_ids]
-    @project.save
+    @project.add_or_remove_team_member(params)
     @users = @project.reload.users
   end
 
@@ -86,8 +86,7 @@ class ProjectsController < ApplicationController
     :code_climate_coverage_snippet, :is_active, :is_free, :ruby_version, :rails_version, :database, :database_version, :deployment_server,
     :deployment_script, :web_server, :app_server, :payment_gateway, :image_store, :index_server, :background_jobs, :sms_gateway,
     :other_frameworks,:other_details, :image, :url, :description, :case_study,:logo, :visible_on_website, :website_sequence_number,
-    :code, :number_of_employees, :invoice_date, :company_id,
-    :user_ids => [], :manager_ids => [])
+    :code, :number_of_employees, :invoice_date, :company_id, :manager_ids => [])
   end
 
   def load_project

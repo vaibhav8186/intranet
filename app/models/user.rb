@@ -35,8 +35,8 @@ class User
   has_many :leave_applications
   has_many :attachments
   has_many :time_sheets
-  has_and_belongs_to_many :projects
   has_many :user_projects
+  # has_and_belongs_to_many :projects
   has_and_belongs_to_many :schedules
   has_and_belongs_to_many :managed_projects, class_name: 'Project', foreign_key: 'managed_project_ids', inverse_of: :managers
 
@@ -114,4 +114,18 @@ class User
     error_msg.join(' ')
   end
 
+  def get_projects(from_date)
+    project_ids = user_projects.where(start_date: {"$gte" => from_date}).pluck(:project_id)
+    Project.in(id: project_ids)
+  end
+
+  # def all_projects(from_date, to_date)
+  #   project_ids = self.user_projects.where("$and" => [start_date: {"$gte" => from_date}, "$or" => [{end_date: nil}, {end_date: {"$lte" => to_date}}]]).pluck(:project_id)
+  #   Project.in(id: project_ids)
+  # end
+
+  def projects
+    project_ids = user_projects.where(end_date: nil).pluck(:project_id)
+    Project.in(id: project_ids)
+  end
 end
