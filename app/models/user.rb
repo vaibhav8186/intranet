@@ -114,6 +114,42 @@ class User
     error_msg.join(' ')
   end
 
+  def add_or_remove_projects(params)
+    existing_project_ids = UserProject.where(user_id: id, end_date: nil).pluck(:project_id)
+    existing_project_ids.map!(&:to_s)
+    params[:user][:project_ids].shift
+    project_ids_count = params[:user][:project_ids].count
+    if project_ids_count > existing_project_ids.count
+      project_ids = params[:user][:project_ids] - existing_project_ids
+      add_projects(project_ids)
+    elsif project_ids_count < existing_project_ids.count
+      project_ids =
+        if params[:user][:project_ids].present?
+          existing_project_ids - params[:user][:project_ids]
+        else
+          existing_project_ids
+        end
+      remove_projects(project_ids) if project_ids[0].present?
+    end
+  end
+
+  def add_projects(project_ids)
+    project_ids.each do |project_id|
+      UserProject.create(user_id: id, project_id: project_id, start_date: DateTime.now, end_date: nil)
+    end
+  end
+
+  def remove_projects(project_ids)
+    project_ids.each do |project_id|
+      user_project = UserProject.where(user_id: id, project_id: project_id, end_date: nil).first
+      user_project.update_attributes(end_date: DateTime.now)
+    end
+  end
+
+  def project_ids
+    project_ids = user_projects.where(end_date: nil).pluck(:project_id)
+  end
+
   def worked_on_projects(from_date, to_date)
     project_ids = time_sheets.where(:date.gte => from_date, :date.lte => to_date).pluck(:project_id).uniq
     Project.in(id: project_ids)
