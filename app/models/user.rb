@@ -114,15 +114,10 @@ class User
     error_msg.join(' ')
   end
 
-  def get_projects(from_date)
-    project_ids = user_projects.where(start_date: {"$gte" => from_date}).pluck(:project_id)
+  def worked_on_projects(from_date, to_date)
+    project_ids = time_sheets.where(:date.gte => from_date, :date.lte => to_date).pluck(:project_id).uniq
     Project.in(id: project_ids)
   end
-
-  # def all_projects(from_date, to_date)
-  #   project_ids = self.user_projects.where("$and" => [start_date: {"$gte" => from_date}, "$or" => [{end_date: nil}, {end_date: {"$lte" => to_date}}]]).pluck(:project_id)
-  #   Project.in(id: project_ids)
-  # end
 
   def projects
     project_ids = user_projects.where(end_date: nil).pluck(:project_id)

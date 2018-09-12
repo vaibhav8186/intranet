@@ -72,9 +72,45 @@ describe Project do
 
     it 'Should match employee name' do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now)
-      # project = user.projects.create(name: 'test1')
       employee_names = Project.employee_names(project)
       expect(employee_names).to eq("fname lname")
+    end
+  end
+
+  context 'add or remove team member' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.build(:project) }
+
+    it 'Should add team member' do
+      user_ids = []
+      user_ids << user.id
+      project.save
+      params = { "project" => { "user_ids" => user_ids } }
+      project.add_or_remove_team_member(params)
+    end
+
+    describe 'Should remove team member' do
+      it 'member count greater than two' do
+        user_ids = []
+        first_team_member = FactoryGirl.create(:user)
+        second_team_member = FactoryGirl.create(:user)
+        UserProject.create(user_id: first_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        UserProject.create(user_id: second_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        user_ids << first_team_member
+        user_ids << second_team_member
+
+        params = { "project" => { "user_ids" => user_ids } }
+        project.add_or_remove_team_member(params)
+        expect(user_project.reload.end_date).to eq(Date.today)
+      end
+
+      it 'Member count is one' do
+        user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        params = { "project" => { "user_ids" => [] } }
+        project.add_or_remove_team_member(params)
+        expect(user_project.reload.end_date).to eq(Date.today)
+      end
     end
   end
 end

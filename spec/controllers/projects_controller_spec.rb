@@ -54,6 +54,28 @@ describe ProjectsController do
       expect(project.reload.manager_ids.include?(user.id)).to eq(true)
       expect(user.reload.managed_project_ids.include?(project.id)).to eq(true)
     end
+
+    it 'Should add team member' do
+      user_id = []
+      user_id << user.id
+      patch :update, id: project.id, project: { user_ids: user_id }
+      user_project = UserProject.where(user_id: user.id, project_id: project.id).first
+      expect(user_project.start_date).to eq(Date.today)
+    end
+
+    it 'Should remove team member' do
+      user_ids = []
+      first_team_member = FactoryGirl.create(:user)
+      second_team_member = FactoryGirl.create(:user)
+      UserProject.create(user_id: first_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+      UserProject.create(user_id: second_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+      user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+      user_ids << first_team_member
+      user_ids << second_team_member
+
+      patch :update, id: project.id, project: {user_ids: user_ids}
+      expect(user_project.reload.end_date).to eq(Date.today)
+    end
   end
 
   describe "GET show" do
@@ -96,6 +118,24 @@ describe ProjectsController do
     end
   end
 
+  describe 'add team member' do
+    let!(:first_user) { FactoryGirl.create(:user) }
+    let!(:second_user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should add team member' do
+      user_ids = []
+      user_ids << first_user.id
+      user_ids << second_user.id
+
+      post :add_team_member, :format => :js, id: project.id, project: {user_ids: user_ids}
+      first_user_project = UserProject.where(user_id: first_user.id, project_id: project.id).first
+      second_user_project = UserProject.where(user_id: second_user.id, project_id: project.id).first
+      expect(first_user_project.start_date).to eq(Date.today)
+      expect(second_user_project.start_date).to eq(Date.today)
+    end
+  end
+
   describe 'DELETE team member' do
     let!(:project) { FactoryGirl.build(:project) }
     it 'Should delete manager' do
@@ -109,13 +149,11 @@ describe ProjectsController do
     end
 
     it 'Should delete employee' do
-      user = FactoryGirl.build(:user, role: 'Employee')
-      project.users << user
+      user = FactoryGirl.create(:user, role: 'Employee')
+      user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
       project.save
-      user.save
       delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: user.role
-      expect(project.reload.user_ids.include?(user.id)).to eq(false)
-      expect(user.reload.managed_project_ids.include?(user.id)).to eq(false)
+      expect(user_project.reload.end_date).to eq(Date.today)
     end
   end
 end

@@ -157,7 +157,7 @@ class Project
       add_team_member(user_ids)
     else user_ids_count < existing_user_ids.count
       user_ids =
-        if params['project']['user_ids']
+        if params['project']['user_ids'].present?
           existing_user_ids - params['project']['user_ids']
         else
           existing_user_ids
