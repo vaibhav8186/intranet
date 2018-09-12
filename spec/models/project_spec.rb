@@ -113,4 +113,14 @@ describe Project do
       end
     end
   end
+
+  context 'Users' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+    it 'Should give users report' do
+      UserProject.create(user_id: user.id, project_id: project.id)
+      users = project.users
+      expect(users.present?).to eq(true)
+    end
+  end
 end

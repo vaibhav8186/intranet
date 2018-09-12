@@ -90,4 +90,21 @@ describe User do
       expect{@user.sent_mail_for_approval(leave_application)}.not_to raise_error
     end
   end
+
+  context 'Timesheet' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should give the project report' do
+      UserProject.create(user_id: user.id, project_id: project.id)
+      projects = user.projects
+      expect(projects.present?).to eq(true)
+    end
+
+    it 'Should give worked on project form from date and to date' do
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: '9:00', to_time: '10:00', description: 'Woked on test cases')
+      projects = user.worked_on_projects(Date.today - 2, Date.today)
+      expect(projects.present?).to eq(true)
+    end
+  end
 end
