@@ -151,19 +151,10 @@ class Project
   def add_or_remove_team_member(params)
     existing_user_ids = UserProject.where(project_id: id, end_date: nil).pluck(:user_id)
     existing_user_ids.map!(&:to_s)
-    user_ids_count = params['project']['user_ids'].count rescue 0
-    if user_ids_count > existing_user_ids.count
-      user_ids = params['project']['user_ids'] -  existing_user_ids
-      add_team_member(user_ids)
-    elsif user_ids_count < existing_user_ids.count
-      user_ids =
-        if params['project']['user_ids'].present?
-          existing_user_ids - params['project']['user_ids']
-        else
-          existing_user_ids
-        end
-      remove_team_member(user_ids) if user_ids.present?
-    end
+    ids_for_add_members = params['project']['user_ids'].present? ? params['project']['user_ids'] - existing_user_ids : []
+    ids_for_remove_members = params['project']['user_ids'].present? ? existing_user_ids - params['project']['user_ids'] : existing_user_ids
+    add_team_member(ids_for_add_members) if ids_for_add_members.present?
+    remove_team_member(ids_for_remove_members) if ids_for_remove_members.present? 
   end
 
   def add_team_member(user_ids)

@@ -58,7 +58,7 @@ describe ProjectsController do
     it 'Should add team member' do
       user_id = []
       user_id << user.id
-      patch :update, id: project.id, project: { user_ids: user_id }
+      patch :update, id: project.id, project: { user_ids: user_id, update_project: 'update_project' }
       user_project = UserProject.where(user_id: user.id, project_id: project.id).first
       expect(user_project.start_date).to eq(Date.today)
     end
@@ -73,7 +73,7 @@ describe ProjectsController do
       user_ids << first_team_member
       user_ids << second_team_member
 
-      patch :update, id: project.id, project: {user_ids: user_ids}
+      patch :update, id: project.id, project: {user_ids: user_ids, update_project: 'update_project'}
       expect(user_project.reload.end_date).to eq(Date.today)
     end
   end

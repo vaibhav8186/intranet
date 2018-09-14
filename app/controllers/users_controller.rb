@@ -27,7 +27,7 @@ class UsersController < ApplicationController
 
   def update
     @user.attributes =  user_params
-    @user.add_or_remove_projects(params)
+    @user.add_or_remove_projects(params) if params[:user][:project_ids].present?
     if @user.save
       flash.notice = 'Profile updated Succesfully'
     else

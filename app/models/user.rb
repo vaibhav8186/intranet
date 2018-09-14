@@ -118,19 +118,10 @@ class User
     existing_project_ids = UserProject.where(user_id: id, end_date: nil).pluck(:project_id)
     existing_project_ids.map!(&:to_s)
     params[:user][:project_ids].shift
-    project_ids_count = params[:user][:project_ids].count
-    if project_ids_count > existing_project_ids.count
-      project_ids = params[:user][:project_ids] - existing_project_ids
-      add_projects(project_ids)
-    elsif project_ids_count < existing_project_ids.count
-      project_ids =
-        if params[:user][:project_ids].present?
-          existing_project_ids - params[:user][:project_ids]
-        else
-          existing_project_ids
-        end
-      remove_projects(project_ids) if project_ids[0].present?
-    end
+    ids_for_add_project = params[:user][:project_ids].present? ? params[:user][:project_ids] - existing_project_ids : []
+    ids_for_remove_project = params[:user][:project_ids].present? ? existing_project_ids - params[:user][:project_ids] : existing_project_ids
+    add_projects(ids_for_add_project) if ids_for_add_project.present?
+    remove_projects(ids_for_remove_project) if ids_for_remove_project.present? 
   end
 
   def add_projects(project_ids)

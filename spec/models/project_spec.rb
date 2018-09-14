@@ -99,8 +99,8 @@ describe Project do
         UserProject.create(user_id: first_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
         UserProject.create(user_id: second_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
         user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
-        user_ids << first_team_member
-        user_ids << second_team_member
+        user_ids << first_team_member.id
+        user_ids << second_team_member.id
 
         params = { "project" => { "user_ids" => user_ids } }
         project.add_or_remove_team_member(params)

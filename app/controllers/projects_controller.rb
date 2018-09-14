@@ -31,8 +31,8 @@ class ProjectsController < ApplicationController
   end
 
   def update
+    @project.add_or_remove_team_member(params) if params['project']['update_project'].present?
     update_obj(@project, safe_params, projects_path)
-    @project.add_or_remove_team_member(params)
   end
 
   def show
