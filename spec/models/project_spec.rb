@@ -87,6 +87,8 @@ describe Project do
       project.save
       params = { "project" => { "user_ids" => user_ids } }
       project.add_or_remove_team_member(params)
+      user_project = UserProject.find_by(user_id: user.id, project_id: project.id)
+      expect(user_project.start_date).to eq(Date.today)
     end
 
     describe 'Should remove team member' do
