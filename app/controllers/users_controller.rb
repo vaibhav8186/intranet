@@ -21,11 +21,13 @@ class UsersController < ApplicationController
   end
 
   def show
-    @projects = @user.projects
+    @projects = @user.projects.where(is_active: 'true')
+    @managed_projects = @user.managed_projects.where(:_id.nin => @projects.pluck(:id), is_active: 'true')
   end
 
   def update
     @user.attributes =  user_params
+    @user.add_or_remove_projects(params) if params[:user][:project_ids].present?
     if @user.save
       flash.notice = 'Profile updated Succesfully'
     else
@@ -120,7 +122,7 @@ class UsersController < ApplicationController
   def user_params
     safe_params = []
     if params[:user][:employee_detail_attributes].present?
-      safe_params = [ employee_detail_attributes: [:id, :employee_id, :date_of_relieving, :designation, :description, :notification_emails => [] ], :project_ids => [] ]
+      safe_params = [ employee_detail_attributes: [:id, :employee_id, :date_of_relieving, :designation, :description, :notification_emails => [] ] ]
     elsif params[:user][:attachments_attributes].present?
       safe_params = [attachments_attributes: [:id, :name, :document, :_destroy]]
     else

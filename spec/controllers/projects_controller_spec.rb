@@ -43,11 +43,54 @@ describe ProjectsController do
     end
   end
 
+  describe 'PATCH update' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should update manager ids and managed_project_ids' do
+      user_id = []
+      user_id << user.id
+      patch :update, id: project.id, project: { manager_ids: user_id }
+      expect(project.reload.manager_ids.include?(user.id)).to eq(true)
+      expect(user.reload.managed_project_ids.include?(project.id)).to eq(true)
+    end
+
+    it 'Should add team member' do
+      user_id = []
+      user_id << user.id
+      patch :update, id: project.id, project: { user_ids: user_id, update_project: 'update_project' }
+      user_project = UserProject.where(user_id: user.id, project_id: project.id).first
+      expect(user_project.start_date).to eq(Date.today)
+    end
+
+    it 'Should remove team member' do
+      user_ids = []
+      first_team_member = FactoryGirl.create(:user)
+      second_team_member = FactoryGirl.create(:user)
+      UserProject.create(user_id: first_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+      UserProject.create(user_id: second_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+      user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+      user_ids << first_team_member
+      user_ids << second_team_member
+
+      patch :update, id: project.id, project: {user_ids: user_ids, update_project: 'update_project'}
+      expect(user_project.reload.end_date).to eq(Date.today)
+    end
+  end
+
   describe "GET show" do
     it "should find one project record" do
       project = FactoryGirl.create(:project)
       get :show, id: project.id
       expect(assigns(:project)).to eq(project)
+    end
+
+    it 'Should equal to managers' do
+      user = FactoryGirl.create(:user, role: 'Manager')
+      project = FactoryGirl.create(:project)
+      project.managers << user
+      get :show, id: project.id
+      expect(assigns(:managers)).to eq(project.managers)
     end
   end
 
@@ -72,6 +115,45 @@ describe ProjectsController do
       expect(last.position).to eq(3)
       xhr :post, :update_sequence_number, id:  projects.last.id, position: 1
       expect(last.reload.position).to eq(1)
+    end
+  end
+
+  describe 'add team member' do
+    let!(:first_user) { FactoryGirl.create(:user) }
+    let!(:second_user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should add team member' do
+      user_ids = []
+      user_ids << first_user.id
+      user_ids << second_user.id
+
+      post :add_team_member, :format => :js, id: project.id, project: {user_ids: user_ids}
+      first_user_project = UserProject.where(user_id: first_user.id, project_id: project.id).first
+      second_user_project = UserProject.where(user_id: second_user.id, project_id: project.id).first
+      expect(first_user_project.start_date).to eq(Date.today)
+      expect(second_user_project.start_date).to eq(Date.today)
+    end
+  end
+
+  describe 'DELETE team member' do
+    let!(:project) { FactoryGirl.build(:project) }
+    it 'Should delete manager' do
+      user = FactoryGirl.build(:user, role: 'Manager')
+      project.managers << user
+      project.save
+      user.save
+      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: user.role
+      expect(project.reload.manager_ids.include?(user.id)).to eq(false)
+      expect(user.reload.managed_project_ids.include?(user.id)).to eq(false)
+    end
+
+    it 'Should delete employee' do
+      user = FactoryGirl.create(:user, role: 'Employee')
+      user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+      project.save
+      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: user.role
+      expect(user_project.reload.end_date).to eq(Date.today)
     end
   end
 end

@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Project do
   it {should validate_presence_of(:name)}
-  it {should accept_nested_attributes_for(:users)}
+  # it {should accept_nested_attributes_for(:users)}
 
   it 'must return all the tags' do
     project = FactoryGirl.create(:project, rails_version: "4.2.1", ruby_version: '2.2.3',
@@ -57,4 +57,72 @@ describe Project do
     end
   end
 
+  context 'manager name and employee name' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should match manager name' do
+      manager = FactoryGirl.create(:user)
+      project = FactoryGirl.create(:project)
+      project.managers << user
+      project.managers << manager
+      manager_names = Project.manager_names(project)
+      expect(manager_names).to eq("fname lname | fname lname")
+    end
+
+    it 'Should match employee name' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now)
+      employee_names = Project.employee_names(project)
+      expect(employee_names).to eq("fname lname")
+    end
+  end
+
+  context 'add or remove team member' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.build(:project) }
+
+    it 'Should add team member' do
+      user_ids = []
+      user_ids << user.id
+      project.save
+      params = { "project" => { "user_ids" => user_ids } }
+      project.add_or_remove_team_member(params)
+      user_project = UserProject.find_by(user_id: user.id, project_id: project.id)
+      expect(user_project.start_date).to eq(Date.today)
+    end
+
+    describe 'Should remove team member' do
+      it 'member count greater than two' do
+        user_ids = []
+        first_team_member = FactoryGirl.create(:user)
+        second_team_member = FactoryGirl.create(:user)
+        UserProject.create(user_id: first_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        UserProject.create(user_id: second_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        user_ids << first_team_member.id
+        user_ids << second_team_member.id
+
+        params = { "project" => { "user_ids" => user_ids } }
+        project.add_or_remove_team_member(params)
+        expect(user_project.reload.end_date).to eq(Date.today)
+      end
+
+      it 'Member count is one' do
+        user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        params = { "project" => { "user_ids" => [] } }
+        project.add_or_remove_team_member(params)
+        expect(user_project.reload.end_date).to eq(Date.today)
+      end
+    end
+  end
+
+  context 'Users' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+    it 'Should give users report' do
+      UserProject.create(user_id: user.id, project_id: project.id)
+      users = project.users
+      expect(users.present?).to eq(true)
+    end
+  end
 end

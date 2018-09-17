@@ -10,13 +10,24 @@
       %tr
         %th #
         %th Project Name
+        %th Manager Name
         %th Project Benchmark
         %th Active
+        %th Allocated Employees
+        %th No of Employees
+        %th Is Free
     %tbody
       - @projects.each_with_index do |p, i|
         %tr.item{"data-item-id" => p.id}
           %td= i+1
           %td=link_to p.name, project_path(p)
+          - if p.managers.present?
+            - manager_name = ''
+            - p.managers.each do |manager|
+              - manager_name += manager.name + ' '
+            %td= manager_name
+          - else
+            %td= "NA"
           %td
             =raw p.code_climate_snippet
             =raw p.code_climate_coverage_snippet
@@ -24,6 +35,12 @@
             - status_class = p.is_active ? 'label-success' : 'label-warning'
             .label{class: status_class}
               = p.is_active
+          %td= p.users.count
+          %td= p.number_of_employees
+          - if p.is_free == false
+            %td= 'No'
+          -else
+            %td= 'Yes'
           %td
             - if can? :manage, Project
               =link_to '', edit_project_path(p), class: "icon-edit", data: {'no-turbolink' =>  true}

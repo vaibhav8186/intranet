@@ -27,6 +27,9 @@ describe UsersController do
 
   end
   context "update" do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project, name: 'test_project') }
+
     before(:each) do
       @user = FactoryGirl.create(:user, role: 'Employee', email: 'sanjiv@joshsoftware.com',
               public_profile: FactoryGirl.build(:public_profile), private_profile: FactoryGirl.build(:private_profile))
@@ -66,6 +69,32 @@ describe UsersController do
 
       put :private_profile, params
       @user.errors.full_messages.should eq([])
+    end
+
+    it 'Should add project' do
+      project_ids = []
+      project_ids << ""
+      project_ids << project.id
+      params = { user: { project_ids: project_ids } }
+
+      patch :update, id: user.id, user: { project_ids: project_ids }
+      user_project = UserProject.where(user_id: user.id, project_id: project.id).first
+      expect(user_project.start_date).to eq(Date.today)
+    end
+
+    it 'Should remove project' do
+      project_ids = []
+      first_project = FactoryGirl.create(:project, name: 'test1')
+      second_project = FactoryGirl.create(:project, name: 'test2')
+      UserProject.create(user_id: user.id, project_id: first_project.id, start_date: DateTime.now - 1, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: second_project.id, start_date: DateTime.now - 1, end_date: nil)
+      user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+      project_ids << ""
+      project_ids << first_project.id
+      project_ids << second_project.id
+
+      patch :update, id: user.id, user: { project_ids: project_ids }
+      expect(user_project.reload.end_date).to eq(Date.today)
     end
   end
   context "get_feed" do
