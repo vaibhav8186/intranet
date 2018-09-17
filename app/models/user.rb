@@ -121,19 +121,27 @@ class User
     ids_for_add_project = params[:user][:project_ids].present? ? params[:user][:project_ids] - existing_project_ids : []
     ids_for_remove_project = params[:user][:project_ids].present? ? existing_project_ids - params[:user][:project_ids] : existing_project_ids
     add_projects(ids_for_add_project) if ids_for_add_project.present?
-    remove_projects(ids_for_remove_project) if ids_for_remove_project.present? 
+    remove_projects(ids_for_remove_project) if ids_for_remove_project.present?
   end
 
   def add_projects(project_ids)
+    return_value = true
     project_ids.each do |project_id|
-      UserProject.create(user_id: id, project_id: project_id, start_date: DateTime.now, end_date: nil)
+      return_value = UserProject.create(user_id: id, project_id: project_id, start_date: DateTime.now, end_date: nil) rescue false
+    end
+    unless return_value
+      flash[:error] = "Error unable to add remove projects"
     end
   end
 
   def remove_projects(project_ids)
+    return_value = true
     project_ids.each do |project_id|
       user_project = UserProject.where(user_id: id, project_id: project_id, end_date: nil).first
-      user_project.update_attributes(end_date: DateTime.now)
+      return_value = user_project.update_attributes(end_date: DateTime.now) rescue false
+    end
+    unless return_value
+      flash[:error] = "Error unable to remove projects"
     end
   end
 

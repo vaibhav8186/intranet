@@ -158,15 +158,23 @@ class Project
   end
 
   def add_team_member(user_ids)
+    return_value = true
     user_ids.each do |user_id|
-      UserProject.create(user_id: user_id, project_id: id, start_date: DateTime.now, end_date: nil)
+      return_value = UserProject.create(user_id: user_id, project_id: id, start_date: DateTime.now, end_date: nil) rescue false
+    end
+    unless return_value
+      flash[:error] = "Error unable to add team member"
     end
   end
 
   def remove_team_member(user_ids)
+    return_value = true
     user_ids.each do |user_id|
       user_project = UserProject.where(user_id: user_id, project_id: id, end_date: nil).first
-      user_project.update_attributes(end_date: DateTime.now)
+      return_value = user_project.update_attributes(end_date: DateTime.now) rescue false
+    end
+    unless return_value
+      flash[:error] = "Error unable to remove team member"
     end
   end
 

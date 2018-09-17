@@ -69,11 +69,11 @@ class TimeSheet
     end
 
     return true if params['command'] == '/daily_status'
-    return false unless check_assign_project_date(date, params)
+    return false unless timesheet_date_greater_than_assign_project_date(date, params)
     check_date_range(date, params)
   end
   
-  def self.check_assign_project_date(date, params)
+  def self.timesheet_date_greater_than_assign_project_date(date, params)
     split_text = params['text'].split
     user = load_user(params['user_id'])
     project = load_project(user, split_text[0])
