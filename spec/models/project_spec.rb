@@ -114,13 +114,27 @@ describe Project do
         expect(user_project.reload.end_date).to eq(Date.today)
       end
     end
+
+    it 'Add team member : should return false because user id nil' do
+      user_ids = []
+      user_ids << nil
+      return_value = project.add_team_member(user_ids)
+      expect(return_value).to eq(false)
+    end
+
+    it 'Remove team member : should return false because user id nil' do
+      user_ids = []
+      user_ids << nil
+      return_value = project.remove_team_member(user_ids)
+      expect(return_value).to eq(false)
+    end
   end
 
   context 'Users' do
     let!(:user) { FactoryGirl.create(:user) }
     let!(:project) { FactoryGirl.create(:project) }
     it 'Should give users report' do
-      UserProject.create(user_id: user.id, project_id: project.id)
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2)
       users = project.users
       expect(users.present?).to eq(true)
     end

@@ -115,34 +115,38 @@ class User
   end
 
   def add_or_remove_projects(params)
+    return_value_of_add_project = return_value_of_remove_project = true
     existing_project_ids = UserProject.where(user_id: id, end_date: nil).pluck(:project_id)
     existing_project_ids.map!(&:to_s)
     params[:user][:project_ids].shift
     ids_for_add_project = params[:user][:project_ids].present? ? params[:user][:project_ids] - existing_project_ids : []
     ids_for_remove_project = params[:user][:project_ids].present? ? existing_project_ids - params[:user][:project_ids] : existing_project_ids
-    add_projects(ids_for_add_project) if ids_for_add_project.present?
-    remove_projects(ids_for_remove_project) if ids_for_remove_project.present?
+    return_value_of_add_project = add_projects(ids_for_add_project) if ids_for_add_project.present?
+    return_value_of_remove_project = remove_projects(ids_for_remove_project) if ids_for_remove_project.present?
+    return return_value_of_add_project, return_value_of_remove_project
   end
 
   def add_projects(project_ids)
     return_value = true
     project_ids.each do |project_id|
-      return_value = UserProject.create(user_id: id, project_id: project_id, start_date: DateTime.now, end_date: nil) rescue false
+      return_value = UserProject.create!(user_id: id, project_id: project_id, start_date: DateTime.now, end_date: nil) rescue false
+      if return_value == false
+        break
+      end
     end
-    unless return_value
-      flash[:error] = "Error unable to add remove projects"
-    end
+    return_value
   end
 
   def remove_projects(project_ids)
     return_value = true
     project_ids.each do |project_id|
       user_project = UserProject.where(user_id: id, project_id: project_id, end_date: nil).first
-      return_value = user_project.update_attributes(end_date: DateTime.now) rescue false
+      return_value = user_project.update_attributes!(end_date: DateTime.now) rescue false
+      if return_value == false
+        break
+      end
     end
-    unless return_value
-      flash[:error] = "Error unable to remove projects"
-    end
+    return_value
   end
 
   def project_ids
