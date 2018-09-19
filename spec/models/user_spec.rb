@@ -90,4 +90,76 @@ describe User do
       expect{@user.sent_mail_for_approval(leave_application)}.not_to raise_error
     end
   end
+
+  context 'Timesheet' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should give the project report' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2)
+      projects = user.projects
+      expect(projects.present?).to eq(true)
+    end
+
+    it 'Should give worked on project form from date and to date' do
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: '9:00', to_time: '10:00', description: 'Woked on test cases')
+      projects = user.worked_on_projects(Date.today - 2, Date.today)
+      expect(projects.present?).to eq(true)
+    end
+  end
+
+  context 'Add or remove project' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.build(:project) }
+
+    it 'Should add project' do
+      project_ids = []
+      project_ids << ""
+      project_ids << project.id
+      params = { user: { project_ids: project_ids } }
+      user.add_or_remove_projects(params)
+      user_project = UserProject.find_by(user_id: user.id, project_id: project.id)
+      expect(user_project.start_date).to eq(Date.today)
+    end
+
+    describe 'Remove project' do
+      it 'Project count grater than tow' do
+        project_ids = []
+        first_project = FactoryGirl.create(:project, name: 'test1')
+        second_project = FactoryGirl.create(:project, name: 'test2')
+        UserProject.create(user_id: user.id, project_id: first_project.id, start_date: DateTime.now - 1, end_date: nil)
+        UserProject.create(user_id: user.id, project_id: second_project.id, start_date: DateTime.now - 1, end_date: nil)
+        user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        project_ids << ""
+        project_ids << first_project.id
+        project_ids << second_project.id
+        params = { user: { project_ids: project_ids } }
+        user.add_or_remove_projects(params)
+        expect(user_project.reload.end_date).to eq(Date.today)
+      end
+
+      it 'Project count is one' do
+        project_ids = []
+        user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
+        project_ids << ""
+        params = { user: { project_ids: project_ids } }
+        user.add_or_remove_projects(params)
+        expect(user_project.reload.end_date).to eq(Date.today)
+      end
+
+      it 'Add project : should return false because project id nil' do
+        project_ids = []
+        project_ids << nil
+        return_value = user.add_projects(project_ids)
+        expect(return_value).to eq(false)
+      end
+
+      it 'Remove project : should return false because project id nil' do
+        project_ids = []
+        project_ids << nil
+        return_value = user.remove_projects(project_ids)
+        expect(return_value).to eq(false)
+      end
+    end
+  end
 end

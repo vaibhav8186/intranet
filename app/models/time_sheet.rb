@@ -69,9 +69,23 @@ class TimeSheet
     end
 
     return true if params['command'] == '/daily_status'
+    return false unless timesheet_date_greater_than_assign_project_date(date, params)
     check_date_range(date, params)
   end
   
+  def self.timesheet_date_greater_than_assign_project_date(date, params)
+    split_text = params['text'].split
+    user = load_user(params['user_id'])
+    project = load_project(user, split_text[0])
+    user_project = UserProject.find_by(user_id: user.first.id, project_id: project.id, end_date: nil)
+    if date.to_date < user_project.start_date
+      text = "\`Error :: Not allowed to fill timesheet for this date. As you were not assigned on project for this date\`"
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+      return false
+    end
+    return true
+  end
+
   def self.check_date_range(date, params)
     if Date.parse(date) < 7.days.ago
       text = "\`Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.\`"
@@ -217,7 +231,7 @@ class TimeSheet
     time_sheet_log = []
     total_minutes = 0
     time_sheet_message = 'You worked on'
-    user.first.projects.includes(:time_sheets).each do |project|
+    user.first.worked_on_projects(date, date).includes(:time_sheets).each do |project|
       project.time_sheets.where(user_id: user.first.id, date: date).each do |time_sheet|
         time_sheet_data = []
         from_time = time_sheet.from_time.strftime("%I:%M%p")
@@ -272,7 +286,7 @@ class TimeSheet
     individual_time_sheet_data = {}
     total_minutes = 0
     total_minutes_worked_on_projects = 0
-    user.projects.includes(:time_sheets).each do |project|
+    user.worked_on_projects(params[:from_date], params[:to_date]).includes(:time_sheets).each do |project|
       project.time_sheets.where(user_id: user.id, date: {"$gte" => params[:from_date], "$lte" => params[:to_date]}).order_by(date: :asc).each do |time_sheet|
         time_sheet_data = []
         from_time, to_time = format_time(time_sheet)

@@ -3,12 +3,12 @@ require 'rails_helper'
 RSpec.describe TimeSheet, type: :model do
   context 'Validation' do
     let!(:user) { FactoryGirl.create(:user) }
-    # let!(:user) { user.projects.create(:project)}
+    let!(:project) { FactoryGirl.create(:project) }
     let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
 
     before do
       user.public_profile.slack_handle = USER_ID
-      user.projects.create(name: 'England Hockey', display_name: 'England_Hockey')
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2, end_date: nil)
       user.save
       stub_request(:post, "https://slack.com/api/chat.postMessage")
     end
@@ -17,7 +17,7 @@ RSpec.describe TimeSheet, type: :model do
       params = {
         'user_id' => USER_ID, 
         'channel_id' => CHANNEL_ID, 
-        'text' => "England_Hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
+        'text' => "The_pediatric_network #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
       ret = TimeSheet.parse_timesheet_data(params)
@@ -28,7 +28,7 @@ RSpec.describe TimeSheet, type: :model do
       params = {
         'user_id' => USER_ID,
         'channel_id' => CHANNEL_ID,
-        'text' => "england_hockey #{Date.yesterday}  6 7 abcd efghigk lmnop"
+        'text' => "the_pediatric_network #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
       ret = TimeSheet.parse_timesheet_data(params)
@@ -67,6 +67,17 @@ RSpec.describe TimeSheet, type: :model do
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
           'text' => 'England_Hockey 14-2018  6 7 abcd efgh'
+        }
+        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+      end
+
+      it 'Should return false because date is greater than assigned project date' do
+        project = FactoryGirl.create(:project, name: 'test')
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2)
+        params = {
+          'user_id' => USER_ID,
+          'channel_id' => CHANNEL_ID,
+          'text' => "test #{Date.today - 3}  6 7 abcd efgh"
         }
         expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
       end
@@ -184,10 +195,11 @@ RSpec.describe TimeSheet, type: :model do
 
   context 'Daily timesheet status' do
     let!(:user) { FactoryGirl.create(:user) }
-    let!(:project) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
+    let!(:project) { FactoryGirl.create(:project, name: 'The pediatric network', display_name: 'The_pediatric_network') }
     let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
 
     before do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2, end_date: nil)
       user.public_profile.slack_handle = USER_ID
       user.save
       stub_request(:post, "https://slack.com/api/chat.postMessage")
@@ -205,7 +217,7 @@ RSpec.describe TimeSheet, type: :model do
         }
 
         time_sheets = TimeSheet.parse_daily_status_command(params)
-        expect(time_sheets).to eq("#{time_sheets}")
+        expect(time_sheets).to eq("You worked on *The pediatric network: 1H 00M*. Details are as follow\n\n1. The pediatric network 09:00AM 10:00AM Today I finish the work \n")
       end
 
       it 'Should return false because timesheet record not present' do
@@ -228,17 +240,19 @@ RSpec.describe TimeSheet, type: :model do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
-          'text' => Date.yesterday.to_s
+          'text' => Date.yesterday.to_s,
+          'command' => '/daily_status'
         }
         time_sheets = TimeSheet.parse_daily_status_command(params)
-        expect(time_sheets).to eq("#{time_sheets}")
+        expect(time_sheets).to eq("You worked on *The pediatric network: 1H 00M*. Details are as follow\n\n1. The pediatric network 09:00AM 10:00AM Today I finish the work \n")
       end
 
       it 'Should return false because timesheet record not present' do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
-          'text' => Date.yesterday.to_s
+          'text' => Date.yesterday.to_s,
+          'command' => '/daily_status'
         }
         time_sheets = TimeSheet.parse_daily_status_command(params)
         expect(time_sheets).to eq(false)
@@ -290,7 +304,10 @@ RSpec.describe TimeSheet, type: :model do
   context 'Employee timesheet report' do
     let!(:user) { FactoryGirl.create(:user) }
     let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
-    let!(:project) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
+    let!(:project) { FactoryGirl.create(:project) }
+    before do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2, end_date: nil)
+    end 
 
     it 'Should give the project name' do
       expect(TimeSheet.get_project_name(project.id)).to eq(project.name)
@@ -345,10 +362,12 @@ RSpec.describe TimeSheet, type: :model do
   context 'Individual timesheet report' do
     let!(:user) { FactoryGirl.create(:user) }
     let!(:time_sheet) { FactoryGirl.build(:time_sheet) }
-    let!(:tpn) { user.projects.create(name: 'The pediatric network', display_name: 'The_pediatric_network') }
-    let!(:intranet) { user.projects.create(name: 'Intranet', display_name: 'Intranet') }
+    let!(:tpn) { FactoryGirl.create(:project, name: 'The pediatric network', display_name: 'The_pediatric_network') }
+    let!(:intranet) { FactoryGirl.create(:project, name: 'Intranet', display_name: 'Intranet') }
 
     it 'Should give expected JSON' do
+      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: intranet.id, start_date: DateTime.now, end_date: nil)
       user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')

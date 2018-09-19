@@ -49,9 +49,7 @@ class Project
   slug :name
 
   has_many :time_sheets
-  has_and_belongs_to_many :users
   has_many :user_projects
-  accepts_nested_attributes_for :users
   belongs_to :company
   has_and_belongs_to_many :managers, class_name: 'User', foreign_key: 'manager_ids', inverse_of: :managed_projects
   validates_presence_of :name
@@ -148,7 +146,46 @@ class Project
     end
   end
 
+  def add_or_remove_team_member(params)
+    return_value_of_add_team_member = return_value_of_remove_team_member = true
+    existing_user_ids = UserProject.where(project_id: id, end_date: nil).pluck(:user_id)
+    existing_user_ids.map!(&:to_s)
+    ids_for_add_members = params['project']['user_ids'].present? ? params['project']['user_ids'] - existing_user_ids : []
+    ids_for_remove_members = params['project']['user_ids'].present? ? existing_user_ids - params['project']['user_ids'] : existing_user_ids
+    return_value_of_add_team_member = add_team_member(ids_for_add_members) if ids_for_add_members.present?
+    return_value_of_remove_team_member = remove_team_member(ids_for_remove_members) if ids_for_remove_members.present?
+    return return_value_of_add_team_member, return_value_of_remove_team_member
+  end
+
+  def add_team_member(user_ids)
+    return_value = true
+    user_ids.each do |user_id|
+      return_value = UserProject.create!(user_id: user_id, project_id: id, start_date: DateTime.now, end_date: nil) rescue false  
+      if return_value == false
+        break
+      end
+    end
+    return_value
+  end
+
+  def remove_team_member(user_ids)
+    return_value = true
+    user_ids.each do |user_id|
+      user_project = UserProject.where(user_id: user_id, project_id: id, end_date: nil).first
+      return_value = user_project.update_attributes(end_date: DateTime.now) rescue false
+      if return_value == false
+        break
+      end
+    end
+    return_value
+  end
+
   def self.approved_manager_and_admin
     User.where("$and" => [status: STATUS[2], "$or" => [{role: MANERIAL_ROLE[0]}, {role: MANERIAL_ROLE[1]}]])
+  end
+
+  def users
+    user_id = user_projects.where(end_date: nil).pluck(:user_id)
+    User.in(id: user_id)
   end
 end
