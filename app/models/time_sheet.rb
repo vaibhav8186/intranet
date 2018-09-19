@@ -289,9 +289,10 @@ class TimeSheet
       project_details = {}
       project = load_project_with_id(project_report['_id']['project_id'])
       project_details['project_name'] = project.name
-      project_details['no_of_employee'] = project.users.count
+      project_details['no_of_employee'] = project.users_worked_on_project(from_date, to_date).count
       project_details['total_hours'] = convert_milliseconds_to_hours(project_report['totalSum'])
-      project_details['allocated_hours'] = get_allocated_hours(from_date, to_date)
+      project_details['allocated_hours'] = get_allocated_hours(project, from_date, to_date)
+      project_details['leaves'] = total_leaves_on_project(project, from_date, to_date)
       projects_report_in_json << project_details
       project_details = {}
     end
@@ -355,11 +356,42 @@ class TimeSheet
   end
 
 
-  def self.get_allocated_hours(from_date, to_date)
+  def self.get_allocated_hours(project, from_date, to_date)
+    total_allocated_hourse = 0
+    byebug
+    project.users_worked_on_project(from_date, to_date).each do |user|
+      byebug
+      user_project = user.get_user_projects(from_date, to_date)
+      working_days = 
+        if user_project.end_date.present?
+          byebug
+          if from_date < user_project.end_date
+            get_working_days(user_project.start_date, user_project.end_date)
+          else
+            get_working_days(from_date, user_project.end_date)
+          end
+        else
+          get_working_days(from_date, to_date)
+        end
+      allocated_hours = working_days * WORKED_HOURSE
+      total_allocated_hourse += allocated_hours
+    end
+    total_allocated_hourse
+  end
+
+  def self.get_working_days(from_date, to_date)
     working_days = from_date.business_days_until(to_date)
     no_of_holiday = get_holiday_count(from_date, to_date)
-    working_days -= no_of_holiday
-    working_days * WORKED_HOURSE 
+    working_days -= no_of_holiday     
+  end
+
+  def self.total_leaves_on_project(project, from_date, to_date)
+    total_leaves_count = 0
+    project.users_worked_on_project(from_date, to_date).each do |user|
+      leaves_count = get_user_leaves_count(user, from_date, to_date)
+      total_leaves_count += leaves_count
+    end
+    total_leaves_count
   end
 
   def self.get_holiday_count(from_date, to_date)
@@ -445,8 +477,8 @@ class TimeSheet
       {
         "$match"=>{
           "date"=>{
-            "$gte"=>Date.today-4,
-            "$lte"=>Date.today
+            "$gte"=> from_date,
+            "$lte"=> to_date
           }
         }
       },

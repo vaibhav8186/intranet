@@ -13,6 +13,7 @@
       %th No Of Employee
       %th Total Worked Hours
       %th Allocated Hours
+      %th Leaves
       %tbody
         - @projects_report_in_json.each do |project_report|
           %tr
@@ -20,3 +21,4 @@
             %td= project_report['no_of_employee']
             %td= project_report['total_hours']
             %td= project_report['allocated_hours']
+            %td= project_report['leaves']

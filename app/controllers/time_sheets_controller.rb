@@ -55,7 +55,6 @@ class TimeSheetsController < ApplicationController
 
     @projects_report = TimeSheet.load_projects_report(@from_date.to_date, @to_date.to_date) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
     @projects_report_in_json = TimeSheet.create_projects_report_in_json_format(@projects_report, @from_date.to_date, @to_date.to_date)
-    byebug
   end
 
   private

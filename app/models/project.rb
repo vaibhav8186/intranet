@@ -178,6 +178,11 @@ class Project
     end
   end
 
+  def users_worked_on_project(from_date, to_date)
+    user_ids = time_sheets.where(:date.gte => from_date, :date.lte => to_date).pluck(:user_id).uniq
+    User.in(id: user_ids)
+  end
+
   def self.approved_manager_and_admin
     User.where("$and" => [status: STATUS[2], "$or" => [{role: MANERIAL_ROLE[0]}, {role: MANERIAL_ROLE[1]}]])
   end

@@ -145,6 +145,10 @@ class User
     end
   end
 
+  def get_user_projects(from_date, to_date)
+    
+  end
+
   def project_ids
     project_ids = user_projects.where(end_date: nil).pluck(:project_id)
   end
