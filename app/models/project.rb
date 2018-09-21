@@ -178,17 +178,88 @@ class Project
     end
   end
 
-  def users_worked_on_project(from_date, to_date)
-    user_ids = time_sheets.where(:date.gte => from_date, :date.lte => to_date).pluck(:user_id).uniq
-    User.in(id: user_ids)
-  end
-
   def self.approved_manager_and_admin
     User.where("$and" => [status: STATUS[2], "$or" => [{role: MANERIAL_ROLE[0]}, {role: MANERIAL_ROLE[1]}]])
   end
 
+
   def users
     user_id = user_projects.where(end_date: nil).pluck(:user_id)
     User.in(id: user_id)
+  end
+  
+  def get_user_projects_from_project(from_date, to_date)
+    user_ids = user_projects.where("$or"=>[
+      {
+        "$and"=>[
+          {
+            :start_date.lte=>from_date
+          },
+          {
+            end_date: nil
+          }
+        ]
+      },
+      {
+        "$and"=>[
+          {
+            :start_date.gte=>from_date
+          },
+          {
+            :end_date.lte=>to_date
+          }
+        ]
+      },
+      {
+        "$and"=>[
+          {
+            :start_date.lte=>from_date
+          },
+          {
+            :end_date.lte=>to_date
+          },
+          {
+            :end_date.gte=>from_date
+          }
+        ]
+      },
+      {
+        "$and"=>[
+          {
+            :start_date.gte=>from_date
+          },
+          {
+            :end_date.gte=>to_date
+          },
+          {
+            :start_date.lte=>to_date
+          }
+        ]
+      },
+      {
+        "$and"=>[
+          {
+            :start_date.gte=>from_date
+          },
+          {
+            end_date: nil
+          },
+          {
+            :start_date.lte=>to_date
+          }
+        ]
+      },
+      {
+        "$and"=>[
+          {
+            :start_date.lte=>from_date
+          },
+          {
+            :end_date.gte=>to_date
+          }
+        ]
+      }
+    ]).pluck(:user_id).uniq
+    User.in(id: user_ids)
   end
 end
