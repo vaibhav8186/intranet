@@ -373,7 +373,7 @@ class TimeSheet
   def self.get_working_days(from_date, to_date)
     working_days = from_date.business_days_until(to_date)
     no_of_holiday = get_holiday_count(from_date, to_date)
-    working_days -= no_of_holiday     
+    working_days -= no_of_holiday
   end
 
   def self.total_leaves_on_project(project, from_date, to_date)

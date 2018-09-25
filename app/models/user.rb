@@ -161,11 +161,11 @@ class User
   def get_user_projects_from_user(project_id, from_date, to_date)
     user_projects.where("$and"=>[
         {
-          "$or"=>[
+          "$or" => [
             {
-              "$and"=>[
+              "$and" => [
                 {
-                  :start_date.lte=>from_date
+                  :start_date.lte => from_date
                 },
                 {
                   end_date: nil
@@ -173,61 +173,61 @@ class User
               ]
             },
             {
-              "$and"=>[
+              "$and" => [
                 {
-                  :start_date.gte=>from_date
+                  :start_date.gte => from_date
                 },
                 {
-                  :end_date.lte=>to_date
+                  :end_date.lte => to_date
                 }
               ]
             },
             {
-              "$and"=>[
+              "$and" => [
                 {
-                  :start_date.lte=>from_date
+                  :start_date.lte => from_date
                 },
                 {
-                  :end_date.lte=>to_date
+                  :end_date.lte => to_date
                 },
                 {
-                  :end_date.gte=>from_date
+                  :end_date.gte => from_date
                 }
               ]
             },
             {
-              "$and"=>[
+              "$and" => [
                 {
-                  :start_date.gte=>from_date
+                  :start_date.gte => from_date
                 },
                 {
-                  :end_date.gte=>to_date
+                  :end_date.gte => to_date
                 },
                 {
-                  :start_date.lte=>to_date
+                  :start_date.lte => to_date
                 }
               ]
             },
             {
-              "$and"=>[
+              "$and" => [
                 {
-                  :start_date.gte=>from_date
+                  :start_date.gte => from_date
                 },
                 {
                   end_date: nil
                 },
                 {
-                  :start_date.lte=>to_date
+                  :start_date.lte => to_date
                 }
               ]
             },
             {
-              "$and"=>[
+              "$and" => [
                 {
-                  :start_date.lte=>from_date
+                  :start_date.lte => from_date
                 },
                 {
-                  :end_date.gte=>to_date
+                  :end_date.gte => to_date
                 }
               ]
             }
