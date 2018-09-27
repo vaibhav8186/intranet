@@ -226,8 +226,8 @@ RSpec.describe TimeSheetsController, type: :controller do
       user.time_sheets.create!(user_id: user.id, project_id: deal_signal.id,
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 11:00"),
                               to_time: Time.parse("#{Date.yesterday} 12:00"), description: 'Today I finish the work')
-      params = {user_id: user.id, from_date: Date.yesterday - 1, to_time: Date.today}
-      get :show, id: user.id, user_id: user.reload.id, from_date: Date.yesterday - 1, to_time: Date.today
+      params = {user_id: user.id, from_date: Date.yesterday - 1, to_date: Date.today}
+      get :show, id: user.id, user_id: user.reload.id, from_date: Date.yesterday - 1, to_date: Date.today
       expect(response).to have_http_status(200)
       should render_template(:show)
     end
@@ -263,6 +263,32 @@ RSpec.describe TimeSheetsController, type: :controller do
                               to_time: "10:00", description: 'Today I finish the work')
       params = params = {from_date: Date.today.beginning_of_month.to_s, to_date: Date.today.to_s}
       get :projects_report, params
+      expect(response).to have_http_status(302)
+    end
+  end
+
+  context 'Individual project report' do
+    let!(:user) { FactoryGirl.create(:user, role: 'Admin') }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should success' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id,
+                              date: '10/09/2018'.to_date, from_time: "9:00",
+                              to_time: "10:00", description: 'Today I finish the work')
+      sign_in user
+      get :individual_project_report, id: project.id, from_date: '01/09/2018', to_date: '27/09/2018'
+      expect(response).to have_http_status(200)
+    end
+
+    it 'Should fail because user is not authorized' do
+      user = FactoryGirl.create(:user, role: 'Employee')
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id,
+                              date: '10/09/2018'.to_date, from_time: "9:00",
+                              to_time: "10:00", description: 'Today I finish the work')
+      sign_in user
+      get :individual_project_report, id: project.id, from_date: '01/09/2018', to_date: '27/09/2018'
       expect(response).to have_http_status(302)
     end
   end

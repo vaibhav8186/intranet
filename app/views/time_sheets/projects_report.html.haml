@@ -17,7 +17,7 @@
       %tbody
         - @projects_report_in_json.each do |project_report|
           %tr
-            %td= project_report['project_name']
+            %td= link_to project_report['project_name'], individual_project_report_time_sheet_path(project_report['project_id'], from_date: @from_date, to_date: @to_date)
             %td= project_report['no_of_employee']
             %td= project_report['total_hours']
             %td= project_report['allocated_hours']
