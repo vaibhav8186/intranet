@@ -280,9 +280,11 @@ class TimeSheet
 
   def self.create_projects_report_in_json_format(projects_report, from_date, to_date)
     projects_report_in_json = []
+    project_names = []
     projects_report.each do |project_report|
       project_details = {}
       project = load_project_with_id(project_report['_id']['project_id'])
+      project_names << project.name
       project_details['project_id'] = project.id
       project_details['project_name'] = project.name
       project_details['no_of_employee'] = project.get_user_projects_from_project(from_date, to_date).count
@@ -293,7 +295,8 @@ class TimeSheet
       projects_report_in_json << project_details
       project_details = {}
     end
-    projects_report_in_json
+    project_without_timesheet = get_project_without_timesheet(project_names) if project_names.present?
+    return projects_report_in_json, project_without_timesheet
   end
 
   def self.generate_individual_timesheet_report(user, params)
@@ -484,6 +487,17 @@ class TimeSheet
     hours = total_allocated_hourse % WORKED_HOURSE
     result = hours > 0 ? "#{days} Days #{hours}H (#{total_allocated_hourse}H)" : "#{days} Days (#{total_allocated_hourse}H)"
     result
+  end
+
+  def self.get_project_without_timesheet(project_names)
+    unfilled_timesheet_projects = []
+    Project.not_in(name: project_names).each do |project|
+      project_detail = {}
+      project_detail['project_id'] = project.id
+      project_detail['project_name'] = project.name
+      unfilled_timesheet_projects << project_detail
+    end
+    unfilled_timesheet_projects
   end
 
   def self.get_holiday_count(from_date, to_date)
