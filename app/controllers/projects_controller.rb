@@ -61,7 +61,7 @@ class ProjectsController < ApplicationController
   end
 
   def remove_team_member
-    if params[:role] == 'Manager'
+    if params[:role] == 'manager'
       team_member = @project.managers.find(params[:user_id])
       @project.manager_ids.delete(team_member.id)
     else
@@ -71,11 +71,13 @@ class ProjectsController < ApplicationController
     end
     @project.save
     @users = @project.reload.users
+    @managers = @project.reload.managers
   end
 
   def add_team_member
     @project.add_or_remove_team_member(params)
     @users = @project.reload.users
+    @managers = @project.reload.managers
   end
 
   def generate_code
