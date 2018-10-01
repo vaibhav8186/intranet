@@ -207,14 +207,10 @@ class TimeSheet
     time_sheet_log.join('')
   end
 
-
-  def self.check_time_sheet(user)
-    return false unless user.time_sheets.present?
-  end
-
   def self.search_user_and_send_reminder(users)
     users.each do |user|
-      last_filled_time_sheet_date = user.time_sheets.order(date: :asc).last.date + 1 if time_sheet_present_for_reminder?(user) last_filled_time_sheet_date.nil?
+      last_filled_time_sheet_date = user.time_sheets.order(date: :asc).last.date + 1 if time_sheet_present_for_reminder?(user)
+      next if last_filled_time_sheet_date.nil?
       date_difference = calculate_date_difference(last_filled_time_sheet_date)
       if date_difference < 2 && last_filled_time_sheet_date < Date.today
         next if HolidayList.is_holiday?(last_filled_time_sheet_date)
@@ -238,8 +234,11 @@ class TimeSheet
   def self.time_sheet_present_for_reminder?(user)    
     unless user.time_sheets.present?
       slack_uuid = user.public_profile.slack_handle
-      text = "*Fill your time sheet of yesterday*"
-      send_reminder(slack_uuid, text) unless slack_uuid.blank?
+      message = "You haven't filled the timesheet for yesterday. Go ahead and filled the timesheet."
+      text_for_slack = "*#{message}*"
+      text_for_email = "#{message}"
+      TimesheetRemainderMailer.send_timesheet_reminder_mail(slack_uuid, text_for_email).deliver!
+      send_reminder(slack_uuid, text_for_slack) unless slack_uuid.blank?
       return false
     end
     return true
@@ -370,24 +369,29 @@ class TimeSheet
     "#{hours}:#{minutes}"
   end
 
-  def unfilled_timesheet_present?(user, unfilled_timesheet)
+  def self.unfilled_timesheet_present?(user, unfilled_timesheet)
     if unfilled_timesheet.present?
       slack_handle = user.public_profile.slack_handle
-      text = "*Fill your time sheet from #{unfilled_timesheet.to_date}*"
-      send_reminder(slack_handle, text) unless slack_handle.blank?
+      message1 = "You haven't filled the timesheet for"
+      message2 = "Go ahead and filled the timesheet."
+      text_for_slack = "*#{message1} #{unfilled_timesheet.to_date}. #{message2}*"
+      text_for_email = "#{message1} #{unfilled_timesheet.to_date}. #{message2}"
+      TimesheetRemainderMailer.send_timesheet_reminder_mail(slack_handle, text_for_email).deliver!
+      send_reminder(slack_handle, text_for_slack) unless slack_handle.blank?
       return true
     end
     return false
   end
 
-  def calculate_date_difference(last_filled_time_sheet_date)
+  def self.calculate_date_difference(last_filled_time_sheet_date)
     TimeDifference.between(DateTime.current, DateTime.parse(last_filled_time_sheet_date.to_s)).in_days.round
   end
 
-  def send_reminder(user_id, text)
+  def self.send_reminder(user_id, text)
     resp = JSON.parse(SlackApiService.new.open_direct_message_channel(user_id))
     SlackApiService.new.post_message_to_slack(resp['channel']['id'], text)
     SlackApiService.new.close_direct_message_channel(resp['channel']['id'])
+    sleep 1
   end
 
   def self.load_project(user, display_name)
