@@ -231,34 +231,6 @@ class TimeSheet
     end
   end
 
-  def self.time_sheet_present_for_reminder?(user)    
-    unless user.time_sheets.present?
-      slack_uuid = user.public_profile.slack_handle
-      message = "You haven't filled the timesheet for yesterday. Go ahead and filled the timesheet."
-      text_for_slack = "*#{message}*"
-      text_for_email = "#{message}"
-      TimesheetRemainderMailer.send_timesheet_reminder_mail(slack_uuid, text_for_email).deliver!
-      send_reminder(slack_uuid, text_for_slack) unless slack_uuid.blank?
-      return false
-    end
-    return true
-  end
-
-  def self.user_on_leave?(user, date)
-    return false unless user.leave_applications.present?
-    leave_applications = user.leave_applications.where(:start_at.gte => date)
-    leave_applications.each do |leave_application|
-      return true if date.between?(leave_application.start_at, leave_application.end_at)
-    end
-    return false
-  end
-
-  def self.time_sheet_filled?(user, date)
-    filled_time_sheet_dates = user.time_sheets.pluck(:date)
-    return false unless filled_time_sheet_dates.include?(date)
-    return true
-  end
-
   def self.load_time_sheets(user, date)
     time_sheet_log = []
     total_minutes = 0
@@ -369,10 +341,38 @@ class TimeSheet
     "#{hours}:#{minutes}"
   end
 
+  def self.time_sheet_present_for_reminder?(user)
+    unless user.time_sheets.present?
+      slack_uuid = user.public_profile.slack_handle
+      message = "You haven't filled the timesheet for yesterday. Go ahead and filled the timesheet."
+      text_for_slack = "*#{message}*"
+      text_for_email = "#{message}"
+      TimesheetRemainderMailer.send_timesheet_reminder_mail(slack_uuid, text_for_email).deliver!
+      send_reminder(slack_uuid, text_for_slack) unless slack_uuid.blank?
+      return false
+    end
+    return true
+  end
+
+  def self.user_on_leave?(user, date)
+    return false unless user.leave_applications.present?
+    leave_applications = user.leave_applications.where(:start_at.gte => date)
+    leave_applications.each do |leave_application|
+      return true if date.between?(leave_application.start_at, leave_application.end_at)
+    end
+    return false
+  end
+
+  def self.time_sheet_filled?(user, date)
+    filled_time_sheet_dates = user.time_sheets.pluck(:date)
+    return false unless filled_time_sheet_dates.include?(date)
+    return true
+  end
+
   def self.unfilled_timesheet_present?(user, unfilled_timesheet)
     if unfilled_timesheet.present?
       slack_handle = user.public_profile.slack_handle
-      message1 = "You haven't filled the timesheet for"
+      message1 = "You haven't filled the timesheet from"
       message2 = "Go ahead and filled the timesheet."
       text_for_slack = "*#{message1} #{unfilled_timesheet.to_date}. #{message2}*"
       text_for_email = "#{message1} #{unfilled_timesheet.to_date}. #{message2}"

@@ -1,5 +1,6 @@
 class TimesheetRemainderMailer < ActionMailer::Base
-  default :from => 'intranet@joshsoftware.com'
+  default :from => 'intranet@joshsoftware.com',
+          :reply_to => 'hr@joshsoftware.com'
   
   def send_timesheet_reminder_mail(slack_id, text)
     managers_emails = []
