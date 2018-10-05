@@ -355,6 +355,31 @@ class TimeSheet
     return individual_project_report, project_report
   end
 
+  def self.get_project_and_generate_weekly_report(mananers, from_date, to_date)
+    mananers.each do |manager|
+      weekly_report = []
+      manager.managed_projects.each do |project|
+        total_minutes = 0
+        project.get_user_projects_from_project(from_date, to_date).includes(:time_sheets).each do |user|
+          time_sheet_log = []
+          user.time_sheets.where(project_id: project.id, date: {"$gte" => from_date, "$lte" => to_date}).order_by(date: :asc).each do |time_sheet|
+            working_minutes = calculate_working_minutes(time_sheet)
+            total_minutes += working_minutes
+          end
+          # If employee is remove from project in middle of week then calculate leaves till project's end_date
+          user_projects = user.get_user_projects_from_user(project.id, from_date.to_date, to_date.to_date)
+          total_days_work = convert_hours_to_days(total_worked_in_hours(total_minutes.to_i))
+          leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
+          holidays_count = get_holiday_count(from_date, to_date)
+          time_sheet_log.push(user.name, project.name, total_days_work, leaves_count, holidays_count)
+          weekly_report << time_sheet_log
+          total_minutes = 0
+        end
+      end
+      send_report_through_mail(weekly_report, manager.email) if weekly_report.present?
+    end
+  end
+
   def self.format_time(time_sheet)
     from_time = time_sheet.from_time.strftime("%I:%M%p")
     to_time = time_sheet.to_time.strftime("%I:%M%p")
@@ -379,6 +404,11 @@ class TimeSheet
     total_work_and_leaves['total_work'] = convert_hours_to_days(total_worked_hours)
     total_work_and_leaves['leaves'] = get_user_leaves_count(user, params[:from_date], params[:to_date])
     total_work_and_leaves
+  end
+
+  def self.send_report_through_mail(weekly_report, email)
+    csv = generate_weekly_report_in_csv_format(weekly_report)
+    WeeklyTimesheetReportMailer.send_weekly_timesheet_report(csv, email).deliver!
   end
 
   def self.calculate_working_minutes(time_sheet)
@@ -454,6 +484,18 @@ class TimeSheet
       total_leaves_count += leaves_count
     end
     total_leaves_count
+  end
+
+  def self.generate_weekly_report_in_csv_format(weekly_report)
+    headers = ['Employee name', 'Project name', 'No of days worked', 'Leaves', 'Holidays']
+    weekly_report_in_csv = 
+      CSV.generate(headers: true) do |csv|
+        csv << headers
+        weekly_report.each do |report|
+          csv << report
+        end
+      end
+    weekly_report_in_csv
   end
 
   def self.calculate_hours_and_minutes(total_minutes)
