@@ -344,7 +344,7 @@ class TimeSheet
   def self.time_sheet_present_for_reminder?(user)
     unless user.time_sheets.present?
       slack_uuid = user.public_profile.slack_handle
-      message = "You haven't filled the timesheet for yesterday. Go ahead and fill it now. You can fill timesheet for past 7 days. If it exceeds 7 days, then contact your manager."
+      message = "You haven't filled the timesheet for yesterday. Go ahead and fill it now. You can fill timesheet for past 7 days. If it exceeds 7 days then contact your manager."
       text_for_slack = "*#{message}*"
       text_for_email = "#{message}"
       TimesheetRemainderMailer.send_timesheet_reminder_mail(slack_uuid, text_for_email).deliver!
@@ -373,7 +373,7 @@ class TimeSheet
     if unfilled_timesheet.present?
       slack_handle = user.public_profile.slack_handle
       message1 = "You haven't filled the timesheet from"
-      message2 = "Go ahead and fill it now. You can fill timesheet for past 7 days. If it exceeds 7 days, then contact your manager."
+      message2 = "Go ahead and fill it now. You can fill timesheet for past 7 days. If it exceeds 7 days then contact your manager."
       text_for_slack = "*#{message1} #{unfilled_timesheet.to_date}. #{message2}*"
       text_for_email = "#{message1} #{unfilled_timesheet.to_date}. #{message2}"
       TimesheetRemainderMailer.send_timesheet_reminder_mail(slack_handle, text_for_email).deliver!
