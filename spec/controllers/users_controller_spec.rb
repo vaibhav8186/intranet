@@ -96,6 +96,18 @@ describe UsersController do
       patch :update, id: user.id, user: { project_ids: project_ids }
       expect(user_project.reload.end_date).to eq(Date.today)
     end
+
+    it 'Should give an exception because project id nil' do
+      project_ids = []
+      first_project = FactoryGirl.create(:project, name: 'test1')
+      second_project = FactoryGirl.create(:project, name: 'test2')
+      project_ids << ""
+      project_ids << first_project.id
+      project_ids << second_project.id
+      project_ids << nil
+      patch :update, id: user.id, user: { project_ids: project_ids }
+      expect(flash[:error]).to be_present
+    end
   end
   context "get_feed" do
     before(:each) do

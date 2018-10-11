@@ -146,6 +146,20 @@ describe User do
         user.add_or_remove_projects(params)
         expect(user_project.reload.end_date).to eq(Date.today)
       end
+
+      it 'Add project : should return false because project id nil' do
+        project_ids = []
+        project_ids << nil
+        return_value = user.add_projects(project_ids)
+        expect(return_value).to eq(false)
+      end
+
+      it 'Remove project : should return false because project id nil' do
+        project_ids = []
+        project_ids << nil
+        return_value = user.remove_projects(project_ids)
+        expect(return_value).to eq(false)
+      end
     end
 
     context 'Get user project from user' do
