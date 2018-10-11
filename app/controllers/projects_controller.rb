@@ -61,7 +61,7 @@ class ProjectsController < ApplicationController
   end
 
   def remove_team_member
-    if params[:role] == 'manager'
+    if params[:role] == ROLE[:manager]
       team_member = @project.managers.find(params[:user_id])
       @project.manager_ids.delete(team_member.id)
     else

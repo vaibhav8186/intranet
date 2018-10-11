@@ -154,7 +154,7 @@ describe ProjectsController do
       project.managers << user
       project.save
       user.save
-      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: 'manager'
+      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: ROLE[:manager]
       expect(project.reload.manager_ids.include?(user.id)).to eq(false)
       expect(user.reload.managed_project_ids.include?(project.id)).to eq(false)
     end
@@ -163,7 +163,7 @@ describe ProjectsController do
       user = FactoryGirl.create(:user, role: 'Employee')
       user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
       project.save
-      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: 'team member'
+      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: ROLE[:team_member]
       expect(user_project.reload.end_date).to eq(Date.today)
     end
 
@@ -171,7 +171,7 @@ describe ProjectsController do
       user = FactoryGirl.create(:user, role: 'Manager')
       user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2, end_date: nil)
       project.save
-      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: 'team member'
+      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: ROLE[:team_member]
       expect(user_project.reload.end_date).to eq(Date.today)
     end
 
@@ -179,7 +179,7 @@ describe ProjectsController do
       user = FactoryGirl.create(:user, role: 'Admin')
       project.managers << user
       project.save
-      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: 'manager'
+      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: ROLE[:manager]
       expect(project.reload.manager_ids.include?(user.id)).to eq(false)
       expect(user.reload.managed_project_ids.include?(project.id)).to eq(false)
     end
@@ -188,7 +188,7 @@ describe ProjectsController do
       user = FactoryGirl.create(:user, role: 'Admin')
       user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2, end_date: nil)
       project.save
-      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: 'team member'
+      delete :remove_team_member, :format => :js, id: project.id, user_id: user.id, role: ROLE[:team_member]
       expect(user_project.reload.end_date).to eq(Date.today)
     end
   end
