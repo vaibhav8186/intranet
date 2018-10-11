@@ -572,7 +572,7 @@ RSpec.describe TimeSheet, type: :model do
       expect(projects_report[0]["total_hours"]).to eq("0 Days 1H (1H)")
       expect(projects_report[0]["allocated_hours"]).to eq("12 Days (96H)")
       expect(projects_report[0]["leaves"]).to eq(1)
-      expect(project_without_timesheet.present?).to eq(true)
+      expect(project_without_timesheet.present?).to eq(false)
     end
 
     it 'Should give project without timesheet' do
