@@ -356,13 +356,21 @@ class TimeSheet
   end
 
   def self.get_project_and_generate_weekly_report(mananers, from_date, to_date)
+    
     mananers.each do |manager|
+      unfilled_time_sheet_for_last_week = []
       weekly_report = []
       manager.managed_projects.each do |project|
         total_minutes = 0
         project.get_user_projects_from_project(from_date, to_date).includes(:time_sheets).each do |user|
           time_sheet_log = []
-          user.time_sheets.where(project_id: project.id, date: {"$gte" => from_date, "$lte" => to_date}).order_by(date: :asc).each do |time_sheet|
+          users_without_timesheet = []
+          time_sheets = get_time_sheet_between_range(user, project.id, from_date, to_date)
+          # users_without_timesheet = unfilled_time_sheet_for_last_week(user) unless time_sheets.present?
+          byebug
+          users_without_timesheet.push(user.name, project.name) unless time_sheets.present?
+          unfilled_time_sheet_for_last_week << users_without_timesheet if users_without_timesheet.present?
+          get_time_sheet_between_range(user, project.id, from_date, to_date).each do |time_sheet|
             working_minutes = calculate_working_minutes(time_sheet)
             total_minutes += working_minutes
           end
@@ -376,7 +384,7 @@ class TimeSheet
           total_minutes = 0
         end
       end
-      send_report_through_mail(weekly_report, manager.email) if weekly_report.present?
+      send_report_through_mail(weekly_report, manager.email, unfilled_time_sheet_for_last_week) if weekly_report.present?
     end
   end
 
@@ -406,9 +414,9 @@ class TimeSheet
     total_work_and_leaves
   end
 
-  def self.send_report_through_mail(weekly_report, email)
+  def self.send_report_through_mail(weekly_report, email, users_without_timesheet)
     csv = generate_weekly_report_in_csv_format(weekly_report)
-    WeeklyTimesheetReportMailer.send_weekly_timesheet_report(csv, email).deliver!
+    WeeklyTimesheetReportMailer.send_weekly_timesheet_report(csv, email, users_without_timesheet).deliver!
   end
 
   def self.calculate_working_minutes(time_sheet)
@@ -498,6 +506,12 @@ class TimeSheet
     weekly_report_in_csv
   end
 
+  def self.unfilled_time_sheet_for_last_week(user)
+    users_without_timesheet = []
+    users_without_timesheet << user.name unless users_without_timesheet.include?(user.name)
+    users_without_timesheet
+  end
+
   def self.calculate_hours_and_minutes(total_minutes)
     hours, minutes = conver_minutes_into_hours(total_minutes)
     minutes = '%02i'%minutes
@@ -565,6 +579,10 @@ class TimeSheet
       leaves_count += leave_application.number_of_days
     end
     leaves_count
+  end
+
+  def self.get_time_sheet_between_range(user, project_id, from_date, to_date)
+    user.time_sheets.where(project_id: project_id, date: {"$gte" => from_date, "$lte" => to_date}).order_by(date: :asc)
   end
 
   def self.get_project_name(project_id)
