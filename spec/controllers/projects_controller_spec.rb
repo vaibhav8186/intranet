@@ -70,11 +70,22 @@ describe ProjectsController do
       UserProject.create(user_id: first_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
       UserProject.create(user_id: second_team_member.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
       user_project = UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 1, end_date: nil)
-      user_ids << first_team_member
-      user_ids << second_team_member
+      user_ids << first_team_member.id
+      user_ids << second_team_member.id
 
       patch :update, id: project.id, project: {user_ids: user_ids, update_project: 'update_project'}
       expect(user_project.reload.end_date).to eq(Date.today)
+    end
+
+    it 'Should give an exception because project id nil' do
+      user_ids = []
+      first_team_member = FactoryGirl.create(:user)
+      second_team_member = FactoryGirl.create(:user)
+      user_ids << first_team_member.id
+      user_ids << second_team_member.id
+      user_ids << nil
+      patch :update, id: project.id, project: {user_ids: user_ids, update_project: 'update_project'}
+      expect(flash[:error]).to be_present
     end
   end
 
