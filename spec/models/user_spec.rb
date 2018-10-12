@@ -146,6 +146,57 @@ describe User do
         user.add_or_remove_projects(params)
         expect(user_project.reload.end_date).to eq(Date.today)
       end
+
+      it 'Add project : should return false because project id nil' do
+        project_ids = []
+        project_ids << nil
+        return_value = user.add_projects(project_ids)
+        expect(return_value).to eq(false)
+      end
+
+      it 'Remove project : should return false because project id nil' do
+        project_ids = []
+        project_ids << nil
+        return_value = user.remove_projects(project_ids)
+        expect(return_value).to eq(false)
+      end
+    end
+  end
+  
+  context 'Get managers emails' do
+    let!(:user) { FactoryGirl.create(:user) }
+
+    it 'Should give the managers emails of particular user' do
+      project = FactoryGirl.create(:project)
+      manager_one = FactoryGirl.create(:user, role: 'Manager')
+      manager_two = FactoryGirl.create(:user, role: 'Manager')
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 2, end_date: nil)
+      project.managers << manager_one
+      project.managers << manager_two
+      managers_emails = user.get_managers_emails
+      expect(managers_emails.count).to eq(2)
+      expect(managers_emails[0]).to eq(managers_emails[0])
+      expect(managers_emails[1]).to eq(managers_emails[1])
+    end
+
+    it 'Should skip the email if already added' do
+      project_one = FactoryGirl.create(:project)
+      project_two = FactoryGirl.create(:project, name: 'test')
+      UserProject.create(user_id: user.id, project_id: project_one.id, start_date: Date.today - 2, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: project_two.id, start_date: Date.today - 2, end_date: nil)
+      manager = FactoryGirl.create(:user, role: 'Manager')
+      project_one.managers << manager
+      project_two.managers << manager
+      managers_emails = user.get_managers_emails
+      expect(managers_emails.count).to eq(1)
+      expect(managers_emails[0]).to eq(managers_emails[0])
+    end
+
+    it 'Should not give the managers emails if manager is not assigned to project' do
+      project = FactoryGirl.create(:project)
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 2, end_date: nil)
+      managers_emails = user.get_managers_emails
+      expect(managers_emails.count).to eq(0)
     end
 
     context 'Get user project from user' do

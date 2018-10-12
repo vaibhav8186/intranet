@@ -31,8 +31,14 @@ class ProjectsController < ApplicationController
   end
 
   def update
-    @project.add_or_remove_team_member(params) if params['project']['update_project'].present?
-    update_obj(@project, safe_params, projects_path)
+    return_value_of_add_team_member = return_value_of_remove_team_member = true
+    return_value_of_add_team_member, return_value_of_remove_team_member = @project.add_or_remove_team_member(params) if params['project']['update_project'].present?
+    if return_value_of_add_team_member && return_value_of_remove_team_member
+      update_obj(@project, safe_params, projects_path)
+    else
+      flash[:error] = "Error unable to add or remove team member"
+      render 'edit'
+    end
   end
 
   def show
@@ -55,7 +61,7 @@ class ProjectsController < ApplicationController
   end
 
   def remove_team_member
-    if params[:role] == 'Manager'
+    if params[:role] == ROLE[:manager]
       team_member = @project.managers.find(params[:user_id])
       @project.manager_ids.delete(team_member.id)
     else
@@ -65,11 +71,13 @@ class ProjectsController < ApplicationController
     end
     @project.save
     @users = @project.reload.users
+    @managers = @project.reload.managers
   end
 
   def add_team_member
     @project.add_or_remove_team_member(params)
     @users = @project.reload.users
+    @managers = @project.reload.managers
   end
 
   def generate_code

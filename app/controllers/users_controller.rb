@@ -26,12 +26,17 @@ class UsersController < ApplicationController
   end
 
   def update
+    return_value_of_add_project = return_value_of_remove_project = true
     @user.attributes =  user_params
-    @user.add_or_remove_projects(params) if params[:user][:project_ids].present?
-    if @user.save
-      flash.notice = 'Profile updated Succesfully'
+    return_value_of_add_project, return_value_of_remove_project = @user.add_or_remove_projects(params) if params[:user][:project_ids].present?
+    if return_value_of_add_project && return_value_of_remove_project
+      if @user.save
+        flash.notice = 'Profile updated Succesfully'
+      else
+        flash[:error] = "Error #{@user.generate_errors_message}"
+      end
     else
-      flash[:error] = "Error #{@user.generate_errors_message}"
+      flash[:error] = "Error unable to add or remove project"
     end
     redirect_to public_profile_user_path(@user)
   end

@@ -114,6 +114,20 @@ describe Project do
         expect(user_project.reload.end_date).to eq(Date.today)
       end
     end
+
+    it 'Add team member : should return false because user id nil' do
+      user_ids = []
+      user_ids << nil
+      return_value = project.add_team_member(user_ids)
+      expect(return_value).to eq(false)
+    end
+
+    it 'Remove team member : should return false because user id nil' do
+      user_ids = []
+      user_ids << nil
+      return_value = project.remove_team_member(user_ids)
+      expect(return_value).to eq(false)
+    end
   end
 
   context 'Users' do

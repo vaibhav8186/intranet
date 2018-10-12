@@ -147,16 +147,20 @@ RSpec.describe TimeSheet, type: :model do
 
     before do
       user.public_profile.slack_handle = USER_ID
+      user.save
+      stub_request(:post, "https://slack.com/api/chat.postMessage")
     end
 
-    context 'check timesheet' do
-      it 'Should return false because timesheet is not present' do
-        expect(TimeSheet.check_time_sheet(user)).to eq(false)
-      end
-
-      it 'should return true because timesheet is present' do
-        user.time_sheets.create(date: 1.days.ago, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
-        expect(TimeSheet.check_time_sheet(user)).to eq(true)
+    context 'success' do
+      it 'Should give the message to fill timesheet' do
+        project = FactoryGirl.create(:project)
+        UserProject.create(user_id: project.id, project_id: project.id, start_date: Date.today - 2, end_date: nil)
+        user.time_sheets.create(date: 2.days.ago, from_time: '9:00', to_time: '10:00', description: 'call')
+        expect(HolidayList.is_holiday?(user.time_sheets[0].date + 1)).to eq(false)
+        expect(TimeSheet.time_sheet_present_for_reminder?(user)).to eq(true)
+        expect(TimeSheet.user_on_leave?(user, user.time_sheets[0].date + 1)).to eq(false)
+        expect(TimeSheet.time_sheet_filled?(user, user.time_sheets[0].date + 1)).to eq(false)
+        expect(TimeSheet.unfilled_timesheet_present?(user, user.time_sheets[0].date + 1)).to eq(true)
       end
     end
 
@@ -879,6 +883,93 @@ RSpec.describe TimeSheet, type: :model do
         resp = JSON.parse(response.body)
         expect(resp['ok']).to eq(false)
         expect(resp['error']).to eq('user_not_found')
+      end
+    end
+
+    context 'im open API' do
+      it 'Should success to create new channel and closed that channel' do
+        new_channel = ''
+        slack_params_for_im_open = {
+          'token' => SLACK_API_TOKEN,
+          'user' => USER_ID
+        }
+
+        VCR.use_cassette('success_im_open') do
+          response = Net::HTTP.post_form(URI("https://slack.com/api/im.open"), slack_params_for_im_open)
+          resp = JSON.parse(response.body)
+          new_channel = resp['channel']['id']
+          expect(resp['ok']).to eq(true)
+          expect(new_channel.present?).to eq(true)
+        end
+
+        slack_params_for_im_close = {
+          'token' => SLACK_API_TOKEN,
+          'channel' => new_channel
+        }
+
+        VCR.use_cassette('success_im_close') do
+          response = Net::HTTP.post_form(URI("https://slack.com/api/im.close"), slack_params_for_im_close)
+          resp = JSON.parse(response.body)
+          expect(resp['ok']).to eq(true)
+        end
+      end
+
+      context 'failure' do
+        it 'Should fail im open api because user id invalid' do
+          slack_params = {
+            'token' => SLACK_API_TOKEN,
+            'user' => 'ABC123'
+          }
+
+          VCR.use_cassette 'failure_im_open_reason_invalid_user_id' do
+            response = Net::HTTP.post_form(URI("https://slack.com/api/im.open"), slack_params)
+            resp = JSON.parse(response.body)
+            expect(resp['ok']).to eq(false)
+            expect(resp['error']).to eq('user_not_found')
+          end
+        end
+
+        it 'Should fail im open api because invalid slack token' do
+          slack_params = {
+            'token' => 'abcd12 wert345 qsrt432',
+            'user' => 'ABC123'
+          }
+
+          VCR.use_cassette 'failure_im_open_reason_invalid_slack_token' do
+            response = Net::HTTP.post_form(URI("https://slack.com/api/im.open"), slack_params)
+            resp = JSON.parse(response.body)
+            expect(resp['ok']).to eq(false)
+            expect(resp['error']).to eq('invalid_auth')
+          end
+        end
+
+        it 'Should fail im close api because invalid channel id' do
+          slack_params = {
+            'token' => SLACK_API_TOKEN,
+            'channel' => 'DE12345'
+          }
+
+          VCR.use_cassette 'failure_im_close_reason_invlid_channel_id' do
+            response = Net::HTTP.post_form(URI("https://slack.com/api/im.close"), slack_params)
+            resp = JSON.parse(response.body)
+            expect(resp['ok']).to eq(false)
+            expect(resp['error']).to eq('channel_not_found')
+          end
+        end
+
+        it 'Should fail im close api because invalid slack token' do
+          slack_params = {
+            'token' => 'abcd12 wert345 qsrt432',
+            'channel' => 'DE12345'
+          }
+
+          VCR.use_cassette 'failure_im_close_reason_invlid_slack_token' do
+            response = Net::HTTP.post_form(URI("https://slack.com/api/im.close"), slack_params)
+            resp = JSON.parse(response.body)
+            expect(resp['ok']).to eq(false)
+            expect(resp['error']).to eq('invalid_auth')
+          end
+        end
       end
     end
   end

@@ -68,3 +68,7 @@ end
 every :monday, :at => '09:30am' do
   rake "weekly_timesheet_report"
 end
+
+every :day, :at => '9:30am' do
+  rake "timesheet_reminder:ts_reminders"
+end
