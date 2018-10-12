@@ -49,6 +49,7 @@ class User
   scope :approved, ->{where(status: 'approved')}  
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :interviewers, ->{where(:role.ne => 'Intern')}
+  scope :get_approved_users_to_send_reminder, ->{where('$and' => ['$or' => [{ role: 'Intern' }, { role: 'Employee' }], status: STATUS[2]])}
   #Public profile will be nil when admin invite user for sign in with only email address 
   delegate :name, to: :public_profile, :allow_nil => true
 
@@ -146,6 +147,17 @@ class User
       end
     end
     return_value
+  end
+
+  def get_managers_emails
+    managers_emails = []
+    projects.each do |project|
+      project.managers.each do |manager|
+        next if managers_emails.include?(manager.email)
+        managers_emails << manager.email
+      end
+    end
+    managers_emails
   end
 
   def project_ids

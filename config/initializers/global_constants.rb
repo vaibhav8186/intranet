@@ -16,6 +16,6 @@ CONTACT_ROLE =  ["Accountant", "Technical", "Accountant and Technical"]
 
 SLACK_API_TOKEN = ENV['SLACK_API_TOKEN']
 
-ROLE = { employee: 'Employee', HR: 'HR' }
+ROLE = { employee: 'Employee', HR: 'HR', manager: 'manager', team_member: 'team member' }
 
 EMAIL_ADDRESS = /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
