@@ -363,15 +363,9 @@ class TimeSheet
         total_minutes = 0
         project.get_user_projects_from_project(from_date, to_date).includes(:time_sheets).each do |user|
           time_sheet_log = []
-          users_without_timesheet = []
-          time_sheets = get_time_sheet_between_range(user, project.id, from_date, to_date)
-          users_without_timesheet.push(user.name, project.name) unless time_sheets.present?
+          minutes, users_without_timesheet = get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
+          total_minutes += minutes
           unfilled_time_sheet_report << users_without_timesheet if users_without_timesheet.present?
-          time_sheets.each do |time_sheet|
-            working_minutes = calculate_working_minutes(time_sheet)
-            total_minutes += working_minutes
-          end
-          # If employee is remove from project in middle of week then calculate leaves till project's end_date
           user_projects = user.get_user_projects_from_user(project.id, from_date.to_date, to_date.to_date)
           total_days_work = convert_hours_to_days(total_worked_in_hours(total_minutes.to_i))
           leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
@@ -383,6 +377,20 @@ class TimeSheet
       end
       send_report_through_mail(weekly_report, manager.email, unfilled_time_sheet_report) if weekly_report.present?
     end
+  end
+
+  def self.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
+    users_without_timesheet = []
+    total_minutes = 0
+    user_projects = user.get_user_projects_from_user(project.id, from_date.to_date, to_date.to_date)
+    leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
+    time_sheets = get_time_sheet_between_range(user, project.id, from_date, to_date)
+    users_without_timesheet.push(user.name, project.name, leaves_count) unless time_sheets.present?
+    time_sheets.each do |time_sheet|
+      working_minutes = calculate_working_minutes(time_sheet)
+      total_minutes += working_minutes
+    end
+    return total_minutes, users_without_timesheet
   end
 
   def self.format_time(time_sheet)

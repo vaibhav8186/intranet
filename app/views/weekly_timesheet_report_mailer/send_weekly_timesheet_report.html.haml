@@ -4,11 +4,12 @@
   %br
   %table{:border => "1"}
     %tr
-      %th Name
-      %th Project name
+      %th{:style=> "padding: 4px;"} Name
+      %th{:style=> "padding: 4px;"} Project name
+      %th{:style=> "padding: 4px;"} Leaves
     - @unfilled_time_sheet_report.each do |reports|
       %tr
         -reports.each do |report|
-          %td= report
+          %td{:style=> "padding: 4px;"}= report
 %br
 %span Weekly timesheet report from #{Date.today - 7.days} to #{Date.today - 1.days}

@@ -425,7 +425,7 @@ RSpec.describe TimeSheet, type: :model do
         expect(allocated_hours).to eq("8 Days (64H)")
       end
 
-      it 'These is one hoiliday' do
+      it 'These is one holiday' do
         UserProject.create(user_id: user.id, project_id: project.id, start_date: '05/09/2018'.to_date, end_date: '15/09/2018'.to_date)
         TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
         HolidayList.create(holiday_date: '13/09/2018'.to_date, reason: 'test')
@@ -572,7 +572,7 @@ RSpec.describe TimeSheet, type: :model do
       expect(projects_report[0]["total_hours"]).to eq("0 Days 1H (1H)")
       expect(projects_report[0]["allocated_hours"]).to eq("12 Days (96H)")
       expect(projects_report[0]["leaves"]).to eq(1)
-      expect(project_without_timesheet.present?).to eq(true)
+      expect(project_without_timesheet.present?).to eq(false)
     end
 
     it 'Should give project without timesheet' do
@@ -635,6 +635,64 @@ RSpec.describe TimeSheet, type: :model do
       expect(project_report['total_worked_hours']).to eq('1 Days 6H (14H)')
       expect(project_report['total_allocated_hourse']).to eq('41 Days (328H)')
       expect(project_report['total_leaves']).to eq(5)
+    end
+  end
+
+  context 'Generate weekly report in csv format' do
+    it 'Should generate csv' do
+      weekly_report = [
+                        ['employee_test1', 'project_test1', '0 days 6H (6H)', 1, 0], 
+                        ['employee_test2', 'project_test2', '0 days 3H (3H)', 2, 1]
+                      ]
+      csv = TimeSheet.generate_weekly_report_in_csv_format(weekly_report)
+      expect(csv).to eq("Employee name,Project name,No of days worked,Leaves,Holidays\nemployee_test1,project_test1,0 days 6H (6H),1,0\nemployee_test2,project_test2,0 days 3H (3H),2,1\n")
+    end
+  end
+
+  context 'Get holiday count' do
+    it 'Should give holiday count' do
+      HolidayList.create(holiday_date: '09/10/2018'.to_date, reason: 'test')
+      HolidayList.create(holiday_date: '11/10/2018'.to_date, reason: 'test')
+      from_date = '05/10/2018'.to_date
+      to_date = '15/10/2018'.to_date
+      count = TimeSheet.get_holiday_count(from_date, to_date)
+      expect(count).to eq(2)
+    end
+
+    it 'Should give holiday count 0' do
+      HolidayList.create(holiday_date: '09/10/2018'.to_date, reason: 'test')
+      HolidayList.create(holiday_date: '11/10/2018'.to_date, reason: 'test')
+      from_date = '01/10/2018'.to_date
+      to_date = '05/10/2018'.to_date
+      count = TimeSheet.get_holiday_count(from_date, to_date)
+      expect(count).to eq(0)
+    end
+  end
+
+  context 'Get time sheet and calculate total minutes' do
+    let!(:user) { FactoryGirl.create(:user) }
+    it 'Should give total working minutes' do
+      project = FactoryGirl.create(:project)
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 10"), to_time: Time.parse("#{Date.today} 11"), description: 'test')
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 11"), to_time: Time.parse("#{Date.today} 12"), description: 'test')
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 12"), to_time: Time.parse("#{Date.today} 13"), description: 'test')
+
+      from_date = Date.today - 3
+      to_date = Date.today + 3
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
+      expect(total_minutes).to eq(180.0)
+    end
+
+    it 'Should give the users without project' do
+      project = FactoryGirl.create(:project)
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      user.leave_applications.create(start_at: Date.today - 1, end_at: Date.today- 1, contact_number: '1234567890', number_of_days: 1, reason: 'test')
+      from_date = Date.today - 3
+      to_date = Date.today + 3
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
+      expect(total_minutes).to eq(0)
+      expect(users_without_timesheet).to eq(["fname lname", "The pediatric network", 1])
     end
   end
 
