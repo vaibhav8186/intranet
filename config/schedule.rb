@@ -64,3 +64,7 @@ end
 every :day, :at => '10:00pm' do
   rake "database_backup"
 end
+
+every :monday, :at => '09:30am' do
+  rake "weekly_timesheet_report"
+end
