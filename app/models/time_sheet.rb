@@ -356,9 +356,8 @@ class TimeSheet
   end
 
   def self.get_project_and_generate_weekly_report(mananers, from_date, to_date)
-    
     mananers.each do |manager|
-      unfilled_time_sheet_for_last_week = []
+      unfilled_time_sheet_report = []
       weekly_report = []
       manager.managed_projects.each do |project|
         total_minutes = 0
@@ -366,11 +365,9 @@ class TimeSheet
           time_sheet_log = []
           users_without_timesheet = []
           time_sheets = get_time_sheet_between_range(user, project.id, from_date, to_date)
-          # users_without_timesheet = unfilled_time_sheet_for_last_week(user) unless time_sheets.present?
-          byebug
           users_without_timesheet.push(user.name, project.name) unless time_sheets.present?
-          unfilled_time_sheet_for_last_week << users_without_timesheet if users_without_timesheet.present?
-          get_time_sheet_between_range(user, project.id, from_date, to_date).each do |time_sheet|
+          unfilled_time_sheet_report << users_without_timesheet if users_without_timesheet.present?
+          time_sheets.each do |time_sheet|
             working_minutes = calculate_working_minutes(time_sheet)
             total_minutes += working_minutes
           end
@@ -384,7 +381,7 @@ class TimeSheet
           total_minutes = 0
         end
       end
-      send_report_through_mail(weekly_report, manager.email, unfilled_time_sheet_for_last_week) if weekly_report.present?
+      send_report_through_mail(weekly_report, manager.email, unfilled_time_sheet_report) if weekly_report.present?
     end
   end
 
@@ -414,9 +411,9 @@ class TimeSheet
     total_work_and_leaves
   end
 
-  def self.send_report_through_mail(weekly_report, email, users_without_timesheet)
+  def self.send_report_through_mail(weekly_report, email, unfilled_time_sheet_report)
     csv = generate_weekly_report_in_csv_format(weekly_report)
-    WeeklyTimesheetReportMailer.send_weekly_timesheet_report(csv, email, users_without_timesheet).deliver!
+    WeeklyTimesheetReportMailer.send_weekly_timesheet_report(csv, email, unfilled_time_sheet_report).deliver!
   end
 
   def self.calculate_working_minutes(time_sheet)
