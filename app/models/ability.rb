@@ -37,6 +37,7 @@ class Ability
     can [:public_profile, :private_profile], User
     can :read, [Policy, Attachment, Vendor]
     can :read, Project
+    can [:index, :update], TimeSheet
   end
 
   def employee_abilities(user_id)
@@ -50,6 +51,7 @@ class Ability
     can [:new, :create], LeaveApplication, user_id: user_id
     can [:edit, :update], LeaveApplication, leave_status: 'Pending', user_id: user_id
     can :read, Vendor
+    can [:index, :update], TimeSheet
   end
 
   def admin_abilities

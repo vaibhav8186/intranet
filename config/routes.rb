@@ -91,10 +91,15 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :time_sheets, only: [:create, :index, :show] do
+  resources :time_sheets, only: [:create, :index, :show, :edit, :update] do
     post :daily_status, on: :collection
+
     get :projects_report, on: :collection
     get :individual_project_report, on: :member
+
+    collection do
+      get 'users_timesheet/:user_id' => 'time_sheets#users_timesheet', as: 'users'
+    end
   end
 
   resources :slack, only: :projects do

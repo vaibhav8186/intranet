@@ -14,6 +14,7 @@ class TimeSheet
   belongs_to :project
 
   validates :from_time, :to_time, uniqueness: { scope: [:user_id, :date], message: "record is already present" }
+  validates :project_id, :date, :from_time, :to_time, :description, presence: true
 
   MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
@@ -89,12 +90,16 @@ class TimeSheet
 
   def self.check_date_range(date, params)
     if Date.parse(date) < 7.days.ago
-      text = "\`Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.\`"
-      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+      message = 'Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.'
+      text = "\`#{message}\`"
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text) unless params == 'update'
+      return false, message if params == 'update'
       return false
     elsif Date.parse(date) > Date.today
-      text = "\`Error :: Can't fill the timesheet for future date.\`"
-      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+      message = "Error :: Can't fill the timesheet for future date."
+      text = "\`#{message}\`"
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text) unless params == 'update'
+      return false, message if params == 'update'
       return false
     end
     return true
@@ -110,7 +115,7 @@ class TimeSheet
   end
 
   def self.timesheet_greater_than_current_time?(from_time, to_time, params)
-    if from_time >= Time.now || to_time >= Time.now
+    if from_time >= Time.now || to_time > Time.now
       text = "\`Error :: Can't fill the timesheet for future time.\`"
       SlackApiService.new.post_message_to_slack(params['channel_id'], text)
       return false
@@ -155,6 +160,24 @@ class TimeSheet
       description = description + string + ' '
     end
     description
+  end
+
+  def self.check_validation_while_updating_time_sheet(params)
+    params['time_sheets_attributes'].each do |key, value|
+      from_time = value['date'] + ' ' + value['from_time']
+      to_time = value['date'] + ' ' + value['to_time']
+      return_value, message = check_date_range(value['date'], 'update')
+      unless return_value
+        return message
+      end
+      unless from_time_greater_than_to_time?(from_time, to_time, 'update')
+        return 'Error :: From time must be less than to time' 
+      end
+      unless timesheet_greater_than_current_time?(from_time, to_time, 'update')
+        return "Error :: Can't fill the timesheet for future time."
+      end
+    end
+    return true
   end
 
   def self.time_sheets(split_text, params)
@@ -259,11 +282,11 @@ class TimeSheet
     timesheet_reports = []
     timesheets.each do |timesheet|
       user = load_user_with_id(timesheet['_id'])
-      users_timesheet_data = {}
+      users_timesheet_data              = {}
       users_timesheet_data['user_name'] = user.name
-      users_timesheet_data['user_id'] = user.id
+      users_timesheet_data['user_id']   = user.id
       project_details = []
-      total_work = 0
+      total_work      = 0
       timesheet['working_status'].each do |working_status|
         project_info = {}
         project_info['project_name'] = get_project_name(working_status['project_id'])
@@ -312,26 +335,28 @@ class TimeSheet
       project.time_sheets.where(user_id: user.id, date: {"$gte" => params[:from_date], "$lte" => params[:to_date]}).order_by(date: :asc).each do |time_sheet|
         time_sheet_data = []
         from_time, to_time = format_time(time_sheet)
-        working_minutes = calculate_working_minutes(time_sheet)
-        hours, minutes = calculate_hours_and_minutes(working_minutes.to_i)
-        time_sheet_data.push(time_sheet.date, from_time, to_time,"#{hours}:#{minutes}", time_sheet.description)
-        time_sheet_log << time_sheet_data
-        total_minutes += working_minutes
+        working_minutes    = calculate_working_minutes(time_sheet)
+        hours, minutes     = calculate_hours_and_minutes(working_minutes.to_i)
+        time_sheet_record  = create_time_sheet_record(time_sheet, from_time, to_time, "#{hours}:#{minutes}")
+        time_sheet_data    << time_sheet_record
+        time_sheet_log     << time_sheet_data
+        total_minutes      += working_minutes
         total_minutes_worked_on_projects += working_minutes
         time_sheet_data = []
       end
       working_details = {}
       hours, minitues = calculate_hours_and_minutes(total_minutes.to_i)
-      working_details['daily_status'] = time_sheet_log
-      working_details['total_worked_hours'] = "#{hours}:#{minitues}"
+      working_details['daily_status']               = time_sheet_log
+      working_details['total_worked_hours']         = "#{hours}:#{minitues}"
       individual_time_sheet_data["#{project.name}"] = working_details
-      time_sheet_log = []
+      time_sheet_log  = []
       working_details = {}
-      total_minutes = 0
+      total_minutes   = 0
     end
     total_work_and_leaves = get_total_work_and_leaves(user, params, total_minutes_worked_on_projects.to_i)
     return individual_time_sheet_data, total_work_and_leaves
   end
+
 
   def self.generate_individual_project_report(project, params)
     individual_project_report = {}
@@ -395,6 +420,17 @@ class TimeSheet
       total_minutes += working_minutes
     end
     return total_minutes, users_without_timesheet
+
+  def self.create_time_sheet_record(time_sheet, from_time, to_time, total_worked)
+    time_sheet_record = {}
+    time_sheet_record['id'] = time_sheet.id
+    time_sheet_record['date'] = time_sheet.date
+    time_sheet_record['from_time'] = from_time
+    time_sheet_record['to_time'] = to_time
+    time_sheet_record['total_worked'] = total_worked
+    time_sheet_record['description'] = time_sheet.description
+    time_sheet_record
+
   end
 
   def self.format_time(time_sheet)
@@ -662,6 +698,10 @@ class TimeSheet
 
   def self.get_project_name(project_id)
     Project.find_by(id: project_id).name
+  end
+
+  def self.get_time_sheet_of_date(user, date)
+    user.time_sheets.where(date: date.to_date)
   end
 
   def self.from_date_less_than_to_date?(from_date, to_date)

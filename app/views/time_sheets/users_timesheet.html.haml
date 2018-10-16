@@ -23,7 +23,11 @@
         -value["daily_status"].each do |ds|
           %tr
             -ds.each do |record|
-              %td= record
+              %td= link_to record['date'], edit_time_sheet_path(@user.id, time_sheet_date: record['date'], time_sheet_id: record['id'])
+              %td= record['from_time']
+              %td= record['to_time']
+              %td= record['total_worked']
+              %td= record['description']
         -total_worked_hours = value["total_worked_hours"]
     %h5 Time on #{key} #{total_worked_hours}
     %br

@@ -125,4 +125,5 @@ gem "byebug"
 gem "rest-client"
 gem 'time_difference'
 gem 'slack-ruby-bot'
-gem 'business_time'
+gem 'momentjs-rails', '>= 2.9.0'
+gem 'bootstrap3-datetimepicker-rails', '~> 4.17.47'

@@ -763,6 +763,8 @@ GEM
     bootstrap-sass (3.3.5)
       autoprefixer-rails (>= 5.0.0.1)
       sass (>= 3.2.19)
+    bootstrap3-datetimepicker-rails (4.17.47)
+      momentjs-rails (>= 2.8.1)
     brakeman (2.6.2)
       erubis (~> 2.6)
       fastercsv (~> 1.5)
@@ -929,6 +931,8 @@ GEM
     mini_mime (1.0.0)
     mini_portile2 (2.1.0)
     minitest (5.10.3)
+    momentjs-rails (2.20.1)
+      railties (>= 3.1)
     mongoid (4.0.2)
       activemodel (~> 4.0)
       moped (~> 2.0.0)
@@ -1216,6 +1220,7 @@ DEPENDENCIES
   better_errors
   binding_of_caller
   bootstrap-datepicker-rails (= 1.3.0.2)
+  bootstrap3-datetimepicker-rails (~> 4.17.47)
   brakeman
   bson_ext
   business_time
@@ -1242,6 +1247,7 @@ DEPENDENCIES
   mina!
   mina_extensions!
   mini_magick
+  momentjs-rails (>= 2.9.0)
   mongoid
   mongoid-grid_fs!
   mongoid-history!

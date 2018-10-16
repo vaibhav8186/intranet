@@ -36,7 +36,7 @@ RSpec.describe TimeSheet, type: :model do
     end
 
     it 'Should fails because record is already present' do
-      time_sheet = FactoryGirl.create(:time_sheet)
+      time_sheet = FactoryGirl.create(:time_sheet, project_id: project.id)
       time_sheet_test = FactoryGirl.build(:time_sheet)
       time_sheet_test.save
       expect(time_sheet_test.errors.full_messages).to eq(["From time record is already present", "To time record is already present"])
@@ -165,10 +165,11 @@ RSpec.describe TimeSheet, type: :model do
     end
 
     context 'timesheet filled' do
+      let!(:project) { FactoryGirl.create(:project) }
       before do
-        user.time_sheets.create(date: Date.today - 1, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
-        user.time_sheets.create(date: Date.today - 2, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
-        user.time_sheets.create(date: Date.today - 3, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
+        user.time_sheets.create(project_id: project.id, date: Date.today - 1, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
+        user.time_sheets.create(project_id: project.id, date: Date.today - 2, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
+        user.time_sheets.create(project_id: project.id, date: Date.today - 3, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
       end
 
       it 'Should return false because timesheet is not filled' do
@@ -383,16 +384,17 @@ RSpec.describe TimeSheet, type: :model do
       individual_time_sheet_data, total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(user, params)
       expect(individual_time_sheet_data.count).to eq(2)
       expect(individual_time_sheet_data['The pediatric network']['total_worked_hours']).to eq('1:00')
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0].to_s).to eq(DateTime.yesterday.to_s)
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][1]).to eq('09:00AM')
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][2]).to eq('10:00AM')
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][3]).to eq('1:00')
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][4]).to eq('Today I finish the work')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['date'].to_s).to eq(DateTime.yesterday.to_s)
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['from_time']).to eq('09:00AM')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['to_time']).to eq('10:00AM')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['total_worked']).to eq('1:00')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['description']).to eq('Today I finish the work')
       expect(individual_time_sheet_data['Intranet']['total_worked_hours']).to eq('2:30')
       expect(total_work_and_leaves['total_work']).to eq('0 Days 4H (4H)')
       expect(total_work_and_leaves['leaves']).to eq(0)
     end
   end
+
 
   context 'Get allocated hours' do
     let!(:user) { FactoryGirl.create(:user) }
@@ -697,6 +699,49 @@ RSpec.describe TimeSheet, type: :model do
       total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
       expect(total_minutes).to eq(0)
       expect(users_without_timesheet).to eq(["fname lname", "The pediatric network", 1])
+
+  context 'Update timesheet' do
+    let!(:user) { FactoryGirl.create(:user, email: 'abc@joshsoftware.com', role: 'Admin') }
+    let!(:project) { FactoryGirl.create(:project, name: 'test') }
+
+    it 'Should give return value true' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 09:00 AM", "to_time"=>"#{Date.today - 1} - 11:15 AM", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      return_value = TimeSheet.check_validation_while_updating_time_sheet(params)
+      expect(return_value).to eq(true)
+    end
+
+    it 'Should give error from time less than to time' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 10:00 AM", "to_time"=>"#{Date.today - 1} - 09:00 AM", "description"=>"", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      return_value = TimeSheet.check_validation_while_updating_time_sheet(params)
+      expect(return_value).to eq("Error :: From time must be less than to time")
+    end
+
+    it 'Should give error not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"", "date"=>"#{Date.today - 10}", "from_time"=>"#{Date.today - 1} - 09:00 AM", "to_time"=>"#{Date.today - 1} - 11:15 AM", "description"=>"", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      return_value = TimeSheet.check_validation_while_updating_time_sheet(params)
+      expect(return_value).to eq('Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.')
+    end
+    
+    it "Should give error can't fill the timesheet for future time" do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"", "date"=>"#{Date.today}", "from_time"=>"#{DateTime.now + 3.minutes}", "to_time"=>"#{DateTime.now + 5.minutes}", "description"=>"", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      return_value = TimeSheet.check_validation_while_updating_time_sheet(params)
+      expect(return_value).to eq("Error :: Can't fill the timesheet for future time.")
+    end
+
+    it 'Should give error not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"", "date"=>"#{Date.today - 10}", "from_time"=>"#{DateTime.now + 3.minutes}", "to_time"=>"#{DateTime.now + 5.minutes}", "description"=>"", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      return_value = TimeSheet.check_validation_while_updating_time_sheet(params)
+      expect(return_value).to eq('Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.')
     end
   end
 

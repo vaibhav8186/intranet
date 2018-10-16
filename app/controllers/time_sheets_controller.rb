@@ -20,11 +20,39 @@ class TimeSheetsController < ApplicationController
     @timesheet_report = TimeSheet.generete_employee_timesheet_report(timesheets, @from_date.to_date, @to_date.to_date) if timesheets.present?
   end
 
-  def show
+  def users_timesheet
+    redirect_to request.referrer if current_user.role.in?(['Employee', 'Intern']) && current_user.id.to_s != params[:user_id]
+    
     @from_date = params[:from_date]
-    @to_date = params[:to_date]
-    @user = User.find(params[:id])
+    @to_date   = params[:to_date]
+    @user      = User.find(params[:user_id])
     @individual_timesheet_report, @total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(@user, params) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
+  end
+
+  def edit
+    @user = User.find_by(id: params[:id])
+    @time_sheet_date = params[:time_sheet_date]
+    @time_sheet = TimeSheet.find_by(id: params[:time_sheet_id])
+    authorize! :edit, @time_sheet
+  end
+
+  def update
+    @from_date = Date.today.beginning_of_month.to_s
+    @to_date = Date.today.to_s
+    @user = User.find_by(id: params['user']['id'])
+    return_value = TimeSheet.check_validation_while_updating_time_sheet(update_timesheet_params)
+    if return_value == true
+      if @user.update_attributes(update_timesheet_params)
+        flash.notice = 'Timesheet Updated Succesfully'
+        redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
+      else
+        flash[:error] = "Failed To Update Timesheet" 
+        render 'edit'
+      end
+    else
+      flash[:error] = return_value
+      render 'edit' 
+    end
   end
 
   def create_time_sheet(time_sheets_data, params)
@@ -77,5 +105,9 @@ class TimeSheetsController < ApplicationController
 
   def load_user
     @user = User.where('public_profile.slack_handle' => params['user_id']).first unless params['user_id'].nil?
+  end
+  
+  def update_timesheet_params
+    params.require(:user).permit!
   end
 end

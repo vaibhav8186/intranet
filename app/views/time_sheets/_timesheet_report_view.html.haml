@@ -10,7 +10,14 @@
       - if timesheet_reports.present?
         - timesheet_reports.each do |timesheet_report|
           %tr
-            %td{:rowspan => "#{timesheet_report['project_details'].count}"}= link_to timesheet_report['user_name'], time_sheet_path(timesheet_report['user_id'], timesheet_report: timesheet_report, from_date: @from_date, to_date: @to_date)
+            %td{:rowspan => "#{timesheet_report['project_details'].count}"}
+              - if current_user.role.in?(['Admin', 'Manager', 'HR']) || timesheet_report['user_id'] == current_user.id
+                = link_to timesheet_report['user_name'], users_time_sheets_path(timesheet_report['user_id'], 
+                  timesheet_report: timesheet_report,
+                  from_date: @from_date, 
+                  to_date: @to_date)
+              - else 
+                = timesheet_report['user_name']    
             %td= "#{timesheet_report['project_details'].first["project_name"]}"
             %td= "#{timesheet_report['project_details'].first["worked_hours"]}"
             %td{:rowspan => "#{timesheet_report['project_details'].count}"}= "#{timesheet_report['total_worked_hours']}"
