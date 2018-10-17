@@ -1,13 +1,14 @@
 = form_tag time_sheet_path, method: 'GET', class: 'form form-inline' do
-  %label From Date:
-  =text_field_tag :from_date, params[:from_date], class: "form-control datepicker", placeholder: "From Date", value: @from_date, style: "height: 2em;"
-  %label To Date:
-  =text_field_tag :to_date, params[:to_date], class: "form-control datepicker", placeholder: "To Date", value: @to_date, style: "height: 2em;"
-  = submit_tag "Search", class: "btn btn-primary"
+  .search-form
+    %label From Date:
+    =text_field_tag :from_date, params[:from_date], class: "form-control datepicker", placeholder: "From Date", value: @from_date
+    %label To Date:
+    =text_field_tag :to_date, params[:to_date], class: "form-control datepicker", placeholder: "To Date", value: @to_date
+    = submit_tag "Search", class: "btn btn-primary"
 
 
 %h1 #{@user.name} 
-%span{style: "font-size: 1.1em"} (Work spend : #{@total_work_and_leaves['total_work']} Leaves: #{@total_work_and_leaves['leaves']})
+%span{class: "text-height"} (Work spend : #{@total_work_and_leaves['total_work']} Leaves: #{@total_work_and_leaves['leaves']})
 .form-horizontal
   -@individual_timesheet_report.each do |key, value|
     %h2 #{key}
