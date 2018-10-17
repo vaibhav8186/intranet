@@ -44,12 +44,3 @@
 :css
   .img-rounded{width: 4%; position: absolute; top: 26px; z-index: 1; margin-left: 10px;height: 36px;}
   .user-name{position: relative; left: 40px;}
-
-:javascript
-$(document).ready(function(){
-  $('.dropdown-submenu a.test').on("click", function(e){
-    $(this).next('ul').toggle();
-    e.stopPropagation();
-    e.preventDefault();
-  });
-});
