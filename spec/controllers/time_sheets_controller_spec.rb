@@ -306,7 +306,7 @@ RSpec.describe TimeSheetsController, type: :controller do
       expect(time_sheet.reload.description).to eq("testing API and call with client")
     end
 
-    it 'Should not update timesheet because description is nil' do
+    it 'Should not update timesheet because description is not present' do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
       params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 09:00 AM", "to_time"=>"#{Date.today - 1} - 11:15 AM", "description"=>"", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
@@ -314,6 +314,34 @@ RSpec.describe TimeSheetsController, type: :controller do
       expect(flash[:error]).to be_present
       should render_template(:edit)
     end
+
+    it 'Should not update timesheet because from time is not present' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"", "to_time"=>"#{Date.today - 1} - 11:15 AM", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      post :update, id: user.id, user: params
+      expect(flash[:error]).to be_present
+      should render_template(:edit)
+    end
+
+    it 'Should not update timesheet because date is not present' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"", "from_time"=>"#{Date.today - 1} - 09:00 AM", "to_time"=>"#{Date.today - 1} - 11:15 AM", "description"=>"Testing", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      post :update, id: user.id, user: params
+      expect(flash[:error]).to be_present
+      should render_template(:edit)
+    end
+
+    it 'Should not update timesheet because to time is not present' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 09:00 AM", "to_time"=>"", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      post :update, id: user.id, user: params
+      expect(flash[:error]).to be_present
+      should render_template(:edit)
+    end
+
 
     it 'Should not update Timesheet because timesheet date is less than 7 days' do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)

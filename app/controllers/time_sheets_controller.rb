@@ -31,8 +31,7 @@ class TimeSheetsController < ApplicationController
 
   def edit
     @user = User.find_by(id: params[:id])
-    @time_sheet_date = params[:time_sheet_date]
-    @time_sheet = TimeSheet.find_by(id: params[:time_sheet_id])
+    @time_sheets = @user.time_sheets.where(date: params[:time_sheet_date].to_date)
   end
 
   def update
@@ -46,7 +45,7 @@ class TimeSheetsController < ApplicationController
         flash.notice = 'Timesheet Updated Succesfully'
         redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
       else
-        flash[:error] = @user.errors.full_messages
+        flash[:error] = @user.errors.full_messages.to_s
         render 'edit'
       end
     else

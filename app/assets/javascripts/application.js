@@ -45,7 +45,7 @@ $('.datepicker').datepicker({
 
 $(document).ready(function(){
 $('.datetimepicker1').datetimepicker({
-  format: 'DD/MM/YYYY HH:mm',
+  format: 'DD/MM/YYYY HH:mm'
 })
 })
 

@@ -51,7 +51,7 @@ class Ability
     can [:new, :create], LeaveApplication, user_id: user_id
     can [:edit, :update], LeaveApplication, leave_status: 'Pending', user_id: user_id
     can :read, Vendor
-    can [:index, :update], TimeSheet
+    can [:index], TimeSheet
   end
 
   def admin_abilities
