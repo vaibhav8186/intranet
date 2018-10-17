@@ -660,6 +660,12 @@ class TimeSheet
     return false
   end
 
+  def self.get_errors_message(user, time_sheet_date)
+    user.time_sheets.where(date: time_sheet_date.to_date).each do |time_sheet|
+      return time_sheet.errors.full_messages if time_sheet.errors.full_messages.present?
+    end
+  end
+
   def self.calculate_date_difference(last_filled_time_sheet_date)
     TimeDifference.between(DateTime.current, DateTime.parse(last_filled_time_sheet_date.to_s)).in_days.round
   end

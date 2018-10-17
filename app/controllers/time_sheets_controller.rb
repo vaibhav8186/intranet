@@ -33,20 +33,20 @@ class TimeSheetsController < ApplicationController
     @user = User.find_by(id: params[:id])
     @time_sheet_date = params[:time_sheet_date]
     @time_sheet = TimeSheet.find_by(id: params[:time_sheet_id])
-    authorize! :edit, @time_sheet
   end
 
   def update
     @from_date = Date.today.beginning_of_month.to_s
     @to_date = Date.today.to_s
     @user = User.find_by(id: params['user']['id'])
+    @time_sheet_date = params[:time_sheet_date]
     return_value = TimeSheet.check_validation_while_updating_time_sheet(update_timesheet_params)
     if return_value == true
       if @user.update_attributes(update_timesheet_params)
         flash.notice = 'Timesheet Updated Succesfully'
         redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
       else
-        flash[:error] = "Failed To Update Timesheet" 
+        flash[:error] = @user.errors.full_messages
         render 'edit'
       end
     else

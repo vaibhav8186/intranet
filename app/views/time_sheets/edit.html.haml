@@ -1,5 +1,5 @@
 %h1 Edit Your TimeSheet
-= simple_nested_form_for(@user, :url => time_sheet_path(@user), :html => { method: 'PUT', class: "form-horizontal", multipart: true}) do |f|
+= simple_nested_form_for(@user, :url => time_sheet_path(@user, time_sheet_date: @time_sheet_date), :html => { method: 'PUT', class: "form-horizontal", multipart: true}) do |f|
   = f.fields_for :time_sheets, TimeSheet.get_time_sheet_of_date(@user, @time_sheet_date) do |time_sheet|
     = time_sheet.label :Project
     = time_sheet.select :project_id, options_for_select(@user.projects.pluck(:name, :id), time_sheet.object.project_id), {}, {style: "margin-left: 21px; margin-bottom: 16px"}
