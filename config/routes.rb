@@ -91,7 +91,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :time_sheets, only: [:create, :index, :show, :edit, :update] do
+  resources :time_sheets, only: [:create, :index, :edit, :update] do
     post :daily_status, on: :collection
 
     get :projects_report, on: :collection
