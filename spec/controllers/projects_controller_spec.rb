@@ -192,4 +192,29 @@ describe ProjectsController do
       expect(user_project.reload.end_date).to eq(Date.today)
     end
   end
+
+  context 'Delete timesheet if project deleted' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project_one) { FactoryGirl.create(:project) }
+    let!(:project_two) { FactoryGirl.create(:project, name: 'test') }
+
+    it 'Should delete timesheet' do
+      UserProject.create(user_id: user.id, project_id: project_one.id, start_date: Date.today - 5, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: project_two.id, start_date: Date.today - 5, end_date: nil)
+
+      TimeSheet.create(user_id: user.id, project_id: project_two.id, date: Date.today - 1, from_time: DateTime.now - 1, to_time: DateTime.now - 1 + 1.hours, description: 'Call')
+      TimeSheet.create(user_id: user.id, project_id: project_one.id, date: Date.today - 1, from_time: DateTime.now - 1, to_time: DateTime.now - 1 + 1.hours, description: 'Call')
+      TimeSheet.create(user_id: user.id, project_id: project_one.id, date: Date.today - 2, from_time: DateTime.now - 2, to_time: DateTime.now - 2 + 1.hours, description: 'Call')
+      TimeSheet.create(user_id: user.id, project_id: project_one.id, date: Date.today - 3, from_time: DateTime.now - 3, to_time: DateTime.now - 3 + 1.hours, description: 'Call')
+      TimeSheet.create(user_id: user.id, project_id: project_one.id, date: Date.today - 4, from_time: DateTime.now - 4, to_time: DateTime.now - 4 + 1.hours, description: 'Call')
+
+      project_one_id = project_one.id
+      project_name = project_one.name
+
+      delete :destroy, id: project_one.id
+
+      expect(Project.all.pluck(:name).include?(project_name)).to eq(false)
+      expect(TimeSheet.all.pluck(:project_id).include?(project_one_id)).to eq(false)
+    end
+  end
 end
