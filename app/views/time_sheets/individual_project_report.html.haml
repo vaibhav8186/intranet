@@ -10,14 +10,14 @@
     %h1 #{@project.name}
     %span{class: "text-height"} (Total worked hours: #{@project_report['total_worked_hours']} Total allocated hours: #{@project_report['total_allocated_hourse']} Leaves: #{@project_report['total_leaves']})
     .form-horizontal
-      -@individual_project_report.each do |key, value|
-        %h3 #{key}
-        %table.table
-          %th Total Worked Hours
-          %th Allocated Hours
-          %th Leaves
-          %tbody
-            %tr
+      %table.table
+        %th Employee Name
+        %th Total Worked Hours
+        %th Allocated Hours
+        %th Leaves
+        -@individual_project_report.each do |key, value|
+          %tr
+            %td #{key}
             - value.each do |record|
               %td= record["total_work"]
               %td= record["allocated_hours"]

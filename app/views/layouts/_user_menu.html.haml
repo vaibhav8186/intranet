@@ -30,7 +30,7 @@
   %li.hide
     = link_to "Calendar", main_app.calendar_path
   - if can? :manage, TimeSheet
-    %li.dropdown-submenu
+    %li.dropdown-submenu.pull-left
       %a.test{:href => "#", :tabindex => "-1"} 
         TimeSheet Report
       %ul.dropdown-menu

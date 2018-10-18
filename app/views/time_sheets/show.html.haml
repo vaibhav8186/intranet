@@ -8,7 +8,7 @@
 
 
 %h1 #{@user.name} 
-%span{class: "text-height"} (Work spend : #{@total_work_and_leaves['total_work']} Leaves: #{@total_work_and_leaves['leaves']})
+%span{class: "text-height"} (Total Time : #{@total_work_and_leaves['total_work']} Leaves: #{@total_work_and_leaves['leaves']})
 .form-horizontal
   -@individual_timesheet_report.each do |key, value|
     %h2 #{key}
@@ -25,5 +25,5 @@
             -ds.each do |record|
               %td= record
         -total_worked_hours = value["total_worked_hours"]
-    %h5 Total work on #{key} #{total_worked_hours}
+    %h5 Time on #{key} #{total_worked_hours}
     %br
