@@ -18,7 +18,7 @@ class TimeSheet
   MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
   MAX_DAILY_STATUS_COMMAND_LENGTH = 2
-  WORKED_HOURSE = 8
+  ALLOCATED_HOURS = 8
 
   def self.parse_timesheet_data(params)
     split_text = params['text'].split
@@ -475,7 +475,7 @@ class TimeSheet
             get_working_days(from_date, to_date)
           end
         end
-      allocated_hours = working_days * WORKED_HOURSE
+      allocated_hours = working_days * ALLOCATED_HOURS
       total_allocated_hours += allocated_hours
     end
     total_allocated_hours
@@ -548,8 +548,8 @@ class TimeSheet
 
   def self.convert_hours_to_days(total_allocated_hourse)
     days = hours = 0
-    days = total_allocated_hourse / WORKED_HOURSE
-    hours = total_allocated_hourse % WORKED_HOURSE
+    days = total_allocated_hourse / ALLOCATED_HOURS
+    hours = total_allocated_hourse % ALLOCATED_HOURS
     result = hours > 0 ? "#{days} Days #{hours}H (#{total_allocated_hourse}H)" : "#{days} Days (#{total_allocated_hourse}H)"
     result
   end
