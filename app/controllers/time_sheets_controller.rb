@@ -1,6 +1,7 @@
 class TimeSheetsController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  load_and_authorize_resource only: :index
+  load_and_authorize_resource only: [:index, :projects_report]
+  load_and_authorize_resource only: :individual_project_report, :class => Project
   before_action :user_exists?, only: [:create, :daily_status]
 
   def create
@@ -23,7 +24,7 @@ class TimeSheetsController < ApplicationController
     @from_date = params[:from_date]
     @to_date = params[:to_date]
     @user = User.find(params[:id])
-    @individual_timesheet_report, @total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(@user, params)
+    @individual_timesheet_report, @total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(@user, params) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
   end
 
   def create_time_sheet(time_sheets_data, params)
@@ -47,6 +48,20 @@ class TimeSheetsController < ApplicationController
     else
       render json: { text: 'Fail' }, status: :unprocessable_entity
     end
+  end
+
+  def projects_report
+    @from_date = params[:from_date] || Date.today.beginning_of_month.to_s
+    @to_date = params[:to_date] || Date.today.to_s
+    @projects_report = TimeSheet.load_projects_report(@from_date.to_date, @to_date.to_date) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
+    @projects_report_in_json, @project_without_timesheet = TimeSheet.create_projects_report_in_json_format(@projects_report, @from_date.to_date, @to_date.to_date)
+  end
+
+  def individual_project_report
+    @from_date = params[:from_date]
+    @to_date = params[:to_date]
+    @project = Project.find(params[:id])
+    @individual_project_report, @project_report = TimeSheet.generate_individual_project_report(@project, params) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
   end
 
   private

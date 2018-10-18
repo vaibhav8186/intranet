@@ -321,13 +321,13 @@ RSpec.describe TimeSheet, type: :model do
       milliseconds = 7200000
       local_var_hours = milliseconds / (1000 * 60 * 60)
       local_var_minutes = milliseconds / (1000 * 60) % 60
-      local_var_minutes = '%02i'%local_var_minutes
-      expect(TimeSheet.convert_milliseconds_to_hours(milliseconds)).to eq("#{local_var_hours}:#{local_var_minutes}") 
+      local_var_hours = local_var_minutes < 30 ? local_var_hours : local_var_hours + 1
+      expect(TimeSheet.convert_milliseconds_to_hours(milliseconds)).to eq(local_var_hours) 
     end
 
     it 'Should give the user leaves count' do
       FactoryGirl.create(:leave_application, user_id: user.id)
-      expect(TimeSheet.get_user_leaves_count(user, Date.today + 2, Date.today + 3)).to eq(1)
+      expect(TimeSheet.get_user_leaves_count(user, Date.today + 2, Date.today + 3)).to eq(2)
     end
 
     it 'Should return true because from date is less than to date' do
@@ -357,8 +357,8 @@ RSpec.describe TimeSheet, type: :model do
       timesheet_data = TimeSheet.generete_employee_timesheet_report(timesheet_record, Date.yesterday - 1, Date.today)
       expect(timesheet_data[0]['user_name']).to eq('fname lname')
       expect(timesheet_data[0]['project_details'][0]['project_name']).to eq('The pediatric network')
-      expect(timesheet_data[0]['project_details'][0]['worked_hours']).to eq('1:00')
-      expect(timesheet_data[0]['total_worked_hours']).to eq('1:00')
+      expect(timesheet_data[0]['project_details'][0]['worked_hours']).to eq('0 Days 1H (1H)')
+      expect(timesheet_data[0]['total_worked_hours']).to eq('0 Days 1H (1H)')
       expect(timesheet_data[0]['leaves']).to eq(0)
     end
   end
@@ -370,8 +370,8 @@ RSpec.describe TimeSheet, type: :model do
     let!(:intranet) { FactoryGirl.create(:project, name: 'Intranet', display_name: 'Intranet') }
 
     it 'Should give expected JSON' do
-      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now, end_date: nil)
-      UserProject.create(user_id: user.id, project_id: intranet.id, start_date: DateTime.now, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now - 2, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: intranet.id, start_date: DateTime.now - 2, end_date: nil)
       user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
@@ -389,8 +389,314 @@ RSpec.describe TimeSheet, type: :model do
       expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][3]).to eq('1:00')
       expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][4]).to eq('Today I finish the work')
       expect(individual_time_sheet_data['Intranet']['total_worked_hours']).to eq('2:30')
-      expect(total_work_and_leaves['total_work']).to eq('3:30')
+      expect(total_work_and_leaves['total_work']).to eq('0 Days 4H (4H)')
       expect(total_work_and_leaves['leaves']).to eq(0)
+    end
+  end
+
+  context 'Get allocated hours' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project, name: 'test') }
+
+    context 'Should calculate the allcated hours between from date and to date' do
+      it 'These no any holiday' do
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+        TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        from_date = '01/09/2018'.to_date
+        to_date = '20/09/2018'.to_date
+        allocated_hours = TimeSheet.get_allocated_hours(project, from_date, to_date)
+        expect(allocated_hours).to eq("13 Days (104H)")
+      end
+
+      it 'These is one haliday' do
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+        TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        HolidayList.create(holiday_date: '13/09/2018'.to_date, reason: 'test')
+        from_date = '01/09/2018'.to_date
+        to_date = '20/09/2018'.to_date
+        allocated_hours = TimeSheet.get_allocated_hours(project, from_date, to_date)
+        expect(allocated_hours).to eq("12 Days (96H)")
+      end
+    end
+
+    context "Should calculate allocated hours from user's project start date and end date" do
+      it 'These no any holiday' do
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: '05/09/2018'.to_date, end_date: '15/09/2018'.to_date)
+        TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        from_date = '01/09/2018'.to_date
+        to_date = '20/09/2018'.to_date
+        allocated_hours = TimeSheet.get_allocated_hours(project, from_date, to_date)
+        expect(allocated_hours).to eq("8 Days (64H)")
+      end
+
+      it 'These is one holiday' do
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: '05/09/2018'.to_date, end_date: '15/09/2018'.to_date)
+        TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        HolidayList.create(holiday_date: '13/09/2018'.to_date, reason: 'test')
+        from_date = '01/09/2018'.to_date
+        to_date = '20/09/2018'.to_date
+        allocated_hours = TimeSheet.get_allocated_hours(project, from_date, to_date)
+        expect(allocated_hours).to eq("7 Days (56H)")
+      end
+    end
+
+    context "Should calculate allocated hours from user's project start date and searching to date" do
+      it 'These no any holiday' do
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: '06/09/2018'.to_date, end_date: nil)
+        TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        from_date = '01/09/2018'.to_date
+        to_date = '20/09/2018'.to_date
+        allocated_hours = TimeSheet.get_allocated_hours(project, from_date, to_date)
+        expect(allocated_hours).to eq("10 Days (80H)")
+      end
+
+      it 'These is one holiday' do
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: '06/09/2018'.to_date, end_date: nil)
+        TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        HolidayList.create(holiday_date: '13/09/2018'.to_date, reason: 'test')
+        from_date = '01/09/2018'.to_date
+        to_date = '20/09/2018'.to_date
+        allocated_hours = TimeSheet.get_allocated_hours(project, from_date, to_date)
+        expect(allocated_hours).to eq("9 Days (72H)")
+      end
+    end
+
+    context "Should calculate allocated hours from searching start date and user's project end date" do
+      it 'These is no any holiday' do
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: '06/09/2018')
+        TimeSheet.create(user_id: user.id, project_id: project.id, date: '04/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        from_date = '01/09/2018'.to_date
+        to_date = '20/09/2018'.to_date
+        allocated_hours = TimeSheet.get_allocated_hours(project, from_date, to_date)
+        expect(allocated_hours).to eq("3 Days (24H)")
+      end
+
+      it 'These is one holiday' do
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: '06/09/2018')
+        TimeSheet.create(user_id: user.id, project_id: project.id, date: '04/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        HolidayList.create(holiday_date: '05/09/2018'.to_date, reason: 'test')
+        from_date = '01/09/2018'.to_date
+        to_date = '20/09/2018'.to_date
+        allocated_hours = TimeSheet.get_allocated_hours(project, from_date, to_date)
+        expect(allocated_hours).to eq("2 Days (16H)")
+      end
+    end
+
+    context 'Above all scenario' do
+      let!(:user_one) { FactoryGirl.create(:user) }
+      let!(:user_two) { FactoryGirl.create(:user) }
+      let!(:user_three) { FactoryGirl.create(:user) }
+      let!(:user_four) { FactoryGirl.create(:user) }
+
+      it 'Should calculate correct allocated hours' do
+        UserProject.create(user_id: user_one.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+        UserProject.create(user_id: user_two.id, project_id: project.id, start_date: '05/09/2018'.to_date, end_date: '15/09/2018'.to_date)
+        UserProject.create(user_id: user_three.id, project_id: project.id, start_date: '06/09/2018'.to_date, end_date: nil)
+        UserProject.create(user_id: user_four.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: '06/09/2018')
+
+        TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        TimeSheet.create(user_id: user_two.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '10:00', to_time: '11:00', description: 'Discuss new story')
+        TimeSheet.create(user_id: user_three.id, project_id: project.id, date: '11/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+        TimeSheet.create(user_id: user_four.id, project_id: project.id, date: '04/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+
+        HolidayList.create(holiday_date: '05/09/2018'.to_date, reason: 'test')
+        from_date = '01/09/2018'.to_date
+        to_date = '20/09/2018'.to_date
+        allocated_hours = TimeSheet.get_allocated_hours(project, from_date, to_date)
+        expect(allocated_hours).to eq("31 Days (248H)")
+      end
+    end
+  end
+
+  context 'get leaves count' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project, name: 'test') }
+
+    it 'Should calculate leaves between from date and to date' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1)
+      from_date = '01/09/2018'.to_date
+      to_date = '20/09/2018'.to_date
+      leave_count = TimeSheet.get_leaves(project, from_date, to_date)
+      expect(leave_count).to eq(1)
+    end
+
+    it "Should calculate leaves from user's project start date and end date" do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: '05/09/2018'.to_date, end_date: '15/09/2018'.to_date)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1)
+      from_date = '01/09/2018'.to_date
+      to_date = '20/09/2018'.to_date
+      leave_count = TimeSheet.get_leaves(project, from_date, to_date)
+      expect(leave_count).to eq(2)
+    end
+
+    it "Should calculate leaves from user's project start date and searching to date" do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: '06/09/2018'.to_date, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+      from_date = '01/09/2018'.to_date
+      to_date = '20/09/2018'.to_date
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1)
+      leave_count = TimeSheet.get_leaves(project, from_date, to_date)
+      expect(leave_count).to eq(2)
+    end
+
+    it "Should calculate leaves from searching start date and user's project end date" do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: '06/09/2018')
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: '04/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+      from_date = '01/09/2018'.to_date
+      to_date = '20/09/2018'.to_date
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '03/09/2018', end_at: '03/09/2018', number_of_days: 1)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1)
+      leave_count = TimeSheet.get_leaves(project, from_date, to_date)
+      expect(leave_count).to eq(1)
+    end
+  end
+
+  context 'Project report' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should give expected project report' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+      HolidayList.create(holiday_date: '13/09/2018'.to_date, reason: 'test')
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1)
+
+      from_date = '01/09/2018'.to_date
+      to_date = '20/09/2018'.to_date
+      load_projects_report = TimeSheet.load_projects_report(from_date, to_date)
+      projects_report, project_without_timesheet = TimeSheet.create_projects_report_in_json_format(load_projects_report, from_date, to_date)
+
+      expect(projects_report[0]["project_name"]).to eq("The pediatric network")
+      expect(projects_report[0]["no_of_employee"]).to eq(1)
+      expect(projects_report[0]["total_hours"]).to eq("0 Days 1H (1H)")
+      expect(projects_report[0]["allocated_hours"]).to eq("12 Days (96H)")
+      expect(projects_report[0]["leaves"]).to eq(1)
+      expect(project_without_timesheet.present?).to eq(false)
+    end
+
+    it 'Should give project without timesheet' do
+      test_project_one = FactoryGirl.create(:project, name: 'test1')
+      test_project_two = FactoryGirl.create(:project, name: 'test2')
+
+      UserProject.create(user_id: user.id, project_id: test_project_one.id, start_date: '24/09/2018', end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
+      from_date = '01/09/2018'.to_date
+      to_date = '30/09/2018'.to_date
+      load_projects_report = TimeSheet.load_projects_report(from_date, to_date)
+      projects_report, project_without_timesheet = TimeSheet.create_projects_report_in_json_format(load_projects_report, from_date, to_date)
+      expect(project_without_timesheet.count).to eq(2)
+      expect(project_without_timesheet[0]['project_name']).to eq('test1')
+      expect(project_without_timesheet[1]['project_name']).to eq('test2')
+    end
+  end
+
+  context 'Individual project report' do
+    let!(:user_one) { FactoryGirl.create(:user) }
+    let!(:user_two) { FactoryGirl.create(:user) }
+    let!(:user_three) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    it 'Should give the expected project report' do
+      user_one.public_profile.update_attributes(first_name: 'test1_user', last_name: 'test1_user')
+      user_two.public_profile.update_attributes(first_name: 'test2_user', last_name: 'test2_user')
+      user_three.public_profile.update_attributes(first_name: 'test3_user', last_name: 'test3_user')
+      UserProject.create(user_id: user_one.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+      UserProject.create(user_id: user_two.id, project_id: project.id, start_date: '06/09/2018'.to_date, end_date: nil)
+      UserProject.create(user_id: user_three.id, project_id: project.id, start_date: '10/09/2018'.to_date, end_date: '20/09/2018'.to_date)
+
+      TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '03/09/2018', from_time: Time.parse('03/09/2018 8'), to_time: Time.parse('03/09/2018 10'), description: 'Worked on test cases')
+      TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '03/09/2018', from_time: Time.parse('03/09/2018 10'), to_time: Time.parse('03/09/2018 12'), description: 'Worked on test cases')
+      TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '04/09/2018', from_time: Time.parse('04/09/2018 9'), to_time: Time.parse('04/09/2018 10'), description: 'Worked on test cases')
+      FactoryGirl.create(:leave_application, user_id: user_one.id, start_at: '5/09/2018', end_at: '7/09/2018', number_of_days: 3)
+
+      TimeSheet.create(user_id: user_two.id, project_id: project.id, date: '06/09/2018', from_time: Time.parse('06/09/2018 9'), to_time: Time.parse('06/09/2018 11'), description: 'Worked on test cases')
+      TimeSheet.create(user_id: user_two.id, project_id: project.id, date: '07/09/2018', from_time: Time.parse('07/09/2018 9'), to_time: Time.parse('07/09/2018 11'), description: 'Worked on test cases')
+
+      TimeSheet.create(user_id: user_three.id, project_id: project.id, date: '10/09/2018', from_time: Time.parse('10/09/2018 9'), to_time: Time.parse('10/09/2018 11'), description: 'Review the code')
+      TimeSheet.create(user_id: user_three.id, project_id: project.id, date: '14/09/2018', from_time: Time.parse('14/09/2018 9'), to_time: Time.parse('14/09/2018 12'), description: 'call')
+      FactoryGirl.create(:leave_application, user_id: user_three.id, start_at: '12/09/2018', end_at: '13/09/2018', number_of_days: 2)
+
+      params = { from_date: '1/09/2018', to_date: '27/09/2018' }
+      individual_project_report, project_report = TimeSheet.generate_individual_project_report(project, params)
+
+      expect(individual_project_report['test1_user test1_user'][0]['total_work']).to eq('0 Days 5H (5H)')
+      expect(individual_project_report['test1_user test1_user'][0]['allocated_hours']).to eq('18 Days (144H)')
+      expect(individual_project_report['test1_user test1_user'][0]['leaves']).to eq(3)
+
+      expect(individual_project_report['test2_user test2_user'][0]['total_work']).to eq('0 Days 4H (4H)')
+      expect(individual_project_report['test2_user test2_user'][0]['allocated_hours']).to eq('15 Days (120H)')
+      expect(individual_project_report['test2_user test2_user'][0]['leaves']).to eq(0)
+
+      expect(individual_project_report['test3_user test3_user'][0]['total_work']).to eq('0 Days 5H (5H)')
+      expect(individual_project_report['test3_user test3_user'][0]['allocated_hours']).to eq('8 Days (64H)')
+      expect(individual_project_report['test3_user test3_user'][0]['leaves']).to eq(2)
+
+      expect(project_report['total_worked_hours']).to eq('1 Days 6H (14H)')
+      expect(project_report['total_allocated_hourse']).to eq('41 Days (328H)')
+      expect(project_report['total_leaves']).to eq(5)
+    end
+  end
+
+  context 'Generate weekly report in csv format' do
+    it 'Should generate csv' do
+      weekly_report = [
+                        ['employee_test1', 'project_test1', '0 days 6H (6H)', 1, 0], 
+                        ['employee_test2', 'project_test2', '0 days 3H (3H)', 2, 1]
+                      ]
+      csv = TimeSheet.generate_weekly_report_in_csv_format(weekly_report)
+      expect(csv).to eq("Employee name,Project name,No of days worked,Leaves,Holidays\nemployee_test1,project_test1,0 days 6H (6H),1,0\nemployee_test2,project_test2,0 days 3H (3H),2,1\n")
+    end
+  end
+
+  context 'Get holiday count' do
+    it 'Should give holiday count' do
+      HolidayList.create(holiday_date: '09/10/2018'.to_date, reason: 'test')
+      HolidayList.create(holiday_date: '11/10/2018'.to_date, reason: 'test')
+      from_date = '05/10/2018'.to_date
+      to_date = '15/10/2018'.to_date
+      count = TimeSheet.get_holiday_count(from_date, to_date)
+      expect(count).to eq(2)
+    end
+
+    it 'Should give holiday count 0' do
+      HolidayList.create(holiday_date: '09/10/2018'.to_date, reason: 'test')
+      HolidayList.create(holiday_date: '11/10/2018'.to_date, reason: 'test')
+      from_date = '01/10/2018'.to_date
+      to_date = '05/10/2018'.to_date
+      count = TimeSheet.get_holiday_count(from_date, to_date)
+      expect(count).to eq(0)
+    end
+  end
+
+  context 'Get time sheet and calculate total minutes' do
+    let!(:user) { FactoryGirl.create(:user) }
+    it 'Should give total working minutes' do
+      project = FactoryGirl.create(:project)
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 10"), to_time: Time.parse("#{Date.today} 11"), description: 'test')
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 11"), to_time: Time.parse("#{Date.today} 12"), description: 'test')
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 12"), to_time: Time.parse("#{Date.today} 13"), description: 'test')
+
+      from_date = Date.today - 3
+      to_date = Date.today + 3
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
+      expect(total_minutes).to eq(180.0)
+    end
+
+    it 'Should give the users without project' do
+      project = FactoryGirl.create(:project)
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      user.leave_applications.create(start_at: Date.today - 1, end_at: Date.today- 1, contact_number: '1234567890', number_of_days: 1, reason: 'test')
+      from_date = Date.today - 3
+      to_date = Date.today + 3
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
+      expect(total_minutes).to eq(0)
+      expect(users_without_timesheet).to eq(["fname lname", "The pediatric network", 1])
     end
   end
 

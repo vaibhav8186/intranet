@@ -1,0 +1,24 @@
+= form_tag individual_project_report_time_sheet_path, method: 'GET', class: 'form form-inline' do
+  .search-form
+    %label From Date:
+    =text_field_tag :from_date, params[:from_date], class: "form-control datepicker", placeholder: "From Date", value: @from_date
+    %label To Date:
+    =text_field_tag :to_date, params[:to_date], class: "form-control datepicker", placeholder: "To Date", value: @to_date
+    = submit_tag "Search", class: "btn btn-primary"
+  
+  - if @individual_project_report.present?
+    %h1 #{@project.name}
+    %span{class: "text-height"} (Total worked hours: #{@project_report['total_worked_hours']} Total allocated hours: #{@project_report['total_allocated_hourse']} Leaves: #{@project_report['total_leaves']})
+    .form-horizontal
+      -@individual_project_report.each do |key, value|
+        %h3 #{key}
+        %table.table
+          %th Total Worked Hours
+          %th Allocated Hours
+          %th Leaves
+          %tbody
+            %tr
+            - value.each do |record|
+              %td= record["total_work"]
+              %td= record["allocated_hours"]
+              %td= record["leaves"] 
