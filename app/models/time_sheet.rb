@@ -166,6 +166,7 @@ class TimeSheet
     params['time_sheets_attributes'].each do |key, value|
       from_time = value['from_time']
       to_time = value['to_time']
+      return true unless value['date'].present?
       return_value, message = check_date_range(value['date'], 'update')
       unless return_value
         return message
