@@ -24,14 +24,15 @@ class TimeSheetsController < ApplicationController
     redirect_to request.referrer if current_user.role.in?(['Employee', 'Intern']) && current_user.id.to_s != params[:user_id]
     
     @from_date = params[:from_date]
-    @to_date   = params[:to_date]
-    @user      = User.find(params[:user_id])
+    @to_date = params[:to_date]
+    @user = User.find(params[:user_id])
     @individual_timesheet_report, @total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(@user, params) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
   end
 
   def edit
     @user = User.find_by(id: params[:id])
     @time_sheets = @user.time_sheets.where(date: params[:time_sheet_date].to_date)
+    @time_sheet_date = params[:time_sheet_date]
   end
 
   def update
@@ -39,13 +40,15 @@ class TimeSheetsController < ApplicationController
     @to_date = Date.today.to_s
     @user = User.find_by(id: params['user']['id'])
     @time_sheet_date = params[:time_sheet_date]
+    @time_sheets = @user.time_sheets.where(date: params[:time_sheet_date].to_date)
     return_value = TimeSheet.check_validation_while_updating_time_sheet(update_timesheet_params)
     if return_value == true
-      if @user.update_attributes(update_timesheet_params)
-        flash.notice = 'Timesheet Updated Succesfully'
+      is_updated = TimeSheet.update_time_sheet(update_timesheet_params)
+      if is_updated == true
+        flash[:notice] = 'Timesheet Updated Succesfully'
         redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
       else
-        flash[:error] = @user.errors.full_messages.to_s
+        flash[:error] = is_updated
         render 'edit'
       end
     else
@@ -107,6 +110,6 @@ class TimeSheetsController < ApplicationController
   end
   
   def update_timesheet_params
-    params.require(:user).permit!
+    params.require(:user).permit(:time_sheets_attributes => [:project_id, :date, :from_time, :to_time, :description, :id ])
   end
 end

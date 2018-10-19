@@ -4,8 +4,8 @@
     = time_sheet.label :Project
     = time_sheet.select :project_id, options_for_select(@user.projects.pluck(:name, :id), time_sheet.object.project_id), {}, {style: "margin-left: 21px; margin-bottom: 16px"}
     = time_sheet.input :date, input_html: {class: 'datepicker', 'data-behaviour' => 'datepicker', value: time_sheet.object.date.try(:strftime, "%d-%m-%Y"), 'readonly' => true}
-    = time_sheet.input :from_time, input_html: {class: 'date datetimepicker1 form-control"'}
-    = time_sheet.input :to_time, input_html: {class: 'datetimepicker1'}
+    = time_sheet.input :from_time, input_html: {class: 'date datetimepicker form-control"'}
+    = time_sheet.input :to_time, input_html: {class: 'datetimepicker'}
     = time_sheet.input :description, as: :text
     %br
     %br

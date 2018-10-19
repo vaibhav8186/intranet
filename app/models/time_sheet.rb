@@ -164,12 +164,13 @@ class TimeSheet
 
   def self.check_validation_while_updating_time_sheet(params)
     params['time_sheets_attributes'].each do |key, value|
-      from_time = value['date'] + ' ' + value['from_time']
-      to_time = value['date'] + ' ' + value['to_time']
+      from_time = value['from_time']
+      to_time = value['to_time']
       return_value, message = check_date_range(value['date'], 'update')
       unless return_value
         return message
       end
+      return true unless from_time.present? && to_time.present?
       unless from_time_greater_than_to_time?(from_time, to_time, 'update')
         return 'Error :: From time must be less than to time' 
       end
@@ -660,6 +661,17 @@ class TimeSheet
     return false
   end
 
+  def self.update_time_sheet(params)
+    params['time_sheets_attributes'].each do |key, value|
+      time_sheet = TimeSheet.find(value[:id])
+      if time_sheet.update_attributes(value)
+        return true
+      else
+        return time_sheet.errors.full_messages.join(', ')
+      end
+    end
+
+  end
   def self.get_errors_message(user, time_sheet_date)
     user.time_sheets.where(date: time_sheet_date.to_date).each do |time_sheet|
       return time_sheet.errors.full_messages if time_sheet.errors.full_messages.present?
