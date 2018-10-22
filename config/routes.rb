@@ -91,7 +91,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :time_sheets, only: [:create, :index, :edit, :update] do
+  resources :time_sheets, only: [:create, :index] do
     post :daily_status, on: :collection
 
     get :projects_report, on: :collection
@@ -99,6 +99,8 @@ Rails.application.routes.draw do
 
     collection do
       get 'users_timesheet/:user_id' => 'time_sheets#users_timesheet', as: 'users'
+      get 'edit_timesheet/:user_id' => 'time_sheets#edit_timesheet', as: 'edit'
+      put 'update_timesheet/:user_id' => 'time_sheets#update_timesheet', as: 'update'
     end
   end
 

@@ -164,8 +164,9 @@ class TimeSheet
 
   def self.check_validation_while_updating_time_sheet(params)
     params['time_sheets_attributes'].each do |key, value|
-      from_time = value['from_time']
-      to_time = value['to_time']
+      from_time = value['date'] + ' ' + value['from_time']
+      to_time = value['date'] + ' ' + value['to_time']
+      byebug
       return true unless value['date'].present?
       return_value, message = check_date_range(value['date'], 'update')
       unless return_value
@@ -735,7 +736,7 @@ class TimeSheet
     Project.find_by(id: project_id)
   end
 
-  def self.load_timesheet(from_date, to_date)
+  def self.load_timesheet(timesheet_ids, from_date, to_date)
     TimeSheet.collection.aggregate(
       [
         {
@@ -743,6 +744,9 @@ class TimeSheet
             "date" => {
               "$gte" => from_date,
               "$lte" => to_date
+            },
+            "_id" => {
+              "$in" => timesheet_ids
             }
           }
         },

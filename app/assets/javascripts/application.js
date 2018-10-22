@@ -32,20 +32,11 @@
 //= require screamout/global.js
 //= require redactor-rails
 //= require_tree .
-//= require moment
-//= require bootstrap-datetimepicker
-
 
 $(document).ready(function(){
 $('.datepicker').datepicker({
   format: "dd-mm-yyyy",
   autoclose: true
-})
-})
-
-$(document).ready(function(){
-$('.datetimepicker1').datetimepicker({
-  format: 'DD/MM/YYYY HH:mm'
 })
 })
 

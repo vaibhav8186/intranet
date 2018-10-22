@@ -1,7 +1,6 @@
 class TimeSheetsController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  load_and_authorize_resource only: [:index, :projects_report]
-  load_and_authorize_resource only: :individual_project_report, :class => Project
+  load_and_authorize_resource only: [:index, :users_timesheet, :edit_timesheet, :update_timesheet]
   before_action :user_exists?, only: [:create, :daily_status]
 
   def create
@@ -16,29 +15,42 @@ class TimeSheetsController < ApplicationController
   def index
     @from_date = params[:from_date] || Date.today.beginning_of_month.to_s
     @to_date = params[:to_date] || Date.today.to_s
-    timesheets = TimeSheet.load_timesheet(@from_date.to_date, @to_date.to_date) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
+    timesheets = TimeSheet.load_timesheet(@time_sheets.pluck(:id), @from_date.to_date, @to_date.to_date) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
     @timesheet_report = TimeSheet.generete_employee_timesheet_report(timesheets, @from_date.to_date, @to_date.to_date) if timesheets.present?
   end
 
   def users_timesheet
-    redirect_to request.referrer if current_user.role.in?(['Employee', 'Intern']) && current_user.id.to_s != params[:user_id]
-    
+    unless current_ability.can? :users_timesheet, TimeSheet.where(user_id: params[:user_id]).first
+      flash[:error] = "Invalid access"
+      redirect_to time_sheets_path and return #if current_user.role.in?(['Employee', 'Intern']) && current_user.id.to_s != params[:user_id]
+    end
+
     @from_date = params[:from_date]
     @to_date = params[:to_date]
     @user = User.find(params[:user_id])
     @individual_timesheet_report, @total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(@user, params) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
   end
 
-  def edit
-    @user = User.find_by(id: params[:id])
+  def edit_timesheet
+    unless current_ability.can? :edit_timesheet, TimeSheet.where(user_id: params[:user_id]).first
+      flash[:error] = "Invalid access"
+      redirect_to users_time_sheets_path and return
+    end
+
+    @user = User.find_by(id: params[:user_id])
     @time_sheets = @user.time_sheets.where(date: params[:time_sheet_date].to_date)
     @time_sheet_date = params[:time_sheet_date]
   end
 
-  def update
+  def update_timesheet
+    unless current_ability.can? :update_timesheet, TimeSheet.where(user_id: params[:user_id]).first
+      flash[:error] = "Invalid access"
+      redirect_to edit_time_sheets_path and return
+    end
+
     @from_date = Date.today.beginning_of_month.to_s
     @to_date = Date.today.to_s
-    @user = User.find_by(id: params['user']['id'])
+    @user = User.find_by(id: params['user_id'])
     @time_sheet_date = params[:time_sheet_date]
     @time_sheets = @user.time_sheets.where(date: params[:time_sheet_date].to_date)
     return_value = TimeSheet.check_validation_while_updating_time_sheet(update_timesheet_params)
@@ -49,11 +61,11 @@ class TimeSheetsController < ApplicationController
         redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
       else
         flash[:error] = is_updated
-        render 'edit'
+        render 'edit_timesheet'
       end
     else
       flash[:error] = return_value
-      render 'edit' 
+      render 'edit_timesheet' 
     end
   end
 
