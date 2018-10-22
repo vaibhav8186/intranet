@@ -278,9 +278,8 @@ class TimeSheet
       users_timesheet_data['leaves'] = get_user_leaves_count(user, from_date, to_date)
       timesheet_reports << users_timesheet_data
     end
-    timesheet_reports.sort{|previous_record, next_record| previous_record['user_name'] <=> next_record['user_name']}
+    sort_on_user_name_and_project_name(timesheet_reports)
   end
-
 
   def self.create_projects_report_in_json_format(projects_report, from_date, to_date)
     projects_report_in_json = []
@@ -299,7 +298,8 @@ class TimeSheet
       projects_report_in_json << project_details
       project_details = {}
     end
-    project_without_timesheet = get_project_without_timesheet(project_names) if project_names.present?
+    projects_report_in_json.sort!{|previous_record, next_record| previous_record['project_name'] <=> next_record['project_name']}
+    project_without_timesheet = get_project_without_timesheet(project_names, from_date, to_date) if project_names.present?
     return projects_report_in_json, project_without_timesheet
   end
 
@@ -515,6 +515,18 @@ class TimeSheet
     weekly_report_in_csv
   end
 
+  def self.sort_on_user_name_and_project_name(timesheet_reports)
+    sort_on_user_name = 
+      timesheet_reports.sort{|previous_record, next_record| previous_record['user_name'] <=> next_record['user_name']}
+
+    sort_on_project_name =
+      sort_on_user_name.each do |report|
+        report['project_details'].sort!{|previous_record, next_record| previous_record['project_name'] <=> next_record['project_name']}
+      end
+
+    sort_on_project_name
+  end
+
   def self.unfilled_time_sheet_for_last_week(user)
     users_without_timesheet = []
     users_without_timesheet << user.name unless users_without_timesheet.include?(user.name)
@@ -554,15 +566,16 @@ class TimeSheet
     result
   end
 
-  def self.get_project_without_timesheet(project_names)
+  def self.get_project_without_timesheet(project_names, from_date, to_date)
     unfilled_timesheet_projects = []
-    Project.not_in(name: project_names).each do |project|
+    projects = Project.not_in(name: project_names)
+    projects.where("$or" => [{end_date: nil}, {end_date: {"$gte" => from_date, "$lte" => to_date}}]).each do |project|
       project_detail = {}
       project_detail['project_id'] = project.id
       project_detail['project_name'] = project.name
       unfilled_timesheet_projects << project_detail
     end
-    unfilled_timesheet_projects
+    unfilled_timesheet_projects.sort{|previous_record, next_record| previous_record['project_name'] <=> next_record['project_name']}
   end
 
   def self.get_holiday_count(from_date, to_date)
