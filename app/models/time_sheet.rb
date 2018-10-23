@@ -790,4 +790,33 @@ class TimeSheet
       ]
     )
   end
+
+  def self.load_projects_report(from_date, to_date)
+    TimeSheet.collection.aggregate([
+      {
+        "$match"=>{
+          "date"=>{
+            "$gte"=> from_date,
+            "$lte"=> to_date
+          }
+        }
+      },
+      {
+        "$group"=>{
+          "_id"=>{
+            "project_id"=>"$project_id"
+          },
+          "totalSum"=>{
+            "$sum"=>{
+              "$subtract"=>[
+                "$to_time",
+                "$from_time"
+              ]
+            }
+          }
+        }
+      }
+    ])
+  end
+
 end

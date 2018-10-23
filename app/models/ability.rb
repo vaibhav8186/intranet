@@ -18,7 +18,7 @@ class Ability
     elsif user.role? 'Employee'
       employee_abilities(user.id)
     elsif user.role? 'Intern'
-      intern_abilities
+      intern_abilities(user.id)
     end
   end
 
@@ -33,11 +33,11 @@ class Ability
     can :manage, TimeSheet
   end
 
-  def intern_abilities
+  def intern_abilities(user_id)
     can [:public_profile, :private_profile], User
     can :read, [Policy, Attachment, Vendor]
     can :read, Project
-    can [:index, :update], TimeSheet
+    can [:index, :users_timesheet, :edit_timesheet, :update_timesheet], TimeSheet, user_id: user_id
   end
 
   def employee_abilities(user_id)
