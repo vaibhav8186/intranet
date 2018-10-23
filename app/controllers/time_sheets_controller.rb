@@ -1,10 +1,10 @@
 class TimeSheetsController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  load_and_authorize_resource only: [:index, :users_timesheet, :edit_timesheet, :update_timesheet]
+  load_and_authorize_resource only: [:index, :users_timesheet, :edit_timesheet, :update_timesheet, :new]
   before_action :user_exists?, only: [:create, :daily_status]
 
   def create
-    return_value, time_sheets_data = TimeSheet.parse_timesheet_data(params) unless params['user_id'].nil?
+    return_value, time_sheets_data = @time_sheet.parse_timesheet_data(params) unless params['user_id'].nil?
     if return_value == true
       create_time_sheet(time_sheets_data, params)
     else
@@ -53,19 +53,14 @@ class TimeSheetsController < ApplicationController
     @user = User.find_by(id: params['user_id'])
     @time_sheet_date = params[:time_sheet_date]
     @time_sheets = @user.time_sheets.where(date: params[:time_sheet_date].to_date)
-    return_value = TimeSheet.check_validation_while_updating_time_sheet(update_timesheet_params)
+    return_value = TimeSheet.update_time_sheet(update_timesheet_params)
     if return_value == true
-      is_updated = TimeSheet.update_time_sheet(update_timesheet_params)
-      if is_updated == true
-        flash[:notice] = 'Timesheet Updated Succesfully'
-        redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
-      else
-        flash[:error] = is_updated
-        render 'edit_timesheet'
-      end
+      flash[:notice] = 'Timesheet Updated Succesfully'
+      redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
     else
-      flash[:error] = return_value
-      render 'edit_timesheet' 
+      error_message = TimeSheet.create_error_message(return_value)
+      flash[:error] = error_message
+      render 'edit_timesheet'
     end
   end
 
@@ -74,10 +69,15 @@ class TimeSheetsController < ApplicationController
     if @time_sheet.save
       render json: { text: "*Timesheet saved successfully!*" }, status: :created
     else
-      if @time_sheet.errors.messages[:from_time].present? || @time_sheet.errors.messages[:to_time].present?
-        text ="\`Error :: Record already present for given time.\`"
-        SlackApiService.new.post_message_to_slack(params['channel_id'], text)
-      end
+      error_message = 
+        if @time_sheet.errors[:from_time].present? || @time_sheet.errors[:from_time].present?
+          error =  @time_sheet.errors[:from_time] if @time_sheet.errors[:from_time].present?
+          error = @time_sheet.errors[:to_time] if @time_sheet.errors[:to_time].present?
+          error
+        else
+          TimeSheet.create_error_message_for_slack(@time_sheet.errors.full_messages)
+        end
+      SlackApiService.new.post_message_to_slack(params['channel_id'], error_message.join(' '))
       render json: { text: 'Fail' }, status: :unprocessable_entity
     end
   end

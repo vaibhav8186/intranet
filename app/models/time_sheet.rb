@@ -13,15 +13,17 @@ class TimeSheet
   belongs_to :user
   belongs_to :project
 
-  validates :from_time, :to_time, uniqueness: { scope: [:user_id, :date], message: "record is already present" }
+  validates :from_time, :to_time, uniqueness: { scope: [:user_id, :date], message: "\`Error :: Record already present\`" }
   validates :project_id, :date, :from_time, :to_time, :description, presence: true
+
+  before_validation :check_vadation_while_creating_or_updateing_timesheet
 
   MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
   MAX_DAILY_STATUS_COMMAND_LENGTH = 2
   ALLOCATED_HOURS = 8
 
-  def self.parse_timesheet_data(params)
+  def parse_timesheet_data(params)
     split_text = params['text'].split
 
     return false unless valid_command_format?(split_text, params['channel_id'])
@@ -33,7 +35,7 @@ class TimeSheet
     return true, time_sheets_data
   end
 
-  def self.valid_command_format?(split_text, channel_id)
+  def valid_command_format?(split_text, channel_id)
     if split_text.length < MAX_TIMESHEET_COMMAND_LENGTH
       text = "\`Error :: Invalid timesheet format. Format should be <project_name> <date> <from_time> <to_time> <description>\`"
       SlackApiService.new.post_message_to_slack(channel_id, text)
@@ -42,8 +44,8 @@ class TimeSheet
     return true
   end
 
-  def self.valid_project_name?(project_name, params)
-    user = load_user(params['user_id'])
+  def valid_project_name?(project_name, params)
+    user = User.where("public_profile.slack_handle" => params['user_id'])
     project = user.first.projects.find_by(display_name: /^#{project_name}$/i) rescue nil
     return true if !project.nil? || project_name == 'other'
     text = "\`Error :: You are not working on this project. Use /projects command to view your project\`"
@@ -51,7 +53,7 @@ class TimeSheet
     return false
   end
 
-  def self.valid_date_format?(date, params)
+  def valid_date_format?(date, params)
     split_date = date.include?('/')? date.split('/') : date.split('-')
     
     if split_date.length < DATE_FORMAT_LENGTH
@@ -63,7 +65,7 @@ class TimeSheet
     valid_date?(split_date, date, params)
   end
 
-  def self.valid_date?(split_date, date, params)
+  def valid_date?(split_date, date, params)
     valid_date = Date.valid_date?(split_date[2].to_i, split_date[1].to_i, split_date[0].to_i)
     unless valid_date
       SlackApiService.new.post_message_to_slack(params['channel_id'], "\`Error :: Invalid date\`")
@@ -71,69 +73,72 @@ class TimeSheet
     end
 
     return true if params['command'] == '/daily_status'
-    return false unless timesheet_date_greater_than_assign_project_date(date, params)
-    check_date_range(date, params)
+    return true
   end
   
-  def self.timesheet_date_greater_than_assign_project_date(date, params)
-    split_text = params['text'].split
-    user = load_user(params['user_id'])
-    project = load_project(user, split_text[0])
-    user_project = UserProject.find_by(user_id: user.first.id, project_id: project.id, end_date: nil)
-    if date.to_date < user_project.start_date
-      text = "\`Error :: Not allowed to fill timesheet for this date. As you were not assigned on project for this date\`"
-      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+  def check_vadation_while_creating_or_updateing_timesheet
+    return false unless check_date_range
+    return false unless from_time_greater_than_to_time?(from_time, to_time)
+    return false unless timesheet_greater_than_current_time?
+    return true
+  end
+
+  def timesheet_date_greater_than_assign_project_date
+    user = User.find(user_id)
+    user_project = UserProject.find_by(user_id: user.id, project_id: project_id, end_date: nil)
+      if date < user_project.start_date
+        return true
+      end
+    return false
+  end
+
+  def check_date_range
+    if date < 7.days.ago
+      text = 'Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.'
+      errors.add(:date, text)
       return false
+    elsif date > Date.today 
+      text = "Error :: Can't fill the timesheet for future date."
+      errors.add(:date, text)
+      return false
+    elsif timesheet_date_greater_than_assign_project_date
+      text = "Error :: Not allowed to fill timesheet for this date. As you were not assigned on project for this date"
+      errors.add(:date, text)
     end
     return true
   end
 
-  def self.check_date_range(date, params)
-    if Date.parse(date) < 7.days.ago
-      message = 'Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.'
-      text = "\`#{message}\`"
-      SlackApiService.new.post_message_to_slack(params['channel_id'], text) unless params == 'update'
-      return false, message if params == 'update'
+  def timesheet_greater_than_current_time?
+    text = "Error :: Can't fill the timesheet for future time."
+    if from_time >= Time.now
+      errors.add(:from_time, text)
       return false
-    elsif Date.parse(date) > Date.today
-      message = "Error :: Can't fill the timesheet for future date."
-      text = "\`#{message}\`"
-      SlackApiService.new.post_message_to_slack(params['channel_id'], text) unless params == 'update'
-      return false, message if params == 'update'
-      return false
+    elsif to_time > Time.now
+      errors.add(:to_time, text)
+      return false      
     end
     return true
   end
 
-  def self.from_time_greater_than_to_time?(from_time, to_time, params)
+  def from_time_greater_than_to_time?(from_time, to_time)
     if from_time >= to_time
        text = "\`Error :: From time must be less than to time\`"
-       SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+       errors.add(:from_time, text)
        return false
      end
      return true
   end
 
-  def self.timesheet_greater_than_current_time?(from_time, to_time, params)
-    if from_time >= Time.now || to_time > Time.now
-      text = "\`Error :: Can't fill the timesheet for future time.\`"
-      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
-      return false
-    end
+  def time_validation(date, from_time, to_time, params)
+    from_time = valid_time?(date, from_time, params, :from_time)
+    return false unless from_time
+    to_time = valid_time?(date, to_time, params, :to_time)
+    return false unless to_time
+
     return true
   end
-
-  def self.time_validation(date, from_time, to_time, params)
-    from_time = valid_time?(date, from_time, params)
-    to_time = valid_time?(date, to_time, params)
-    return false unless from_time && to_time
-    return false unless from_time_greater_than_to_time?(from_time, to_time, params)
-    return false unless timesheet_greater_than_current_time?(from_time, to_time, params)
-
-    return true, from_time, to_time
-  end
   
-  def self.valid_time?(date, time, params)
+  def valid_time?(date, time, params, attribute)
     time_format = check_time_format(time)
 
     if time_format
@@ -142,19 +147,20 @@ class TimeSheet
 
     unless return_value
       text = "\`Error :: Invalid time format. Format should be HH:MM\`"
-      SlackApiService.new.post_message_to_slack(params['channel_id'], text)
+      errors.add(attribute, text) if params == 'from_ui'
+      SlackApiService.new.post_message_to_slack(params['channel_id'], text) unless params == 'from_ui'
       return false
     end
     return_value
   end
   
-  def self.check_time_format(time)
-    return false if time.include?('.')
-    return time + (':00') unless time.include?(':')
+  def check_time_format(time)
+    return false if time.to_s.include?('.')
+    return time + (':00') unless time.to_s.include?(':')
     time
   end
 
-  def self.concat_desscription(split_text)
+  def concat_description(split_text)
     description = ''
     split_text[4..-1].each do |string|
       description = description + string + ' '
@@ -162,37 +168,16 @@ class TimeSheet
     description
   end
 
-  def self.check_validation_while_updating_time_sheet(params)
-    params['time_sheets_attributes'].each do |key, value|
-      from_time = value['date'] + ' ' + value['from_time']
-      to_time = value['date'] + ' ' + value['to_time']
-      byebug
-      return true unless value['date'].present?
-      return_value, message = check_date_range(value['date'], 'update')
-      unless return_value
-        return message
-      end
-      return true unless from_time.present? && to_time.present?
-      unless from_time_greater_than_to_time?(from_time, to_time, 'update')
-        return 'Error :: From time must be less than to time' 
-      end
-      unless timesheet_greater_than_current_time?(from_time, to_time, 'update')
-        return "Error :: Can't fill the timesheet for future time."
-      end
-    end
-    return true
-  end
-
-  def self.time_sheets(split_text, params)
+  def time_sheets(split_text, params)
     time_sheets_data = {}
-    user = load_user(params['user_id'])
+    user = User.where("public_profile.slack_handle" => params['user_id'])
     project = load_project(user, split_text[0])
     time_sheets_data['user_id'] = user.first.id
     time_sheets_data['project_id'] = project.nil? ? nil : project.id
     time_sheets_data['date'] = Date.parse(split_text[1])
     time_sheets_data['from_time'] = Time.parse(split_text[1] + ' ' + split_text[2])
     time_sheets_data['to_time'] = Time.parse(split_text[1] + ' ' + split_text[3])
-    time_sheets_data['description'] = concat_desscription(split_text)
+    time_sheets_data['description'] = concat_description(split_text)
     time_sheets_data
   end
 
@@ -211,7 +196,7 @@ class TimeSheet
     text = 'You have not filled timesheet for'
     text = date.present? ? "\`#{text} #{date}.\`" : "\`#{text} today.\`"
     if date.present?
-      return false unless valid_date_format?(date, params)
+      return false unless TimeSheet.new.valid_date_format?(date, params)
     end
     user = load_user(params['user_id'])
     time_sheets, time_sheet_message =
@@ -666,14 +651,23 @@ class TimeSheet
   def self.update_time_sheet(params)
     params['time_sheets_attributes'].each do |key, value|
       time_sheet = TimeSheet.find(value[:id])
+      value['from_time'] = value['date'] + ' ' + value['from_time']
+      value['to_time'] = value['date'] + ' ' + value['to_time'] 
+      time_sheet.time_validation(value['date'], value['from_time'], value['to_time'], 'from_ui')
+      return time_sheet.errors.full_messages.join(', ') if time_sheet.errors.full_messages.present?
       if time_sheet.update_attributes(value)
         return true
       else
-        return time_sheet.errors.full_messages.join(', ')
+        if time_sheet.errors[:from_time].present? || time_sheet.errors[:from_time].present?
+          return time_sheet.errors[:from_time].join(', ') if time_sheet.errors[:from_time].present?
+          return time_sheet.errors[:to_time].join(', ') if time_sheet.errors[:to_time].present?
+        else
+          return time_sheet.errors.full_messages.join(', ')
+        end
       end
     end
-
   end
+
   def self.get_errors_message(user, time_sheet_date)
     user.time_sheets.where(date: time_sheet_date.to_date).each do |time_sheet|
       return time_sheet.errors.full_messages if time_sheet.errors.full_messages.present?
@@ -691,10 +685,22 @@ class TimeSheet
     sleep 1
   end
 
-  def self.load_project(user, display_name)
+  def load_project(user, display_name)
     user.first.projects.where(display_name: /^#{display_name}$/i).first
   end
 
+  def self.create_error_message_for_slack(errors)
+    errors.map do |error|
+      index = error.index(/Error/)
+      index = error.index(/Record/) if index.nil?
+      error[index..-1].prepend("`").concat("`")
+    end
+  end
+
+  def self.create_error_message(error)
+    index = error.remove!("`").index(/Error/)
+    error[index..-1]
+  end
   def self.load_user(user_id)
     User.where("public_profile.slack_handle" => user_id)
   end
@@ -780,33 +786,4 @@ class TimeSheet
       ]
     )
   end
-  
-  def self.load_projects_report(from_date, to_date)
-    TimeSheet.collection.aggregate([
-      {
-        "$match"=>{
-          "date"=>{
-            "$gte"=> from_date,
-            "$lte"=> to_date
-          }
-        }
-      },
-      {
-        "$group"=>{
-          "_id"=>{
-            "project_id"=>"$project_id"
-          },
-          "totalSum"=>{
-            "$sum"=>{
-              "$subtract"=>[
-                "$to_time",
-                "$from_time"
-              ]
-            }
-          }
-        }
-      }
-    ])
-  end
-
 end
