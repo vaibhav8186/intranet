@@ -408,6 +408,7 @@ class TimeSheet
       total_minutes += working_minutes
     end
     return total_minutes, users_without_timesheet
+  end
 
   def self.create_time_sheet_record(time_sheet, from_time, to_time, total_worked)
     time_sheet_record = {}
@@ -418,7 +419,6 @@ class TimeSheet
     time_sheet_record['total_worked'] = total_worked
     time_sheet_record['description'] = time_sheet.description
     time_sheet_record
-
   end
 
   def self.format_time(time_sheet)
@@ -704,6 +704,7 @@ class TimeSheet
     error = error[index..-1] unless index.nil?
     error
   end
+
   def self.load_user(user_id)
     User.where("public_profile.slack_handle" => user_id)
   end
