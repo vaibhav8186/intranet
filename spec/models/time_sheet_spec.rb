@@ -20,7 +20,7 @@ RSpec.describe TimeSheet, type: :model do
         'text' => "The_pediatric_network #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
-      ret = TimeSheet.parse_timesheet_data(params)
+      ret = time_sheet.parse_timesheet_data(params)
       expect(ret[0]).to eq(true)
     end
 
@@ -31,15 +31,15 @@ RSpec.describe TimeSheet, type: :model do
         'text' => "the_pediatric_network #{Date.yesterday}  6 7 abcd efghigk lmnop"
       }
 
-      ret = TimeSheet.parse_timesheet_data(params)
+      ret = time_sheet.parse_timesheet_data(params)
       expect(ret[0]).to eq(true)
     end
 
     it 'Should fails because record is already present' do
-      time_sheet = FactoryGirl.create(:time_sheet, project_id: project.id)
-      time_sheet_test = FactoryGirl.build(:time_sheet)
-      time_sheet_test.save
-      expect(time_sheet_test.errors.full_messages).to eq(["From time record is already present", "To time record is already present"])
+      FactoryGirl.create(:time_sheet, user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: '10:00', to_time: '11:00', description: 'call')
+      time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: '10:00', to_time: '11:00', description: 'call')
+      time_sheet.save
+      expect(time_sheet.errors.full_messages).to eq(["From time `Error :: Record already present`", "To time `Error :: Record already present`"])
     end
 
     it 'Should return false because invalid timesheet command format' do
@@ -49,7 +49,7 @@ RSpec.describe TimeSheet, type: :model do
         'text' => 'England_Hockey 22-07-2018  6'
       }
 
-      expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+      expect(time_sheet.parse_timesheet_data(params)).to eq(false)
     end
 
     it 'Should return false because user does not assign to this project' do
@@ -58,7 +58,7 @@ RSpec.describe TimeSheet, type: :model do
         'channel_id' => CHANNEL_ID,
         'text' => 'England 14-07-2018  6 7 abcd efgh'
       }
-      expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+      expect(time_sheet.parse_timesheet_data(params)).to eq(false)
     end
 
     context 'Validation - date' do
@@ -68,46 +68,34 @@ RSpec.describe TimeSheet, type: :model do
           'channel_id' => CHANNEL_ID,
           'text' => 'England_Hockey 14-2018  6 7 abcd efgh'
         }
-        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because date is greater than assigned project date' do
-        project = FactoryGirl.create(:project, name: 'test')
-        UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2)
-        params = {
-          'user_id' => USER_ID,
-          'channel_id' => CHANNEL_ID,
-          'text' => "test #{Date.today - 3}  6 7 abcd efgh"
-        }
-        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+        time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id, date: DateTime.now - 3)
+        expect(time_sheet.save).to eq(false)
+        expect(time_sheet.errors[:date]).to eq(["Error :: Not allowed to fill timesheet for this date. As you were not assigned on project for this date"])
       end
 
       it 'Should return false because date is not within this week' do
-        params = {
-          'user_id' => USER_ID,
-          'channel_id' => CHANNEL_ID,
-          'text' => 'England_Hockey 1/07/2018  6 7 abcd efgh'
-        }
-        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+        time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id, date: DateTime.now - 10)
+        expect(time_sheet.save).to eq(false)
+        expect(time_sheet.errors[:date]).to eq(["Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager."])
       end
 
       it 'Should return false because date is invalid' do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
-          'text' => 'England_Hockey 1/32/2018  6 7 abcd efgh'
+          'text' => 'The_pediatric_network 1/32/2018  6 7 abcd efgh'
         }
-        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because date and time is greater than current date and time' do
-        params = {
-          'user_id' => USER_ID,
-          'channel_id' => CHANNEL_ID,
-          'text' => "England_Hockey #{Date.today}  20:00 20:30 abcd efgh"
-        }
-
-        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+        time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id, date: DateTime.now - 1, from_time: '20:00', to_time: '20:30')
+        expect(time_sheet.save).to eq(false)
+        expect(time_sheet.errors[:from_time]).to eq(["Error :: Can't fill the timesheet for future time."])
       end
     end
 
@@ -116,27 +104,24 @@ RSpec.describe TimeSheet, type: :model do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
-          'text' => "England_Hockey #{Date.yesterday} 15.30 16 abcd efgh"
+          'text' => "The_pediatric_network #{Date.yesterday} 15.30 16 abcd efgh"
         }
-        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because invalid to time format' do
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
-          'text' => "England_Hockey #{Date.yesterday} 6 7.00 abcd efgh"
+          'text' => "The_pediatric_network #{Date.yesterday} 6 7.00 abcd efgh"
         }
-        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+        expect(time_sheet.parse_timesheet_data(params)).to eq(false)
       end
 
       it 'Should return false because from time is greater than to time' do
-        params = {
-          'user_id' => USER_ID,
-          'channel_id' => CHANNEL_ID,
-          'text' => "England_Hockey #{Date.yesterday} 8 7 abcd efgh"
-        }
-        expect(TimeSheet.parse_timesheet_data(params)).to eq(false)
+        time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id, date: DateTime.now - 1, from_time: '08:00', to_time: '07:00')
+        expect(time_sheet.save).to eq(false)
+        expect(time_sheet.errors[:from_time]).to eq(["`Error :: From time must be less than to time`"])
       end
     end
   end
@@ -154,8 +139,8 @@ RSpec.describe TimeSheet, type: :model do
     context 'success' do
       it 'Should give the message to fill timesheet' do
         project = FactoryGirl.create(:project)
-        UserProject.create(user_id: project.id, project_id: project.id, start_date: Date.today - 2, end_date: nil)
-        user.time_sheets.create(date: 2.days.ago, from_time: '9:00', to_time: '10:00', description: 'call')
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 2, end_date: nil)
+        user.time_sheets.create(project_id: project.id, date: 2.days.ago, from_time: '9:00', to_time: '10:00', description: 'call')
         expect(HolidayList.is_holiday?(user.time_sheets[0].date + 1)).to eq(false)
         expect(TimeSheet.time_sheet_present_for_reminder?(user)).to eq(true)
         expect(TimeSheet.user_on_leave?(user, user.time_sheets[0].date + 1)).to eq(false)
@@ -167,6 +152,7 @@ RSpec.describe TimeSheet, type: :model do
     context 'timesheet filled' do
       let!(:project) { FactoryGirl.create(:project) }
       before do
+        UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 5, end_date: nil)
         user.time_sheets.create(project_id: project.id, date: Date.today - 1, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
         user.time_sheets.create(project_id: project.id, date: Date.today - 2, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
         user.time_sheets.create(project_id: project.id, date: Date.today - 3, from_time: '9:00', to_time: '10:00', description: 'Today I finish the work')
@@ -354,7 +340,7 @@ RSpec.describe TimeSheet, type: :model do
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
       params = {from_date: Date.yesterday - 1, to_date: Date.today}
-      timesheet_record = TimeSheet.load_timesheet(Date.yesterday - 1, Date.today)
+      timesheet_record = TimeSheet.load_timesheet(user.time_sheets.pluck(:id), Date.yesterday - 1, Date.today)
       timesheet_data = TimeSheet.generete_employee_timesheet_report(timesheet_record, Date.yesterday - 1, Date.today)
       expect(timesheet_data[0]['user_name']).to eq('fname lname')
       expect(timesheet_data[0]['project_details'][0]['project_name']).to eq('The pediatric network')
@@ -371,8 +357,8 @@ RSpec.describe TimeSheet, type: :model do
     let!(:intranet) { FactoryGirl.create(:project, name: 'Intranet', display_name: 'Intranet') }
 
     it 'Should give expected JSON' do
-      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now - 2, end_date: nil)
-      UserProject.create(user_id: user.id, project_id: intranet.id, start_date: DateTime.now - 2, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now - 3, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: intranet.id, start_date: DateTime.now - 3, end_date: nil)
       user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')

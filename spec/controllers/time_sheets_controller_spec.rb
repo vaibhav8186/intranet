@@ -86,7 +86,7 @@ RSpec.describe TimeSheetsController, type: :controller do
 
       it 'Should success : user worked on multiple projects' do
         deal_signal = FactoryGirl.create(:project, name: 'Deal signal', display_name: 'deal_signal')
-        UserProject.create(user_id: user.id, project_id: deal_signal.id, start_date: DateTime.now, end_date: nil)
+        UserProject.create(user_id: user.id, project_id: deal_signal.id, start_date: DateTime.now - 4, end_date: nil)
         user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                                 date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                                 to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
@@ -183,8 +183,8 @@ RSpec.describe TimeSheetsController, type: :controller do
 
     it 'Should success' do
       deal_signal = FactoryGirl.create(:project, name: 'Deal signal', display_name: 'deal_signal')
-      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now, end_date: nil)
-      UserProject.create(user_id: user.id, project_id: deal_signal.id, start_date: DateTime.now, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now - 3, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: deal_signal.id, start_date: DateTime.now - 3, end_date: nil)
       user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
@@ -199,15 +199,16 @@ RSpec.describe TimeSheetsController, type: :controller do
       should render_template(:index)
     end
 
-    it 'Should fail because user is not authorized' do
+    it 'Should return user specific timesheet ' do
       user = FactoryGirl.create(:user, email: 'vijay@joshsoftware.com', role: 'Employee')
+      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: Date.today - 3, end_date: nil)
       user.time_sheets.create(user_id: user.id, project_id: tpn.id,
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
       params = {from_date: Date.yesterday - 1, to_time: Date.today}
       sign_in user
       get :index, params
-      expect(response).to have_http_status(302)
+      expect(response).to have_http_status(200)
     end
   end
 
@@ -215,20 +216,20 @@ RSpec.describe TimeSheetsController, type: :controller do
     let!(:user) { FactoryGirl.create(:user, email: 'abc@joshsoftware.com', role: 'Admin') }
     let!(:tpn) { FactoryGirl.create(:project, name: 'The pediatric network', display_name: 'The_pediatric_network') }
 
-    it 'Should success' do
+    it 'users timesheet' do
       sign_in user
       deal_signal = FactoryGirl.create(:project, name: 'Deal signal', display_name: 'deal_signal')
-      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now, end_date: nil)
-      UserProject.create(user_id: user.id, project_id: deal_signal.id, start_date: DateTime.now, end_date: nil)
-      user.time_sheets.create!(user_id: user.id, project_id: tpn.id,
+      UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now - 3, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: deal_signal.id, start_date: DateTime.now - 3, end_date: nil)
+      user.time_sheets.create!(project_id: tpn.id,
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 9:00"),
                               to_time: Time.parse("#{Date.yesterday} 10:00"), description: 'Today I finish the work')
 
-      user.time_sheets.create!(user_id: user.id, project_id: deal_signal.id,
+      user.time_sheets.create!(project_id: deal_signal.id,
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 11:00"),
                               to_time: Time.parse("#{Date.yesterday} 12:00"), description: 'Today I finish the work')
       params = {user_id: user.id, from_date: Date.yesterday - 1, to_time: Date.today}
-      get :users_timesheet, id: user.id, user_id: user.reload.id, from_date: Date.yesterday - 1, to_time: Date.today
+      get :users_timesheet, user_id: user.id, user_id: user.reload.id, from_date: Date.yesterday - 1, to_time: Date.today
       expect(response).to have_http_status(200)
       should render_template(:users_timesheet)
     end
@@ -297,58 +298,54 @@ RSpec.describe TimeSheetsController, type: :controller do
     let!(:project) { FactoryGirl.create(:project, name: 'test') }
     
     it 'Should update timesheet' do
+      sign_in user
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
-      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 09:00 AM", "to_time"=>"#{Date.today - 1} - 11:15 AM", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
-      post :update, id: user.id, user: params, time_sheet_date: Date.today - 1
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 09:00", "to_time"=>"#{Date.today - 1} - 11:15", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      put :update_timesheet, user_id: user.id, user: params, time_sheet_date: Date.today - 1
       expect(time_sheet.reload.from_time.to_s).to eq("#{Date.today - 1} - 09:00 AM")
       expect(time_sheet.reload.to_time.to_s).to eq("#{Date.today - 1} - 11:15 AM")
       expect(time_sheet.reload.description).to eq("testing API and call with client")
     end
 
     it 'Should not update timesheet because description is not present' do
+      sign_in user
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
       params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 09:00 AM", "to_time"=>"#{Date.today - 1} - 11:15 AM", "description"=>"", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
-      post :update, id: user.id, user: params, time_sheet_date: Date.today - 1
+      post :update_timesheet, user_id: user.id, user: params, time_sheet_date: Date.today - 1
       expect(flash[:error]).to be_present
-      should render_template(:edit)
+      should render_template(:edit_timesheet)
     end
 
     it 'Should not update timesheet because from time is not present' do
+      sign_in user
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
       params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"", "to_time"=>"#{Date.today - 1} - 11:15 AM", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
-      post :update, id: user.id, user: params, time_sheet_date: Date.today - 1
+      post :update_timesheet, user_id: user.id, user: params, time_sheet_date: Date.today - 1
       expect(flash[:error]).to be_present
-      should render_template(:edit)
-    end
-
-    it 'Should not update timesheet because date is not present' do
-      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
-      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
-      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"", "from_time"=>"#{Date.today - 1} - 09:00 AM", "to_time"=>"#{Date.today - 1} - 11:15 AM", "description"=>"Testing", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
-      post :update, id: user.id, user: params, time_sheet_date: Date.today - 1
-      expect(flash[:error]).to be_present
-      should render_template(:edit)
+      should render_template(:edit_timesheet)
     end
 
     it 'Should not update timesheet because to time is not present' do
+      sign_in user
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
       params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 09:00 AM", "to_time"=>"", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
-      post :update, id: user.id, user: params, time_sheet_date: Date.today - 1
+      post :update_timesheet, user_id: user.id, user: params, time_sheet_date: Date.today - 1
       expect(flash[:error]).to be_present
-      should render_template(:edit)
+      should render_template(:edit_timesheet)
     end
 
     it 'Should not update Timesheet because timesheet date is less than 7 days' do
+      sign_in user
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
       params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 11:00 AM", "to_time"=>"#{Date.today - 1} - 10:00 AM", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
-      post :update, id: user.id, user: params, time_sheet_date: Date.today - 1
+      post :update_timesheet, user_id: user.id, user: params, time_sheet_date: Date.today - 1
       expect(flash[:error]).to be_present
-      should render_template(:edit)
+      should render_template(:edit_timesheet)
     end
   end
 end

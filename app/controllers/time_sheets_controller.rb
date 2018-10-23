@@ -22,7 +22,7 @@ class TimeSheetsController < ApplicationController
   def users_timesheet
     unless current_ability.can? :users_timesheet, TimeSheet.where(user_id: params[:user_id]).first
       flash[:error] = "Invalid access"
-      redirect_to time_sheets_path and return #if current_user.role.in?(['Employee', 'Intern']) && current_user.id.to_s != params[:user_id]
+      redirect_to time_sheets_path and return
     end
 
     @from_date = params[:from_date]

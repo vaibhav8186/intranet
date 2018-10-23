@@ -649,6 +649,7 @@ class TimeSheet
   end
 
   def self.update_time_sheet(params)
+    return_value = ''
     params['time_sheets_attributes'].each do |key, value|
       time_sheet = TimeSheet.find(value[:id])
       value['from_time'] = value['date'] + ' ' + value['from_time']
@@ -656,7 +657,7 @@ class TimeSheet
       time_sheet.time_validation(value['date'], value['from_time'], value['to_time'], 'from_ui')
       return time_sheet.errors.full_messages.join(', ') if time_sheet.errors.full_messages.present?
       if time_sheet.update_attributes(value)
-        return true
+        return_value =  true
       else
         if time_sheet.errors[:from_time].present? || time_sheet.errors[:from_time].present?
           return time_sheet.errors[:from_time].join(', ') if time_sheet.errors[:from_time].present?
@@ -666,6 +667,7 @@ class TimeSheet
         end
       end
     end
+    return_value
   end
 
   def self.get_errors_message(user, time_sheet_date)
@@ -699,7 +701,8 @@ class TimeSheet
 
   def self.create_error_message(error)
     index = error.remove!("`").index(/Error/)
-    error[index..-1]
+    error = error[index..-1] unless index.nil?
+    error
   end
   def self.load_user(user_id)
     User.where("public_profile.slack_handle" => user_id)
