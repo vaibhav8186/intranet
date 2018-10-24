@@ -42,6 +42,7 @@ class User
   after_update :delete_team_cache, if: :website_fields_changed?
 
   accepts_nested_attributes_for :attachments, reject_if: :all_blank, :allow_destroy => true
+  accepts_nested_attributes_for :time_sheets, :allow_destroy => true
   validates :email, format: {with: /\A.+@#{ORGANIZATION_DOMAIN}/, message: "Only #{ORGANIZATION_NAME} email-id is allowed."}
   validates :role, :email, presence: true
   validates_associated :employee_detail

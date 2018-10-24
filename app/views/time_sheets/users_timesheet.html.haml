@@ -1,0 +1,31 @@
+= form_tag users_time_sheets_path, method: 'GET', class: 'form form-inline' do
+  %label From Date:
+  = text_field_tag :from_date, params[:from_date], class: "form-control datepicker", placeholder: "From Date", value: @from_date, style: "height: 2em;"
+  %label To Date:
+  = text_field_tag :to_date, params[:to_date], class: "form-control datepicker", placeholder: "To Date", value: @to_date, style: "height: 2em;"
+  = submit_tag "Search", class: "btn btn-primary"
+
+%h1 #{@user.name} 
+%span{class: "text-height"} (Total Time : #{@total_work_and_leaves['total_work']} Leaves: #{@total_work_and_leaves['leaves']})
+.form-horizontal
+  -@individual_timesheet_report.each do |key, value|
+    %h2 #{key}
+    %table.table
+      %th Date
+      %th From time
+      %th To time
+      %th Total Work
+      %th Description
+      %descripton
+      %tbody
+        -value["daily_status"].each do |ds|
+          %tr
+            -ds.each do |record|
+              %td= link_to record['date'], edit_time_sheets_path(@user.id, time_sheet_date: record['date'], time_sheet_id: record['id'])
+              %td= record['from_time']
+              %td= record['to_time']
+              %td= record['total_worked']
+              %td= record['description']
+        -total_worked_hours = value["total_worked_hours"]
+    %h5 Time on #{key} #{total_worked_hours}
+    %br

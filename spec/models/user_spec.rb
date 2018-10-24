@@ -102,6 +102,7 @@ describe User do
     end
 
     it 'Should give worked on project form from date and to date' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 3, end_date: nil)
       TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: '9:00', to_time: '10:00', description: 'Woked on test cases')
       projects = user.worked_on_projects(Date.today - 2, Date.today)
       expect(projects.present?).to eq(true)
