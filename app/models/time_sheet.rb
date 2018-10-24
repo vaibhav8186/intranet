@@ -333,9 +333,10 @@ class TimeSheet
         time_sheet_data = []
       end
       working_details = {}
-      hours, minitues = calculate_hours_and_minutes(total_minutes.to_i)
-      working_details['daily_status']               = time_sheet_log
-      working_details['total_worked_hours']         = "#{hours}:#{minitues}"
+      total_worked_hours = convert_hours_to_days(total_worked_in_hours(total_minutes.to_i))
+      # hours, minitues = calculate_hours_and_minutes(total_minutes.to_i)
+      working_details['daily_status'] = time_sheet_log
+      working_details['total_worked_hours'] = total_worked_hours #"#{hours}:#{minitues}"
       individual_time_sheet_data["#{project.name}"] = working_details
       time_sheet_log  = []
       working_details = {}
@@ -715,7 +716,10 @@ class TimeSheet
 
   def self.get_user_leaves_count(user, from_date, to_date)
     leaves_count = 0
-    leave_applications = user.leave_applications.where({start_at: {"$gte" => from_date, "$lte" => to_date}})
+    leave_applications = user.leave_applications.where(
+      "$and" => [{start_at: {"$gte" => from_date, "$lte" => to_date}}, 
+      "$or" => [{leave_status: LEAVE_STATUS[0]}, {leave_status: LEAVE_STATUS[1]}]]
+    )
     leave_applications.each do |leave_application|
       leaves_count += leave_application.number_of_days
     end
