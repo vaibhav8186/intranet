@@ -334,9 +334,8 @@ class TimeSheet
       end
       working_details = {}
       total_worked_hours = convert_hours_to_days(total_worked_in_hours(total_minutes.to_i))
-      # hours, minitues = calculate_hours_and_minutes(total_minutes.to_i)
       working_details['daily_status'] = time_sheet_log
-      working_details['total_worked_hours'] = total_worked_hours #"#{hours}:#{minitues}"
+      working_details['total_worked_hours'] = total_worked_hours
       individual_time_sheet_data["#{project.name}"] = working_details
       time_sheet_log  = []
       working_details = {}
