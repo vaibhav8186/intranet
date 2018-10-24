@@ -588,7 +588,7 @@ class TimeSheet
       message = "You haven't filled the timesheet for yesterday. Go ahead and fill it now. You can fill timesheet for past 7 days. If it exceeds 7 days then contact your manager."
       text_for_slack = "*#{message}*"
       text_for_email = "#{message}"
-      TimesheetRemainderMailer.send_timesheet_reminder_mail(slack_uuid, text_for_email).deliver!
+      TimesheetRemainderMailer.send_timesheet_reminder_mail(user, slack_uuid, text_for_email).deliver!
       send_reminder(slack_uuid, text_for_slack) unless slack_uuid.blank?
       return false
     end
@@ -617,7 +617,7 @@ class TimeSheet
       message2 = "Go ahead and fill it now. You can fill timesheet for past 7 days. If it exceeds 7 days then contact your manager."
       text_for_slack = "*#{message1} #{unfilled_timesheet.to_date}. #{message2}*"
       text_for_email = "#{message1} #{unfilled_timesheet.to_date}. #{message2}"
-      TimesheetRemainderMailer.send_timesheet_reminder_mail(slack_handle, text_for_email).deliver!
+      TimesheetRemainderMailer.send_timesheet_reminder_mail(user, slack_handle, text_for_email).deliver!
       send_reminder(slack_handle, text_for_slack) unless slack_handle.blank?
       return true
     end
