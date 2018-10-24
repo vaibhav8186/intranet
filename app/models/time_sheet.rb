@@ -718,7 +718,7 @@ class TimeSheet
     leaves_count = 0
     leave_applications = user.leave_applications.where(
       "$and" => [{start_at: {"$gte" => from_date, "$lte" => to_date}}, 
-      "$or" => [{leave_status: LEAVE_STATUS[0]}, {leave_status: LEAVE_STATUS[1]}]]
+                {leave_status: LEAVE_STATUS[1]}]
     )
     leave_applications.each do |leave_application|
       leaves_count += leave_application.number_of_days
