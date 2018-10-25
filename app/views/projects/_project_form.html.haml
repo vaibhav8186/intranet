@@ -18,6 +18,10 @@
           = f.label "Is Free"
           .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "True", "data-off-label" => "False"}
             = f.check_box :is_free, {}, 'true', 'false'
+        %div
+          =f.label 'Timesheet Mandatory'
+          .make-switch{"data-on" => "success", "data-off" => "warning", "data-on-label" => "True", "data-off-label" => "False"}
+            = f.check_box :timesheet_mandatory, {}, 'true', 'false'
         = f.input :start_date, input_html: {class: :datepicker}, value: f.object.start_date.try(:strftime, '%d-%m-%Y')
         = f.input :end_date, input_html: {class: :datepicker}, value: f.object.end_date.try(:strftime, '%d-%m-%Y')
         = label_tag "Case Study", nil, class: 'control-label'

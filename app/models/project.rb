@@ -45,7 +45,7 @@ class Project
 
   field :display_name
   field :is_free, type: Boolean, default: false
-
+  field :timesheet_mandatory, type: Boolean, default: true
   slug :name
 
   has_many :time_sheets, dependent: :destroy
