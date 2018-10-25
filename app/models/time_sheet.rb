@@ -387,8 +387,10 @@ class TimeSheet
           total_days_work = convert_hours_to_days(total_worked_in_hours(total_minutes.to_i))
           leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
           holidays_count = get_holiday_count(from_date, to_date)
-          time_sheet_log.push(user.name, project.name, total_days_work, leaves_count, holidays_count)
-          weekly_report << time_sheet_log
+          if total_minutes != 0
+            time_sheet_log.push(user.name, project.name, total_days_work, leaves_count, holidays_count) 
+            weekly_report << time_sheet_log
+          end
           total_minutes = 0
         end
       end
@@ -402,7 +404,7 @@ class TimeSheet
     user_projects = user.get_user_projects_from_user(project.id, from_date.to_date, to_date.to_date)
     leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
     time_sheets = get_time_sheet_between_range(user, project.id, from_date, to_date)
-    users_without_timesheet.push(user.name, project.name, leaves_count) unless time_sheets.present?
+    users_without_timesheet.push(user.name, project.name, leaves_count) if !time_sheets.present? && !project.timesheet_mandatory == false
     time_sheets.each do |time_sheet|
       working_minutes = calculate_working_minutes(time_sheet)
       total_minutes += working_minutes
