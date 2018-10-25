@@ -261,6 +261,6 @@ class Project
         ]
       }
     ]).pluck(:user_id).uniq
-    User.in(id: user_ids)
+    User.in(id: user_ids).where(status: STATUS[2], "$or"=>[{role: ROLE[:employee]}, {role: ROLE[:intern]}])
   end
 end
