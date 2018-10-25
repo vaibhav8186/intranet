@@ -286,7 +286,7 @@ class TimeSheet
       end
       total_worked_hours = convert_milliseconds_to_hours(total_work)
       users_timesheet_data['total_worked_hours'] = convert_hours_to_days(total_worked_hours)
-      users_timesheet_data['leaves'] = get_user_leaves_count(user, from_date, to_date)
+      users_timesheet_data['leaves'] = approved_leaves_count(user, from_date, to_date)
       timesheet_reports << users_timesheet_data
     end
     sort_on_user_name_and_project_name(timesheet_reports)
@@ -443,7 +443,7 @@ class TimeSheet
     total_work_and_leaves = {}
     total_worked_hours = total_worked_in_hours(total_minutes_worked_on_projects.to_i)
     total_work_and_leaves['total_work'] = convert_hours_to_days(total_worked_hours)
-    total_work_and_leaves['leaves'] = get_user_leaves_count(user, params[:from_date], params[:to_date])
+    total_work_and_leaves['leaves'] = approved_leaves_count(user, params[:from_date], params[:to_date])
     total_work_and_leaves
   end
 
@@ -511,15 +511,15 @@ class TimeSheet
       leaves_count =
         if user_project.end_date.present?
           if from_date <= user_project.start_date
-            get_user_leaves_count(user, user_project.start_date, user_project.end_date)
+            approved_leaves_count(user, user_project.start_date, user_project.end_date)
           elsif from_date > user_project.start_date
-            get_user_leaves_count(user, from_date, user_project.end_date)
+            approved_leaves_count(user, from_date, user_project.end_date)
           end
         else
           if from_date <= user_project.start_date
-            get_user_leaves_count(user, user_project.start_date, to_date)
+            approved_leaves_count(user, user_project.start_date, to_date)
           elsif from_date > user_project.start_date
-            get_user_leaves_count(user, from_date, to_date)
+            approved_leaves_count(user, from_date, to_date)
           end
         end
       total_leaves_count += leaves_count
@@ -713,16 +713,13 @@ class TimeSheet
     call_slack_api_service_and_fetch_email(user_id)
   end
 
-  def self.get_user_leaves_count(user, from_date, to_date)
+  def self.approved_leaves_count(user, from_date, to_date)
     leaves_count = 0
     leave_applications = user.leave_applications.where(
       "$and" => [{start_at: {"$gte" => from_date, "$lte" => to_date}}, 
                 {leave_status: LEAVE_STATUS[1]}]
     )
-    leave_applications.each do |leave_application|
-      leaves_count += leave_application.number_of_days
-    end
-    leaves_count
+    leave_applications.sum(:number_of_days)  
   end
 
   def self.get_time_sheet_between_range(user, project_id, from_date, to_date)

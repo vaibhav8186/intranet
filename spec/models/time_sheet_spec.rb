@@ -314,7 +314,7 @@ RSpec.describe TimeSheet, type: :model do
 
     it 'Should give the user leaves count' do
       FactoryGirl.create(:leave_application, user_id: user.id, leave_status: LEAVE_STATUS[1])
-      expect(TimeSheet.get_user_leaves_count(user, Date.today + 2, Date.today + 3)).to eq(2)
+      expect(TimeSheet.approved_leaves_count(user, Date.today + 2, Date.today + 3)).to eq(2)
     end
 
     it 'Should return true because from date is less than to date' do
