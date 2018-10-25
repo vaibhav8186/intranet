@@ -646,7 +646,7 @@ class TimeSheet
   
   def self.get_users_without_timesheet(user_ids)
     users = User.not_in(id: user_ids)
-    users.where(status: STATUS[2], "$or" => [{role: 'Employee'}, {role: 'Intern'}]).order("public_profile.first_name" => :asc)
+    users.where(status: STATUS[2], "$or" => [{role: ROLE[:employee]}, {role: ROLE[:intern]}]).order("public_profile.first_name" => :asc)
   end
 
   def self.get_holiday_count(from_date, to_date)
