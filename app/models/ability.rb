@@ -52,6 +52,7 @@ class Ability
     can [:edit, :update], LeaveApplication, leave_status: 'Pending', user_id: user_id
     can :read, Vendor
     can [:index, :users_timesheet, :edit_timesheet, :update_timesheet], TimeSheet, user_id: user_id
+    cannot [:projects_report, :individual_project_report], TimeSheet
   end
 
   def admin_abilities

@@ -120,7 +120,7 @@ RSpec.describe TimeSheetsController, type: :controller do
 
     context 'command without date option' do
       before do
-        UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now, end_date: nil)
+        UserProject.create(user_id: user.id, project_id: tpn.id, start_date: DateTime.now - 3, end_date: nil)
         stub_request(:post, "https://slack.com/api/chat.postMessage")
       end
 
@@ -142,14 +142,14 @@ RSpec.describe TimeSheetsController, type: :controller do
 
       it 'Should success : user worked on multiple project' do
         deal_signal = FactoryGirl.create(:project, name: 'Deal signal', display_name: 'deal_signal')
-        UserProject.create(user_id: user.id, project_id: deal_signal.id, start_date: DateTime.now, end_date: nil)
-        user.time_sheets.create(user_id: user.id, project_id: tpn.id,
-                                date: Date.today, from_time: '9:00',
-                                to_time: '10:00', description: 'Today I finish the work')
+        UserProject.create(user_id: user.id, project_id: deal_signal.id, start_date: DateTime.now - 3, end_date: nil)
+        user.time_sheets.create!(user_id: user.id, project_id: tpn.id,
+                                date: Date.today, from_time: "#{Date.today} 7:00",
+                                to_time: "#{Date.today} 8:00", description: 'Today I finish the work')
 
-        user.time_sheets.create(user_id: user.id, project_id: deal_signal.id,
-                                date: Date.today, from_time: '11:00',
-                                to_time: '12:00', description: 'Today I finish the work')
+        user.time_sheets.create!(user_id: user.id, project_id: deal_signal.id,
+                                date: Date.today, from_time: "#{Date.today} 8:00",
+                                to_time: "#{Date.today} 9:00", description: 'Today I finish the work')
         params = {
           'user_id' => USER_ID,
           'channel_id' => CHANNEL_ID,
@@ -158,7 +158,7 @@ RSpec.describe TimeSheetsController, type: :controller do
         post :daily_status, params
         resp = JSON.parse(response.body)
         expect(response).to have_http_status(:ok)
-        expect(resp['text']).to eq("You worked on *The pediatric network: 1H 00M* *Deal signal: 1H 00M*. Details are as follow\n\n1. The pediatric network 09:00AM 10:00AM Today I finish the work \n2. Deal signal 11:00AM 12:00PM Today I finish the work \n")
+        expect(resp['text']).to eq("You worked on *The pediatric network: 1H 00M* *Deal signal: 1H 00M*. Details are as follow\n\n1. The pediatric network 07:00AM 08:00AM Today I finish the work \n2. Deal signal 08:00AM 09:00AM Today I finish the work \n")
       end
 
       it 'Should fail because timesheet not present' do
@@ -229,7 +229,7 @@ RSpec.describe TimeSheetsController, type: :controller do
                               date: DateTime.yesterday, from_time: Time.parse("#{Date.yesterday} 11:00"),
                               to_time: Time.parse("#{Date.yesterday} 12:00"), description: 'Today I finish the work')
       params = {user_id: user.id, from_date: Date.yesterday - 1, to_time: Date.today}
-      get :users_timesheet, user_id: user.id, user_id: user.reload.id, from_date: Date.yesterday - 1, to_time: Date.today
+      get :users_timesheet, user_id: user.id, from_date: Date.yesterday - 1, to_date: Date.today
       expect(response).to have_http_status(200)
       should render_template(:users_timesheet)
     end
@@ -259,11 +259,13 @@ RSpec.describe TimeSheetsController, type: :controller do
     end
 
     it 'Should fail because user is not authorized' do
+      user_one.update_attributes(role: ROLE[:employee])
       UserProject.create(user_id: user_one.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
       TimeSheet.create(user_id: user_one.id, project_id: project.id,
                               date: '10/09/2018'.to_date, from_time: "9:00",
                               to_time: "10:00", description: 'Today I finish the work')
       params = params = {from_date: Date.today.beginning_of_month.to_s, to_date: Date.today.to_s}
+      sign_in user_one
       get :projects_report, params
       expect(response).to have_http_status(302)
     end
@@ -292,6 +294,8 @@ RSpec.describe TimeSheetsController, type: :controller do
       sign_in user
       get :individual_project_report, id: project.id, from_date: '01/09/2018', to_date: '27/09/2018'
       expect(response).to have_http_status(302)
+    end
+  end
 
   context 'Update timesheet' do
     let!(:user) { FactoryGirl.create(:user, email: 'abc@joshsoftware.com', role: 'Admin') }
