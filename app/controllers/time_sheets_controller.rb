@@ -1,6 +1,7 @@
 class TimeSheetsController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  load_and_authorize_resource only: [:index, :users_timesheet, :edit_timesheet, :update_timesheet, :new]
+  load_and_authorize_resource only: [:index, :users_timesheet, :edit_timesheet, :update_timesheet, :new, :projects_report]
+  load_and_authorize_resource only: :individual_project_report, class: Project
   before_action :user_exists?, only: [:create, :daily_status]
 
   def create

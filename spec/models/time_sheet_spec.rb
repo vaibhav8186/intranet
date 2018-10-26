@@ -36,8 +36,8 @@ RSpec.describe TimeSheet, type: :model do
     end
 
     it 'Should fails because record is already present' do
-      FactoryGirl.create(:time_sheet, user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: '10:00', to_time: '11:00', description: 'call')
-      time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: '10:00', to_time: '11:00', description: 'call')
+      FactoryGirl.create(:time_sheet, user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 10:00", to_time: "#{Date.today - 1} 11:00", description: 'call')
+      time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 10:00", to_time: "#{Date.today - 1} 11:00", description: 'call')
       time_sheet.save
       expect(time_sheet.errors.full_messages).to eq(["From time `Error :: Record already present`", "To time `Error :: Record already present`"])
     end
@@ -549,37 +549,54 @@ RSpec.describe TimeSheet, type: :model do
     let!(:project) { FactoryGirl.create(:project) }
 
     it 'Should give expected project report' do
-      UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
-      HolidayList.create(holiday_date: '13/09/2018'.to_date, reason: 'test')
-      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 20, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 19:00", to_time: "#{Date.today - 1} 20:00", description: 'Discuss new story')
+      HolidayList.create(holiday_date: Date.today - 4, reason: 'test')
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: Date.today - 2, end_at: Date.today - 2, number_of_days: 1)
 
-      from_date = '01/09/2018'.to_date
-      to_date = '20/09/2018'.to_date
+      from_date = Date.today - 20
+      to_date = Date.today
       load_projects_report = TimeSheet.load_projects_report(from_date, to_date)
-      projects_report, project_without_timesheet = TimeSheet.create_projects_report_in_json_format(load_projects_report, from_date, to_date)
-
+      projects_report, project_without_timesheet, users_without_timesheet = TimeSheet.create_projects_report_in_json_format(load_projects_report, from_date, to_date)
       expect(projects_report[0]["project_name"]).to eq("The pediatric network")
       expect(projects_report[0]["no_of_employee"]).to eq(1)
       expect(projects_report[0]["total_hours"]).to eq("0 Days 1H (1H)")
-      expect(projects_report[0]["allocated_hours"]).to eq("12 Days (96H)")
+      expect(projects_report[0]["allocated_hours"]).to eq("13 Days (104H)")
       expect(projects_report[0]["leaves"]).to eq(1)
       expect(project_without_timesheet.present?).to eq(false)
+      expect(users_without_timesheet.count).to eq(0)
     end
 
     it 'Should give project without timesheet' do
       test_project_one = FactoryGirl.create(:project, name: 'test1')
       test_project_two = FactoryGirl.create(:project, name: 'test2')
-
-      UserProject.create(user_id: user.id, project_id: test_project_one.id, start_date: '24/09/2018', end_date: nil)
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
-      from_date = '01/09/2018'.to_date
-      to_date = '30/09/2018'.to_date
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 20, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: test_project_one.id, start_date: Date.today - 20, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 21:00", to_time: "#{Date.today - 1} 22:00", description: 'Discuss new story')
+      from_date = Date.today - 20
+      to_date = Date.today
       load_projects_report = TimeSheet.load_projects_report(from_date, to_date)
       projects_report, project_without_timesheet = TimeSheet.create_projects_report_in_json_format(load_projects_report, from_date, to_date)
       expect(project_without_timesheet.count).to eq(2)
       expect(project_without_timesheet[0]['project_name']).to eq('test1')
       expect(project_without_timesheet[1]['project_name']).to eq('test2')
+    end
+
+    it 'Should give users without timesheet' do
+      user_two = FactoryGirl.create(:user, email: 'user_one@joshsoftware.com', role: 'Employee', status: STATUS[2])
+      user_three = FactoryGirl.create(:user, email: 'user_two@joshsoftware.com', role: 'Intern', status: STATUS[2])
+
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 20, end_date: nil)
+      UserProject.create(user_id: user_two.id, project_id: project.id, start_date: Date.today - 20, end_date: nil)
+      UserProject.create(user_id: user_three.id, project_id: project.id, start_date: Date.today - 20, end_date: nil)
+      
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 21:00", to_time: "#{Date.today - 1} 22:00", description: 'Discuss new story')
+      from_date = Date.today - 20
+      to_date = Date.today
+      load_projects_report = TimeSheet.load_projects_report(from_date, to_date)
+      projects_report, project_without_timesheet, users_without_timesheet = TimeSheet.create_projects_report_in_json_format(load_projects_report, from_date, to_date)
+      expect(users_without_timesheet[0].email).to eq(users_without_timesheet[0].email)
+      expect(users_without_timesheet[1].email).to eq(users_without_timesheet[1].email)
     end
   end
 
@@ -595,38 +612,31 @@ RSpec.describe TimeSheet, type: :model do
       user_three.public_profile.update_attributes(first_name: 'test3_user', last_name: 'test3_user')
       UserProject.create(user_id: user_one.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
       UserProject.create(user_id: user_two.id, project_id: project.id, start_date: '06/09/2018'.to_date, end_date: nil)
-      UserProject.create(user_id: user_three.id, project_id: project.id, start_date: '10/09/2018'.to_date, end_date: '20/09/2018'.to_date)
 
-      TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '03/09/2018', from_time: Time.parse('03/09/2018 8'), to_time: Time.parse('03/09/2018 10'), description: 'Worked on test cases')
-      TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '03/09/2018', from_time: Time.parse('03/09/2018 10'), to_time: Time.parse('03/09/2018 12'), description: 'Worked on test cases')
-      TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '04/09/2018', from_time: Time.parse('04/09/2018 9'), to_time: Time.parse('04/09/2018 10'), description: 'Worked on test cases')
-      FactoryGirl.create(:leave_application, user_id: user_one.id, start_at: '5/09/2018', end_at: '7/09/2018', number_of_days: 3, leave_status: LEAVE_STATUS[1])
+      TimeSheet.create(user_id: user_one.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 21:00", to_time: "#{Date.today - 1} 22:00", description: 'Worked on test cases')
+      TimeSheet.create(user_id: user_one.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 8:00", to_time: "#{Date.today - 1} 9:00", description: 'Worked on test cases')
+      TimeSheet.create(user_id: user_one.id, project_id: project.id, date: Date.today - 2, from_time: "#{Date.today - 1} 21:00", to_time: "#{Date.today - 1} 22:00", description: 'Worked on test cases')
+      FactoryGirl.create(:leave_application, user_id: user_one.id, start_at: Date.today - 10, end_at: Date.today - 7, number_of_days: 3)
 
-      TimeSheet.create(user_id: user_two.id, project_id: project.id, date: '06/09/2018', from_time: Time.parse('06/09/2018 9'), to_time: Time.parse('06/09/2018 11'), description: 'Worked on test cases')
-      TimeSheet.create(user_id: user_two.id, project_id: project.id, date: '07/09/2018', from_time: Time.parse('07/09/2018 9'), to_time: Time.parse('07/09/2018 11'), description: 'Worked on test cases')
+      TimeSheet.create(user_id: user_two.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 21:00", to_time: "#{Date.today - 1} 22:00", description: 'Worked on test cases')
+      TimeSheet.create(user_id: user_two.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 8:00", to_time: "#{Date.today - 1} 10:00", description: 'Worked on test cases')
 
-      TimeSheet.create(user_id: user_three.id, project_id: project.id, date: '10/09/2018', from_time: Time.parse('10/09/2018 9'), to_time: Time.parse('10/09/2018 11'), description: 'Review the code')
-      TimeSheet.create(user_id: user_three.id, project_id: project.id, date: '14/09/2018', from_time: Time.parse('14/09/2018 9'), to_time: Time.parse('14/09/2018 12'), description: 'call')
-      FactoryGirl.create(:leave_application, user_id: user_three.id, start_at: '12/09/2018', end_at: '13/09/2018', number_of_days: 2, leave_status: LEAVE_STATUS[1])
+      FactoryGirl.create(:leave_application, user_id: user_three.id, start_at: '12/09/2018', end_at: '13/09/2018', number_of_days: 2)
 
-      params = { from_date: '1/09/2018', to_date: '27/09/2018' }
+      params = { from_date: Date.today - 20, to_date: Date.today }
       individual_project_report, project_report = TimeSheet.generate_individual_project_report(project, params)
 
-      expect(individual_project_report['test1_user test1_user'][0]['total_work']).to eq('0 Days 5H (5H)')
-      expect(individual_project_report['test1_user test1_user'][0]['allocated_hours']).to eq('18 Days (144H)')
+      expect(individual_project_report['test1_user test1_user'][0]['total_work']).to eq('0 Days 3H (3H)')
+      expect(individual_project_report['test1_user test1_user'][0]['allocated_hours']).to eq('14 Days (112H)')
       expect(individual_project_report['test1_user test1_user'][0]['leaves']).to eq(3)
 
-      expect(individual_project_report['test2_user test2_user'][0]['total_work']).to eq('0 Days 4H (4H)')
-      expect(individual_project_report['test2_user test2_user'][0]['allocated_hours']).to eq('15 Days (120H)')
+      expect(individual_project_report['test2_user test2_user'][0]['total_work']).to eq('0 Days 3H (3H)')
+      expect(individual_project_report['test2_user test2_user'][0]['allocated_hours']).to eq('14 Days (112H)')
       expect(individual_project_report['test2_user test2_user'][0]['leaves']).to eq(0)
 
-      expect(individual_project_report['test3_user test3_user'][0]['total_work']).to eq('0 Days 5H (5H)')
-      expect(individual_project_report['test3_user test3_user'][0]['allocated_hours']).to eq('8 Days (64H)')
-      expect(individual_project_report['test3_user test3_user'][0]['leaves']).to eq(2)
-
-      expect(project_report['total_worked_hours']).to eq('1 Days 6H (14H)')
-      expect(project_report['total_allocated_hourse']).to eq('41 Days (328H)')
-      expect(project_report['total_leaves']).to eq(5)
+      expect(project_report['total_worked_hours']).to eq('0 Days 6H (6H)')
+      expect(project_report['total_allocated_hourse']).to eq('28 Days (224H)')
+      expect(project_report['total_leaves']).to eq(3)
     end
   end
 
@@ -666,9 +676,9 @@ RSpec.describe TimeSheet, type: :model do
     it 'Should give total working minutes' do
       project = FactoryGirl.create(:project)
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 10"), to_time: Time.parse("#{Date.today} 11"), description: 'test')
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 11"), to_time: Time.parse("#{Date.today} 12"), description: 'test')
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 12"), to_time: Time.parse("#{Date.today} 13"), description: 'test')
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11"), description: 'test')
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now - 1, from_time: Time.parse("#{Date.today - 1} 11"), to_time: Time.parse("#{Date.today - 1} 12"), description: 'test')
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now - 1, from_time: Time.parse("#{Date.today - 1} 12"), to_time: Time.parse("#{Date.today - 1} 13"), description: 'test')
 
       from_date = Date.today - 3
       to_date = Date.today + 3
