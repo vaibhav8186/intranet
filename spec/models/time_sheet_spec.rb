@@ -568,15 +568,15 @@ RSpec.describe TimeSheet, type: :model do
     end
 
     it 'Should give project without timesheet' do
-      test_project_one = FactoryGirl.create(:project, name: 'test1')
-      test_project_two = FactoryGirl.create(:project, name: 'test2')
-
-      UserProject.create(user_id: user.id, project_id: test_project_one.id, start_date: '24/09/2018', end_date: nil)
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
-      from_date = '01/09/2018'.to_date
-      to_date = '30/09/2018'.to_date
+      test_project_one = FactoryGirl.create(:project, name: 'test1', timesheet_mandatory: true)
+      test_project_two = FactoryGirl.create(:project, name: 'test2', timesheet_mandatory: true)
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 20, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: test_project_one.id, start_date: Date.today - 20, end_date: nil)
+      TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: "#{Date.today - 1} 9:00", to_time: "#{Date.today - 1} 10:00", description: 'Discuss new story')
+      from_date = Date.today - 30
+      to_date = Date.today - 1
       load_projects_report = TimeSheet.load_projects_report(from_date, to_date)
-      projects_report, project_without_timesheet = TimeSheet.create_projects_report_in_json_format(load_projects_report, from_date, to_date)
+      projects_report, project_without_timesheet, users_without_timesheet = TimeSheet.create_projects_report_in_json_format(load_projects_report, from_date, to_date)
       expect(project_without_timesheet.count).to eq(2)
       expect(project_without_timesheet[0]['project_name']).to eq('test1')
       expect(project_without_timesheet[1]['project_name']).to eq('test2')
@@ -666,6 +666,7 @@ RSpec.describe TimeSheet, type: :model do
     it 'Should give total working minutes' do
       project = FactoryGirl.create(:project)
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+
       TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 10"), to_time: Time.parse("#{Date.today} 11"), description: 'test')
       TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 11"), to_time: Time.parse("#{Date.today} 12"), description: 'test')
       TimeSheet.create(user_id: user.id, project_id: project.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 12"), to_time: Time.parse("#{Date.today} 13"), description: 'test')
@@ -715,6 +716,25 @@ RSpec.describe TimeSheet, type: :model do
       from_date = Date.today - 3
       to_date = Date.today + 3
       total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date)
+    end
+
+    it "Should consider project for calculating total minutes if project's timesheet mandatory field set to false" do
+      project_other = FactoryGirl.create(:project, name: 'Other', timesheet_mandatory: false)
+      UserProject.create(user_id: user.id, project_id: project_other.id, start_date: Date.today - 10, end_date: nil)
+      TimeSheet.create!(user_id: user.id, project_id: project_other.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 8"), to_time: Time.parse("#{Date.today} 9"), description: 'test')
+      from_date = Date.today - 3
+      to_date = Date.today + 3
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project_other, from_date, to_date)
+      expect(total_minutes).to eq(60.0)
+    end
+
+    it 'Should not consider project whose timesheet mandatory field set to false for users without timesheet list' do
+      project_other = FactoryGirl.create(:project, name: 'Other', timesheet_mandatory: false)
+      UserProject.create(user_id: user.id, project_id: project_other.id, start_date: Date.today - 10, end_date: nil)
+      TimeSheet.create!(user_id: user.id, project_id: project_other.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 8"), to_time: Time.parse("#{Date.today} 9"), description: 'test')
+      from_date = Date.today - 3
+      to_date = Date.today + 3
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project_other, from_date, to_date)
       expect(users_without_timesheet.present?).to eq(false)
     end
   end
@@ -722,7 +742,7 @@ RSpec.describe TimeSheet, type: :model do
   context 'Update timesheet' do
     let!(:user) { FactoryGirl.create(:user, email: 'abc@joshsoftware.com', role: 'Admin') }
     let!(:project) { FactoryGirl.create(:project, name: 'test') }
-
+  
     it 'Should give return value true' do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
@@ -730,7 +750,7 @@ RSpec.describe TimeSheet, type: :model do
       return_value = TimeSheet.check_validation_while_updating_time_sheet(params)
       expect(return_value).to eq(true)
     end
-
+  
     it 'Should give error from time less than to time' do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
@@ -738,7 +758,7 @@ RSpec.describe TimeSheet, type: :model do
       return_value = TimeSheet.check_validation_while_updating_time_sheet(params)
       expect(return_value).to eq("Error :: From time must be less than to time")
     end
-
+  
     it 'Should give error not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager' do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
@@ -746,7 +766,7 @@ RSpec.describe TimeSheet, type: :model do
       return_value = TimeSheet.check_validation_while_updating_time_sheet(params)
       expect(return_value).to eq('Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.')
     end
-    
+  
     it "Should give error can't fill the timesheet for future time" do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
@@ -754,7 +774,7 @@ RSpec.describe TimeSheet, type: :model do
       return_value = TimeSheet.check_validation_while_updating_time_sheet(params)
       expect(return_value).to eq("Error :: Can't fill the timesheet for future time.")
     end
-
+  
     it 'Should give error not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.' do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
