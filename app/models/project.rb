@@ -180,6 +180,10 @@ class Project
     return_value
   end
 
+  def self.get_approved_project_between_range(from_date, to_date)
+    Project.where("$or" => [{end_date: nil}, {end_date: {"$gte" => from_date, "$lte" => to_date}}]).pluck(:name, :id)
+  end
+
   def self.approved_manager_and_admin
     User.where("$and" => [status: STATUS[2], "$or" => [{role: MANERIAL_ROLE[0]}, {role: MANERIAL_ROLE[1]}]])
   end

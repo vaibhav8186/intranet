@@ -404,7 +404,10 @@ class TimeSheet
     user_projects = user.get_user_projects_from_user(project.id, from_date.to_date, to_date.to_date)
     leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
     time_sheets = get_time_sheet_between_range(user, project.id, from_date, to_date)
-    users_without_timesheet.push(user.name, project.name, leaves_count) if !time_sheets.present? && !project.timesheet_mandatory == false
+    if !time_sheets.present? && !project.timesheet_mandatory == false && 
+       (user.role == ROLE[:employee] || user.role == ROLE[:intern])
+         users_without_timesheet.push(user.name, project.name, leaves_count)
+    end
     time_sheets.each do |time_sheet|
       working_minutes = calculate_working_minutes(time_sheet)
       total_minutes += working_minutes
@@ -421,6 +424,28 @@ class TimeSheet
     time_sheet_record['total_worked'] = total_worked
     time_sheet_record['description'] = time_sheet.description
     time_sheet_record
+  end
+
+  def self.create_project_report_in_csv(project, from_date, to_date)
+    time_sheet_details = {}
+    time_sheet_log = []
+    time_sheet_records = load_time_sheet_and_calculate_total_work(project.id, from_date, to_date)
+    time_sheet_records.each do |time_sheet_record|
+      user = User.find(time_sheet_record["_id"].to_s)
+      time_sheet_record['working_status'].each do |record|
+        time_sheet_data = []
+        total_hours = convert_milliseconds_to_hours(record['total_time'])
+        description = load_time_sheet_and_get_description(user, project, record['date'])
+        time_sheet_data.push(user.name, record['date'].strftime('%d-%m-%Y'), total_hours, description)
+        time_sheet_log << time_sheet_data
+      end
+    end
+    time_sheet_log.sort!{|previous_record, next_record| previous_record[0] <=> next_record[0]}
+    generate_csv_for_project_record(time_sheet_log)
+  end
+
+  def self.load_time_sheet_and_get_description(user, project, date)
+    TimeSheet.where(user_id: user.id, project_id: project.id, date: date).collect(&:description).join("\n")
   end
 
   def self.format_time(time_sheet)
@@ -539,6 +564,18 @@ class TimeSheet
         end
       end
     weekly_report_in_csv
+  end
+
+  def self.generate_csv_for_project_record(time_sheet_details)
+    headers = ['Employee name', 'Date(dd/mm/yyyy)', 'No of hours', 'Details']
+    project_report =
+      CSV.generate(headers: true) do |csv|
+        csv << headers
+        time_sheet_details.each do |time_sheet|
+          csv << time_sheet
+        end
+      end
+    project_report
   end
 
   def self.sort_on_user_name_and_project_name(timesheet_reports)
@@ -821,4 +858,49 @@ class TimeSheet
     ])
   end
 
+  def self.load_time_sheet_and_calculate_total_work(project_id, from_date, to_date)
+    TimeSheet.collection.aggregate([
+      {
+        "$match" => {
+          "date" => {
+            "$gte" => from_date,
+            "$lte" => to_date
+          },
+          "project_id" => project_id
+        }
+      },
+      {
+        "$group" => {
+          "_id" => {
+            "date" => "$date",
+            "user_id" => "$user_id"
+          },
+          "totalSum" => {
+            "$sum" => {
+              "$subtract" => [
+                "$to_time",
+                "$from_time"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$sort" => {
+          "_id.date" => 1
+        }
+      },
+      {
+        "$group" => {
+          "_id" => "$_id.user_id",
+          "working_status" => {
+            "$push" => {
+              "date" => "$_id.date",
+              "total_time" => "$totalSum"
+            }
+          }
+        }
+      }
+    ])
+  end
 end

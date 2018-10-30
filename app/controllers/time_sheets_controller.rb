@@ -106,6 +106,19 @@ class TimeSheetsController < ApplicationController
     @individual_project_report, @project_report = TimeSheet.generate_individual_project_report(@project, params) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
   end
 
+  def export_project_report
+    @from_date = params[:from_date] || Date.today.beginning_of_month.to_s
+    @to_date = params[:to_date] || Date.today.to_s
+    @project = Project.where(id: params[:project_id]).first if params[:project_id].present?
+    respond_to do |format|
+      format.html
+      format.csv {
+        filename = @project.name + '_' + @from_date.to_date.strftime('%b') + '_' + @from_date.to_date.strftime('%Y') + '.csv'
+        send_data TimeSheet.create_project_report_in_csv(@project, @from_date.to_date, @to_date.to_date), filename: filename
+      }
+    end
+  end
+
   private
 
   def user_exists?
