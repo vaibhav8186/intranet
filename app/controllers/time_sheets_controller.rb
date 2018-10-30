@@ -114,7 +114,8 @@ class TimeSheetsController < ApplicationController
       format.html
       format.csv {
         filename = @project.name + '_' + @from_date.to_date.strftime('%b') + '_' + @from_date.to_date.strftime('%Y') + '.csv'
-        send_data TimeSheet.create_project_report_in_csv(@project, @from_date.to_date, @to_date.to_date), filename: filename
+        report = TimeSheet.create_project_report_in_csv(@project, @from_date.to_date, @to_date.to_date)
+        send_data report, filename: filename
       }
     end
   end
