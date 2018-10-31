@@ -1,0 +1,18 @@
+%h2 Export Project Report
+= form_tag export_project_report_time_sheets_path(format: "csv"), method: 'GET', class: 'form form-inline' do
+  .form-horizontal
+    .div{class: 'form-position'}
+      .row{class: 'row-padding'}
+        %label{class: "col-md-3"} From Date:
+        = text_field_tag :from_date, params[:from_date],
+          class: "col-md-3 export-report-text-from-date form-control datepicker",
+          placeholder: "From Date", value: @from_date, style: "height: 2em;", readonly: true
+      .row{class: 'row-padding'}
+        %label To Date:
+        = text_field_tag :to_date, params[:to_date],
+          class: "form-control export-report-text-to-date datepicker",
+          placeholder: "To Date", value: @to_date, style: "height: 2em;", readonly: true
+      .row{class: 'row-padding'}
+        %label Project
+        = select_tag :project_id, options_for_select(Project.get_approved_project_between_range(@from_date, @to_date)), class: 'export-report-text-to-select'
+      = submit_tag "Download Report", class: "btn btn-primary btn-padding"
