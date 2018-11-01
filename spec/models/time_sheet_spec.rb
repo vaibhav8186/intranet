@@ -313,8 +313,8 @@ RSpec.describe TimeSheet, type: :model do
     end
 
     it 'Should give the user leaves count' do
-      FactoryGirl.create(:leave_application, user_id: user.id)
-      expect(TimeSheet.get_user_leaves_count(user, Date.today + 2, Date.today + 3)).to eq(2)
+      FactoryGirl.create(:leave_application, user_id: user.id, leave_status: LEAVE_STATUS[1])
+      expect(TimeSheet.approved_leaves_count(user, Date.today + 2, Date.today + 3)).to eq(2)
     end
 
     it 'Should return true because from date is less than to date' do
@@ -369,13 +369,13 @@ RSpec.describe TimeSheet, type: :model do
       params = { from_date: Date.yesterday - 1, to_date: Date.today }
       individual_time_sheet_data, total_work_and_leaves = TimeSheet.generate_individual_timesheet_report(user, params)
       expect(individual_time_sheet_data.count).to eq(2)
-      expect(individual_time_sheet_data['The pediatric network']['total_worked_hours']).to eq('1:00')
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['date'].to_s).to eq(DateTime.yesterday.to_s)
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['from_time']).to eq('09:00AM')
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['to_time']).to eq('10:00AM')
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['total_worked']).to eq('1:00')
-      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0]['description']).to eq('Today I finish the work')
-      expect(individual_time_sheet_data['Intranet']['total_worked_hours']).to eq('2:30')
+      expect(individual_time_sheet_data['The pediatric network']['total_worked_hours']).to eq('0 Days 1H (1H)')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][0].to_s).to eq(DateTime.yesterday.to_s)
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][1]).to eq('09:00AM')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][2]).to eq('10:00AM')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][3]).to eq('1:00')
+      expect(individual_time_sheet_data['The pediatric network']['daily_status'][0][4]).to eq('Today I finish the work')
+      expect(individual_time_sheet_data['Intranet']['total_worked_hours']).to eq('0 Days 3H (3H)')
       expect(total_work_and_leaves['total_work']).to eq('0 Days 4H (4H)')
       expect(total_work_and_leaves['leaves']).to eq(0)
     end
@@ -503,7 +503,7 @@ RSpec.describe TimeSheet, type: :model do
     it 'Should calculate leaves between from date and to date' do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
       TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
-      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
       from_date = '01/09/2018'.to_date
       to_date = '20/09/2018'.to_date
       leave_count = TimeSheet.get_leaves(project, from_date, to_date)
@@ -513,8 +513,8 @@ RSpec.describe TimeSheet, type: :model do
     it "Should calculate leaves from user's project start date and end date" do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: '05/09/2018'.to_date, end_date: '15/09/2018'.to_date)
       TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
-      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1)
-      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
       from_date = '01/09/2018'.to_date
       to_date = '20/09/2018'.to_date
       leave_count = TimeSheet.get_leaves(project, from_date, to_date)
@@ -526,8 +526,8 @@ RSpec.describe TimeSheet, type: :model do
       TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
       from_date = '01/09/2018'.to_date
       to_date = '20/09/2018'.to_date
-      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1)
-      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
       leave_count = TimeSheet.get_leaves(project, from_date, to_date)
       expect(leave_count).to eq(2)
     end
@@ -537,8 +537,8 @@ RSpec.describe TimeSheet, type: :model do
       TimeSheet.create(user_id: user.id, project_id: project.id, date: '04/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
       from_date = '01/09/2018'.to_date
       to_date = '20/09/2018'.to_date
-      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '03/09/2018', end_at: '03/09/2018', number_of_days: 1)
-      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '03/09/2018', end_at: '03/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
       leave_count = TimeSheet.get_leaves(project, from_date, to_date)
       expect(leave_count).to eq(1)
     end
@@ -552,7 +552,7 @@ RSpec.describe TimeSheet, type: :model do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
       TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
       HolidayList.create(holiday_date: '13/09/2018'.to_date, reason: 'test')
-      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
 
       from_date = '01/09/2018'.to_date
       to_date = '20/09/2018'.to_date
@@ -600,14 +600,14 @@ RSpec.describe TimeSheet, type: :model do
       TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '03/09/2018', from_time: Time.parse('03/09/2018 8'), to_time: Time.parse('03/09/2018 10'), description: 'Worked on test cases')
       TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '03/09/2018', from_time: Time.parse('03/09/2018 10'), to_time: Time.parse('03/09/2018 12'), description: 'Worked on test cases')
       TimeSheet.create(user_id: user_one.id, project_id: project.id, date: '04/09/2018', from_time: Time.parse('04/09/2018 9'), to_time: Time.parse('04/09/2018 10'), description: 'Worked on test cases')
-      FactoryGirl.create(:leave_application, user_id: user_one.id, start_at: '5/09/2018', end_at: '7/09/2018', number_of_days: 3)
+      FactoryGirl.create(:leave_application, user_id: user_one.id, start_at: '5/09/2018', end_at: '7/09/2018', number_of_days: 3, leave_status: LEAVE_STATUS[1])
 
       TimeSheet.create(user_id: user_two.id, project_id: project.id, date: '06/09/2018', from_time: Time.parse('06/09/2018 9'), to_time: Time.parse('06/09/2018 11'), description: 'Worked on test cases')
       TimeSheet.create(user_id: user_two.id, project_id: project.id, date: '07/09/2018', from_time: Time.parse('07/09/2018 9'), to_time: Time.parse('07/09/2018 11'), description: 'Worked on test cases')
 
       TimeSheet.create(user_id: user_three.id, project_id: project.id, date: '10/09/2018', from_time: Time.parse('10/09/2018 9'), to_time: Time.parse('10/09/2018 11'), description: 'Review the code')
       TimeSheet.create(user_id: user_three.id, project_id: project.id, date: '14/09/2018', from_time: Time.parse('14/09/2018 9'), to_time: Time.parse('14/09/2018 12'), description: 'call')
-      FactoryGirl.create(:leave_application, user_id: user_three.id, start_at: '12/09/2018', end_at: '13/09/2018', number_of_days: 2)
+      FactoryGirl.create(:leave_application, user_id: user_three.id, start_at: '12/09/2018', end_at: '13/09/2018', number_of_days: 2, leave_status: LEAVE_STATUS[1])
 
       params = { from_date: '1/09/2018', to_date: '27/09/2018' }
       individual_project_report, project_report = TimeSheet.generate_individual_project_report(project, params)
@@ -679,7 +679,7 @@ RSpec.describe TimeSheet, type: :model do
     it 'Should give the users without project' do
       project = FactoryGirl.create(:project)
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
-      user.leave_applications.create(start_at: Date.today - 1, end_at: Date.today- 1, contact_number: '1234567890', number_of_days: 1, reason: 'test')
+      user.leave_applications.create(start_at: Date.today - 1, end_at: Date.today- 1, contact_number: '1234567890', number_of_days: 1, reason: 'test', leave_status: LEAVE_STATUS[1])
       from_date = Date.today - 3
       to_date = Date.today + 3
       total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
