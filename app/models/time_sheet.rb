@@ -404,7 +404,10 @@ class TimeSheet
     user_projects = user.get_user_projects_from_user(project.id, from_date.to_date, to_date.to_date)
     leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
     time_sheets = get_time_sheet_between_range(user, project.id, from_date, to_date)
-    users_without_timesheet.push(user.name, project.name, leaves_count) if !time_sheets.present? && !project.timesheet_mandatory == false
+    if !time_sheets.present? && !project.timesheet_mandatory == false && 
+       (user.role == ROLE[:employee] || user.role == ROLE[:intern])
+         users_without_timesheet.push(user.name, project.name, leaves_count)
+    end
     time_sheets.each do |time_sheet|
       working_minutes = calculate_working_minutes(time_sheet)
       total_minutes += working_minutes

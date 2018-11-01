@@ -676,7 +676,7 @@ RSpec.describe TimeSheet, type: :model do
       expect(total_minutes).to eq(180.0)
     end
 
-    it 'Should give the users without project' do
+    it 'Should give the users without timesheet because user role is employee' do
       project = FactoryGirl.create(:project)
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       user.leave_applications.create(start_at: Date.today - 1, end_at: Date.today- 1, contact_number: '1234567890', number_of_days: 1, reason: 'test', leave_status: LEAVE_STATUS[1])
@@ -685,6 +685,39 @@ RSpec.describe TimeSheet, type: :model do
       total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
       expect(total_minutes).to eq(0)
       expect(users_without_timesheet).to eq(["fname lname", "The pediatric network", 1])
+    end
+
+    it 'Should give users without timesheet because role is intern' do
+      project = FactoryGirl.create(:project)
+      user_two = FactoryGirl.create(:user, role: 'Intern')
+      UserProject.create(user_id: user_two.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      from_date = Date.today - 3
+      to_date = Date.today + 3
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date)
+      expect(total_minutes).to eq(0)
+      expect(users_without_timesheet).to eq(["fname lname", "The pediatric network", 0])
+    end
+
+    it 'Should not give the uses without timesheet because user role is manager' do
+      project = FactoryGirl.create(:project)
+      user_two = FactoryGirl.create(:user, role: 'Manager')
+      UserProject.create(user_id: user_two.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      from_date = Date.today - 3
+      to_date = Date.today + 3
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date)
+      expect(users_without_timesheet.present?).to eq(false)
+    end
+
+    it 'Should not give the uses without timesheet because user role is admin' do
+      project = FactoryGirl.create(:project, timesheet_mandatory: true)
+      user_two = FactoryGirl.create(:user, role: 'Admin')
+      UserProject.create(user_id: user_two.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      from_date = Date.today - 3
+      to_date = Date.today + 3
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date)
+      expect(users_without_timesheet.present?).to eq(false)
+    end
+  end
 
   context 'Update timesheet' do
     let!(:user) { FactoryGirl.create(:user, email: 'abc@joshsoftware.com', role: 'Admin') }
