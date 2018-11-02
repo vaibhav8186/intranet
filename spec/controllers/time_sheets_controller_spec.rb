@@ -372,4 +372,38 @@ RSpec.describe TimeSheetsController, type: :controller do
       expect(response.body).to eq("Employee name,Date(dd/mm/yyyy),No of hours,Details\nfname lname,28-10-2018,2,\"Test api\ncall with client\"\nfname lname,28-10-2018,1,test data\n")
     end
   end
+
+  context 'Add timesheet' do
+    let!(:user) { FactoryGirl.create(:user) }
+    let!(:project) { FactoryGirl.create(:project) }
+
+    before do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+    end
+
+    it 'Should add timesheet' do
+      params = { "time_sheets_attributes" => {"0" => {"project_id" => "#{project.id}", 
+                 "date" => "#{Date.today - 1}", "from_time" => "#{Date.today - 1} - 10:00 AM", 
+                 "to_time" => "#{Date.today - 1} - 11:00 AM", "description" => "testing API and call with client"}},
+                 "user_id" => user.id, "from_date" => Date.today - 20, "to_date" => Date.today
+                }
+      sign_in user
+      post :add_time_sheet, user_id: user.id, user: params
+      expect(flash[:notice]).to be_present
+      expect(user.reload.time_sheets[0].user_id).to eq(user.id)
+      expect(user.time_sheets[0].project_id).to eq(project.id)
+    end
+
+    it 'Should not add timesheet because validation failure' do
+      params = { "time_sheets_attributes" => {"0" => {"project_id" => "#{project.id}", 
+                 "date" => "#{Date.today - 1}", "from_time" => "#{Date.today - 1} - 10:00", 
+                 "to_time" => "#{Date.today - 1} - 09:00", "description" => "testing API and call with client"}},
+                 "user_id" => user.id, "from_date" => Date.today - 20, "to_date" => Date.today
+               }
+      sign_in user
+      post :add_time_sheet, user_id: user.id, user: params
+      expect(flash[:error]).to be_present
+      should render_template(:new)
+    end
+  end
 end
