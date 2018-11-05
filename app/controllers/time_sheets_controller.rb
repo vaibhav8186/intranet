@@ -43,7 +43,8 @@ class TimeSheetsController < ApplicationController
       flash[:error] = "Invalid access"
       redirect_to users_time_sheets_path and return
     end
-
+    @from_date = params[:from_date]
+    @to_date = params[:to_date]
     @user = User.find_by(id: params[:user_id])
     @time_sheets = @user.time_sheets.where(date: params[:time_sheet_date].to_date)
     @time_sheet_date = params[:time_sheet_date]
@@ -60,13 +61,11 @@ class TimeSheetsController < ApplicationController
     @user = User.find_by(id: params['user_id'])
     @time_sheet_date = params[:time_sheet_date]
     @time_sheets = @user.time_sheets.where(date: params[:time_sheet_date].to_date)
-    return_value = TimeSheet.update_time_sheet(timesheet_params)
-    if return_value == true
+    return_value, @time_sheets = TimeSheet.update_time_sheet(@time_sheets, timesheet_params)
+    unless return_value.include?(false) #unless @time_sheets.present?
       flash[:notice] = 'Timesheet Updated Succesfully'
       redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
     else
-      error_message = TimeSheet.create_error_message_while_updating_time_sheet(return_value)
-      flash[:error] = error_message
       render 'edit_timesheet'
     end
   end
@@ -75,13 +74,11 @@ class TimeSheetsController < ApplicationController
     @from_date = params['user']['from_date']
     @to_date = params['user']['to_date']
     @user = User.find_by(id: params['user']['user_id'])
-    return_value, error_messages, @time_sheets = TimeSheet.create_time_sheet(@user.id, timesheet_params)
+    return_value, @time_sheets = TimeSheet.create_time_sheet(@user.id, timesheet_params)
     if return_value == true
       flash[:notice] = 'Timesheet created succesfully'
       redirect_to users_time_sheets_path(user_id: @user.id, from_date: @from_date, to_date: @to_date)
     else
-      error_messages = TimeSheet.create_error_message_while_creating_time_sheet(error_messages)
-      flash[:error] = error_messages.join("<br>").html_safe
       render 'new'
     end
   end
@@ -95,7 +92,7 @@ class TimeSheetsController < ApplicationController
         if @time_sheet.errors[:from_time].present? || @time_sheet.errors[:from_time].present?
           error =  @time_sheet.errors[:from_time] if @time_sheet.errors[:from_time].present?
           error = @time_sheet.errors[:to_time] if @time_sheet.errors[:to_time].present?
-          error
+          TimeSheet.create_error_message_for_slack(error)
         else
           TimeSheet.create_error_message_for_slack(@time_sheet.errors.full_messages)
         end
