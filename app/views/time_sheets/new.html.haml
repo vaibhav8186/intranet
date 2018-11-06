@@ -15,10 +15,10 @@
             'readonly' => true, value: Date.today}, label: false
           %td= time_sheet.input :from_time,
             input_html: {value: time_sheet.object.from_time.try(:strftime, "%H:%M"),
-            class: 'timesheet-input', placeholder: 'HH:MM'}, label: false
+            type: 'time', class: 'timesheet-input', placeholder: 'HH:MM', required: true}, label: false
           %td= time_sheet.input :to_time,
             input_html: {value: time_sheet.object.to_time.try(:strftime, "%H:%M"),
-            class: 'timesheet-input', placeholder: 'HH:MM'}, label: false
+            type: 'time', class: 'timesheet-input', placeholder: 'HH:MM'}, label: false
           %td= time_sheet.input :description, as: :text, label: false
   = f.hidden_field :user_id, value: @user.id
   = f.hidden_field :from_date, value: @from_date

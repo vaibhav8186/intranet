@@ -112,6 +112,10 @@ class TimeSheet
 
   def date_less_than_seven_days
     return false if errors.full_messages.present?
+    if date.blank?
+      errors.add(:date, 'Invalid time')
+      return false 
+    end 
     if date < Date.today - DAYS_FOR_CREATE
       text = "Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager."
       errors.add(:date, text)
@@ -739,7 +743,7 @@ class TimeSheet
 
   def self.create_time_sheet(user_id, params)
     time_sheets = []
-    return_value = false
+    return_value = []
     params['time_sheets_attributes'].each do |key, value|
       value['user_id'] = user_id
       value['from_time'] = value['date'] + ' ' + value['from_time']
@@ -747,15 +751,15 @@ class TimeSheet
       time_sheet = TimeSheet.new
       time_sheet.attributes = value
       unless time_sheet.time_validation(value['date'], value['from_time'], value['to_time'], 'from_ui')
-        return_value = false
+        return_value << false
         time_sheets << time_sheet
         next
       end
       if time_sheet.save
-        return_value = true
+        return_value << true
       else
         time_sheets << time_sheet
-        return_value = false
+        return_value << false
       end
     end
     return return_value, time_sheets
@@ -917,7 +921,6 @@ class TimeSheet
     ])
   end
 
-<<<<<<< ed9b5be0090ce4e7f301f05eff6d51a8866bb6b0
   def self.load_time_sheet_and_calculate_total_work(project_id, from_date, to_date)
     TimeSheet.collection.aggregate([
       {

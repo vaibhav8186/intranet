@@ -17,8 +17,10 @@
             'data-behaviour' => 'datepicker', value: time_sheet.object.date.try(:strftime, "%d-%m-%Y"),
             'readonly' => true}, label: false
           %td= time_sheet.input :from_time,
-            input_html: {value: time_sheet.object.from_time.try(:strftime, "%H:%M"), class: 'timesheet-input'}, label: false
+            input_html: {value: time_sheet.object.from_time.try(:strftime, "%H:%M"),
+            type: 'time', class: 'timesheet-input'}, label: false
           %td= time_sheet.input :to_time,
-            input_html: {value: time_sheet.object.to_time.try(:strftime, "%H:%M"), class: 'timesheet-input'}, label: false
+            input_html: {value: time_sheet.object.to_time.try(:strftime, "%H:%M"),
+            type: 'time', class: 'timesheet-input'}, label: false
           %td= time_sheet.input :description, as: :text, label: false
   = f.submit :Update, class: "btn edit-timesheet-update"
