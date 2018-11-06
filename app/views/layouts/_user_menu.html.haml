@@ -32,14 +32,14 @@
   %li.dropdown-submenu.pull-left
     %a.test{:href => "#", :tabindex => "-1"} 
       Timesheets
-    %ul.dropdown-menu{style: "left: -223px"}
+    %ul.dropdown-menu{class: "timesheet-menu"}
       %li
-        = link_to "Employees", main_app.time_sheets_path
+        = link_to "Employees", main_app.time_sheets_path, class: 'menu-font'
         - if can? :manage, TimeSheet
           %li
-            = link_to "Projects", main_app.projects_report_time_sheets_path
+            = link_to "Projects", main_app.projects_report_time_sheets_path, class: 'menu-font'
           %li
-            = link_to "Export Project Report", main_app.export_project_report_time_sheets_path
+            = link_to "Export Project Report", main_app.export_project_report_time_sheets_path, class: 'menu-font'
   %li.divider
   %li
     = link_to 'Sign out', main_app.destroy_user_session_path, method: :delete
