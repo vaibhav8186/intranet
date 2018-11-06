@@ -1,6 +1,7 @@
 class TimeSheetsController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  load_and_authorize_resource only: [:index, :users_timesheet, :edit_timesheet, :update_timesheet, :new]
+  load_and_authorize_resource only: [:index, :users_timesheet, :edit_timesheet, :update_timesheet, :new, :projects_report]
+  load_and_authorize_resource only: :individual_project_report, class: Project
   before_action :user_exists?, only: [:create, :daily_status]
 
   def create
@@ -96,7 +97,8 @@ class TimeSheetsController < ApplicationController
     @from_date = params[:from_date] || Date.today.beginning_of_month.to_s
     @to_date = params[:to_date] || Date.today.to_s
     @projects_report = TimeSheet.load_projects_report(@from_date.to_date, @to_date.to_date) if TimeSheet.from_date_less_than_to_date?(@from_date, @to_date)
-    @projects_report_in_json, @project_without_timesheet = TimeSheet.create_projects_report_in_json_format(@projects_report, @from_date.to_date, @to_date.to_date)
+    @projects_report_in_json, @project_without_timesheet, @users_without_timesheet = 
+      TimeSheet.create_projects_report_in_json_format(@projects_report, @from_date.to_date, @to_date.to_date)
   end
 
   def individual_project_report

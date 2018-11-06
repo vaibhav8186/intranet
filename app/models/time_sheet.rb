@@ -295,9 +295,11 @@ class TimeSheet
   def self.create_projects_report_in_json_format(projects_report, from_date, to_date)
     projects_report_in_json = []
     project_names = []
+    user_ids = []
     projects_report.each do |project_report|
       project_details = {}
       project = load_project_with_id(project_report['_id']['project_id'])
+      user_ids << project_report['_id']['user_id'].to_s
       project_names << project.name
       project_details['project_id'] = project.id
       project_details['project_name'] = project.name
@@ -311,7 +313,8 @@ class TimeSheet
     end
     projects_report_in_json.sort!{|previous_record, next_record| previous_record['project_name'] <=> next_record['project_name']}
     project_without_timesheet = get_project_without_timesheet(project_names, from_date, to_date) if project_names.present?
-    return projects_report_in_json, project_without_timesheet
+    users_without_timesheet = get_users_without_timesheet(user_ids) if user_ids.present?
+    return projects_report_in_json, project_without_timesheet, users_without_timesheet
   end
 
   def self.generate_individual_timesheet_report(user, params)
@@ -640,6 +643,11 @@ class TimeSheet
     end
     unfilled_timesheet_projects.sort{|previous_record, next_record| previous_record['project_name'] <=> next_record['project_name']}
   end
+  
+  def self.get_users_without_timesheet(user_ids)
+    users = User.not_in(id: user_ids)
+    users.where(status: STATUS[2], "$or" => [{role: ROLE[:employee]}, {role: ROLE[:intern]}]).order("public_profile.first_name" => :asc)
+  end
 
   def self.get_holiday_count(from_date, to_date)
     HolidayList.where(holiday_date: {"$gte" => from_date, "$lte" => to_date}).count
@@ -843,6 +851,7 @@ class TimeSheet
       {
         "$group"=>{
           "_id"=>{
+            "user_id"=>"$user_id",
             "project_id"=>"$project_id"
           },
           "totalSum"=>{
