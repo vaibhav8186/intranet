@@ -917,6 +917,7 @@ class TimeSheet
     ])
   end
 
+<<<<<<< ed9b5be0090ce4e7f301f05eff6d51a8866bb6b0
   def self.load_time_sheet_and_calculate_total_work(project_id, from_date, to_date)
     TimeSheet.collection.aggregate([
       {
@@ -964,53 +965,3 @@ class TimeSheet
   end
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# %h1 Add Timesheet
-# = simple_nested_form_for(@user, :url => add_time_sheet_time_sheets_path, :html => { method: 'POST', class: 'edit-timesheet add-timesheet', multipart: true}) do |f|
-#   %hr{class: 'line-befor-menu'}
-#   %ul{id: 'menu'}
-#     %li Project
-#     %li{class: 'add-timesheet-date-li'} Date
-#     %li{class: 'add-timesheet-from-time-li'} From Time(24hrs)
-#     %li{class: 'add-timesheet-to-time-li'} To Time(24hrs)
-#     %li{class: 'add-timesheet-descripton-li'} Description
-#   %hr{class: 'line-after-menu'}
-#   %span{class: 'add-timesheet'}
-#     = f.fields_for :time_sheets, @time_sheets do |time_sheet|
-#       =time_sheet.select :project_id,
-#         options_for_select(@user.projects.pluck(:name, :id)), {}, {class: 'add-timesheet-project', style: "margin-bottom: 16px"}
-#       %span{class: 'help-inline'}
-#         =time_sheet.input :date, input_html: {class: 'edit-timesheet-input add-timesheet-date new-datepicker control_label',
-#           'data-behaviour' => 'datepicker', 'readonly' => true, value: Date.today}, label: false
-#       =time_sheet.input :from_time, label: false, input_html: {class: 'edit-timesheet-input add-timesheet-from-time',
-#         placeholder: "HH:MM", value: time_sheet.object.from_time.try(:strftime, "%H:%M")}, error: false
-#       =time_sheet.input :to_time, label: false, input_html: {class: 'edit-timesheet-input add-timesheet-to-time',
-#         placeholder: "HH:MM", value: time_sheet.object.to_time.try(:strftime, "%H:%M")}, error: false
-#       =time_sheet.input :description, as: :text, label: false, error:false,
-#         input_html: {class: 'add-timesheet-description-text'}
-#   = f.hidden_field :user_id, value: @user.id
-#   = f.hidden_field :from_date, value: @from_date
-#   = f.hidden_field :to_date, value: @to_date
-#   = f.link_to_add 'Add new timesheet', :time_sheets, class: 'btn controls add-new-timesheet', id: "add-btn"
-#   = f.submit :Save, class: "btn"
