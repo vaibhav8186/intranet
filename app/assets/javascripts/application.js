@@ -41,15 +41,8 @@ $('.datepicker').datepicker({
 })
 
 $(document).ready(function(){
-$('.new-datepicker').datepicker({
-  format: "dd-mm-yyyy",
-  autoclose: true
-})
-})
-
-$(document).ready(function(){
   $("body").on("nested:fieldAdded", function() {
-    $('.fields .new-datepicker').datepicker({
+    $('.fields .datepicker').datepicker({
       format: "dd-mm-yyyy"
     })
   })

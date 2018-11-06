@@ -50,13 +50,13 @@
   margin-left: 228px;
 }
 
-.edit-timesheet{
+.timesheet{
   background-color: #fff;
   padding: 2.5em;
   border-radius: 0.7em;
 }
 
-.edit-timesheet-input{
+.timesheet-input{
   width: 9.5em;
   height: 1.9em !important;
 }
@@ -70,60 +70,6 @@
 
 .add-timesheet-icon{
   font-size: 36px;
-}
-
-.add-timesheet .fields{
-  display: -webkit-inline-box !important;
-  border-bottom: solid 0.02px #EEEEEE;
-  margin: 10px
-}
-
-ul#menu li {
-    display:inline;
-    font-size: medium;
-    font-weight: bold;
-}
-
-.add-timesheet-date-li{
-  margin-left: 12em;
-}
-
-.add-timesheet-from-time-li{
-  margin-left: 9em;
-}
-
-.add-timesheet-to-time-li{
-  margin-left: 2.6em;
-}
-
-.add-timesheet-descripton-li{
-  margin-left: 3.9em;
-}
-
-.add-timesheet-project{
-  margin-left: 2em;
-}
-.add-timesheet-date{
-  margin-left: 4em;
-}
-
-.add-timesheet-from-time{
-  margin-left: 4em;
-}
-.add-timesheet-to-time{
-  margin-left: 4em;
-}
-
-.add-timesheet-description-text{
-  margin-left: 4em;
-}
-
-.line-befor-menu{
-  margin: 2px !important;
-}
-
-.line-after-menu{
-  margin: 6px !important;
 }
 
 .add-new-timesheet{
