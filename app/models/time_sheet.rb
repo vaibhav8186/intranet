@@ -23,6 +23,7 @@ class TimeSheet
   after_validation :check_vadation_while_creating_or_updateing_timesheet
   before_validation :date_less_than_two_days, on: :update
   before_validation :date_less_than_seven_days, on: :create
+  validate :check_time_range
 
   MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
@@ -191,6 +192,21 @@ class TimeSheet
       description = description + string + ' '
     end
     description
+  end
+
+  def check_time_range
+    return_value = true
+    TimeSheet.where(date: date, user_id: user_id).order("from_time ASC").each do |time_sheet|
+      if time_sheet.from_time < from_time && time_sheet.to_time > to_time ||
+       time_sheet.from_time > from_time && time_sheet.to_time < to_time ||
+       time_sheet.from_time > from_time && time_sheet.to_time > to_time && time_sheet.from_time < to_time ||
+       time_sheet.from_time < from_time && time_sheet.to_time < to_time && time_sheet.to_time > from_time
+        errors.add(:from_time, "Time duration is overlapping with already entered time duration for the day")
+        return_value = false
+        break
+      end
+    end
+    return_value
   end
 
   def time_sheets(split_text, params)
