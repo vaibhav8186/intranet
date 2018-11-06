@@ -292,6 +292,8 @@ RSpec.describe TimeSheetsController, type: :controller do
       sign_in user
       get :individual_project_report, id: project.id, from_date: '01/09/2018', to_date: '27/09/2018'
       expect(response).to have_http_status(302)
+    end
+  end
 
   context 'Update timesheet' do
     let!(:user) { FactoryGirl.create(:user, email: 'abc@joshsoftware.com', role: 'Admin') }
@@ -346,6 +348,26 @@ RSpec.describe TimeSheetsController, type: :controller do
       post :update_timesheet, user_id: user.id, user: params, time_sheet_date: Date.today - 1
       expect(flash[:error]).to be_present
       should render_template(:edit_timesheet)
+    end
+  end
+
+  context 'Export project report' do
+    let!(:user) { FactoryGirl.create(:user, role: 'Admin') }
+    let!(:user_one) { FactoryGirl.create(:user, role: 'Employee') }
+    let!(:user_two) { FactoryGirl.create(:user) }
+    let!(:project) {FactoryGirl.create(:project)}
+
+    it 'Should give the project report' do
+      UserProject.create(user_id: user_one.id, project_id: project.id, start_date: Date.today - 20, end_date: nil)
+      UserProject.create(user_id: user_two.id, project_id: project.id, start_date: Date.today - 20, end_date: nil)
+      user_one.time_sheets.create!(project_id: project.id, date: Date.today - 2, from_time: "#{Date.today - 2} 10", to_time: "#{Date.today - 2} 11", description: 'Test api')
+      user_one.time_sheets.create!(project_id: project.id, date: Date.today - 2, from_time: "#{Date.today - 2} 12", to_time: "#{Date.today - 2} 13", description: 'call with client')
+      user_two.time_sheets.create!(project_id: project.id, date: Date.today - 2, from_time: "#{Date.today - 2} 10", to_time: "#{Date.today - 2} 11", description: 'test data')
+      from_date = Date.today - 20
+      to_date = Date.today
+      sign_in user_one
+      get :export_project_report, format: 'csv', from_date: from_date, to_date: to_date, project_id: project.id
+      expect(response.body).to eq("Employee name,Date(dd/mm/yyyy),No of hours,Details\nfname lname,28-10-2018,2,\"Test api\ncall with client\"\nfname lname,28-10-2018,1,test data\n")
     end
   end
 end

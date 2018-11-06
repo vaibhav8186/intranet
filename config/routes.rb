@@ -96,6 +96,7 @@ Rails.application.routes.draw do
 
     get :projects_report, on: :collection
     get :individual_project_report, on: :member
+    get :export_project_report, on: :collection
 
     collection do
       get 'users_timesheet/:user_id' => 'time_sheets#users_timesheet', as: 'users'
