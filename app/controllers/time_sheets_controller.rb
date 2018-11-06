@@ -89,7 +89,10 @@ class TimeSheetsController < ApplicationController
       render json: { text: "*Timesheet saved successfully!*" }, status: :created
     else
       error_message = 
-        if @time_sheet.errors[:from_time].present? || @time_sheet.errors[:from_time].present?
+        if @time_sheet.errors[:date].present?
+          error =  @time_sheet.errors[:date] if @time_sheet.errors[:date].present?
+          TimeSheet.create_error_message_for_slack(error)
+        elsif @time_sheet.errors[:from_time].present? || @time_sheet.errors[:from_time].present?
           error =  @time_sheet.errors[:from_time] if @time_sheet.errors[:from_time].present?
           error = @time_sheet.errors[:to_time] if @time_sheet.errors[:to_time].present?
           TimeSheet.create_error_message_for_slack(error)
