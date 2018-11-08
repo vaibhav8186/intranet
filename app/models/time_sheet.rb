@@ -644,7 +644,7 @@ class TimeSheet
   end
 
   def self.get_users_without_timesheet(from_date, to_date)
-    user_ids = TimeSheet.where(date: {"$gte" => from_date, "$lte" => to_date}).pluck(:user_id).uniq
+    user_ids = TimeSheet.where(date: {"$gte" => from_date, "$lte" => to_date}).distinct(:user_id)
     users = User.not_in(id: user_ids)
     users.where(status: STATUS[2], "$or" => [{role: ROLE[:employee]}, {role: ROLE[:intern]}]).order("public_profile.first_name" => :asc)
   end
