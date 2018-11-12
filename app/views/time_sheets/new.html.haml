@@ -20,6 +20,7 @@
             input_html: {value: time_sheet.object.to_time.try(:strftime, "%H:%M"),
             type: 'time', class: 'timesheet-input'}, label: false
           %td= time_sheet.input :description, as: :text, label: false
+          %td= f.link_to_remove '', class: 'icon-remove'
   = f.hidden_field :user_id, value: @user.id
   = f.hidden_field :from_date, value: @from_date
   = f.hidden_field :to_date, value: @to_date
