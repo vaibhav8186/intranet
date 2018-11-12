@@ -21,8 +21,8 @@ class TimeSheet
   validates :to_time, presence: true, if: :to_time_is_future_time?
 
   after_validation :check_vadation_while_creating_or_updateing_timesheet
-  before_validation :date_less_than_two_days, on: :update
-  before_validation :date_less_than_seven_days, on: :create
+  before_validation :valid_date_for_update?, on: :update
+  before_validation :valid_date_for_create?, on: :create
   validate :check_time_range
 
   MAX_TIMESHEET_COMMAND_LENGTH = 5
@@ -102,16 +102,16 @@ class TimeSheet
     return false
   end
 
-  def date_less_than_two_days
+  def valid_date_for_update?
     if date < Date.today - DAYS_FOR_UPDATE
-      text = "Not allowed to edit timesheet for this date. You can edit timesheet for past 2 days."
+      text = "Not allowed to edit timesheet for this date. You can edit timesheet for past #{DAYS_FOR_UPDATE} days."
       errors.add(:date, text)
       return false
     end
     return true
   end
 
-  def date_less_than_seven_days
+  def valid_date_for_create?
     return false if errors.full_messages.present?
     if date.blank?
       errors.add(:date, 'Invalid time')
