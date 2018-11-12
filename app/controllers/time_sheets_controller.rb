@@ -20,6 +20,11 @@ class TimeSheetsController < ApplicationController
     @timesheet_report = TimeSheet.generete_employee_timesheet_report(timesheets, @from_date.to_date, @to_date.to_date) if timesheets.present?
   end
 
+  def destroy
+    time_sheet = TimeSheet.find(params[:id])
+    time_sheet.destroy
+  end
+
   def users_timesheet
     unless current_ability.can? :users_timesheet, TimeSheet.where(user_id: params[:user_id]).first
       flash[:error] = "Invalid access"

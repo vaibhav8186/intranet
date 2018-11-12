@@ -18,6 +18,8 @@ class TimeSheet
 
   before_validation :check_vadation_while_creating_or_updateing_timesheet
 
+  validate :valid_date_for_delete, on: :destroy
+
   MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
   MAX_DAILY_STATUS_COMMAND_LENGTH = 2
@@ -158,6 +160,10 @@ class TimeSheet
     return false if time.to_s.include?('.')
     return time + (':00') unless time.to_s.include?(':')
     time
+  end
+
+  def valid_date_for_delete
+    byebug
   end
 
   def concat_description(split_text)
