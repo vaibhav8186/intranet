@@ -11,7 +11,7 @@
         %tr.fields
           %td= time_sheet.select :project_id, options_for_select(@user.projects.pluck(:name, :id), time_sheet.object.project_id), {}, {style: "margin-bottom: 16px"}
           %td= time_sheet.input :date, input_html: {class: 'timesheet-input datepicker',
-            'data-behaviour' => 'datepicker', value: time_sheet.object.date.try(:strftime, "%d-%m-%Y"),
+            'data-behaviour' => 'datepicker',
             'readonly' => true, value: Date.today}, label: false
           %td= time_sheet.input :from_time,
             input_html: {value: time_sheet.object.from_time.try(:strftime, "%H:%M"),

@@ -202,6 +202,7 @@ class TimeSheet
        time_sheet.from_time > from_time && time_sheet.to_time > to_time && time_sheet.from_time < to_time ||
        time_sheet.from_time < from_time && time_sheet.to_time < to_time && time_sheet.to_time > from_time
         errors.add(:from_time, "Time duration is overlapping with already entered time duration for the day")
+        errors.add(:to_time, "Time duration is overlapping with already entered time duration for the day")
         return_value = false
         break
       end
