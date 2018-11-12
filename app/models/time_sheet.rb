@@ -23,7 +23,7 @@ class TimeSheet
   after_validation :check_vadation_while_creating_or_updateing_timesheet
   before_validation :valid_date_for_update?, on: :update
   before_validation :valid_date_for_create?, on: :create
-  validate :check_time_range
+  validate :time_sheet_overlapping?
 
   MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
@@ -194,7 +194,7 @@ class TimeSheet
     description
   end
 
-  def check_time_range
+  def time_sheet_overlapping?
     return_value = true
     TimeSheet.where(date: date, user_id: user_id).order("from_time ASC").each do |time_sheet|
       if time_sheet.from_time < from_time && time_sheet.to_time > to_time ||
