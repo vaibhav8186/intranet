@@ -30,10 +30,11 @@
               %td= record['to_time']
               %td= record['total_worked']
               %td= record['description']
-              - if record['date'] == Date.today && (current_user.role == ROLE[:employee] || current_user.role == ROLE[:intern])
-                %td= link_to "", time_sheet_path(record['id']), data: {method: :delete, confirm: "Are you sure?"}, class: "icon-trash"
+              - if current_user.role == ROLE[:employee] || current_user.role == ROLE[:intern]
+                - if record['date'] == Date.today 
+                  %td= link_to "", time_sheet_path(record['id'], from_date: @from_date, to_date: @to_date), :method => 'delete', data: {confirm: "Are you sure?"}, class: "icon-trash"
               - else
-                %td= link_to "", time_sheet_path(record['id']), data: {method: :delete, confirm: "Are you sure?"}, class: "icon-trash"
+                %td= link_to "", time_sheet_path(record['id'], from_date: @from_date, to_date: @to_date), data: {method: :delete, confirm: "Are you sure?"}, class: "icon-trash"
         -total_worked_hours = value["total_worked_hours"]
     %h5 Time on #{key} #{total_worked_hours}
     %br

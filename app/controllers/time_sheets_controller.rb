@@ -22,7 +22,16 @@ class TimeSheetsController < ApplicationController
 
   def destroy
     time_sheet = TimeSheet.find(params[:id])
-    time_sheet.destroy
+    user_id = time_sheet.user_id
+    return_value, error_message = time_sheet.valid_date_for_delete(current_user)
+    if return_value
+      time_sheet.destroy
+      flash[:notice] = "Timesheet deleted successfully."
+      redirect_to users_time_sheets_path(user_id, from_date: params[:from_date], to_date: params[:to_date])
+    else
+      flash[:error] = "You can delete timesheet for today's only"
+      render 'users_timesheet'
+    end
   end
 
   def users_timesheet

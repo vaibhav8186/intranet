@@ -18,7 +18,7 @@ class TimeSheet
 
   before_validation :check_vadation_while_creating_or_updateing_timesheet
 
-  validate :valid_date_for_delete, on: :destroy
+  # before_destroy :valid_date_for_delete
 
   MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
@@ -162,8 +162,12 @@ class TimeSheet
     time
   end
 
-  def valid_date_for_delete
-    byebug
+  def valid_date_for_delete(user)
+    if (user.role == ROLE[:employee] || user.role == ROLE[:intern]) &&
+      date < Date.today
+      return false
+    end
+    return true
   end
 
   def concat_description(split_text)
@@ -674,7 +678,7 @@ class TimeSheet
 
   def self.user_on_leave?(user, date)
     return false unless user.leave_applications.present?
-    leave_applications = user.leave_applications.where(:start_at.gte => date)
+    leave_applications = user.leave_applications.where(:start_at.gte => date, leave_status: LEAVE_STATUS[1])
     leave_applications.each do |leave_application|
       return true if date.between?(leave_application.start_at, leave_application.end_at)
     end
