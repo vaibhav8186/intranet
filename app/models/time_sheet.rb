@@ -307,7 +307,7 @@ class TimeSheet
       total_hours = convert_milliseconds_to_hours(project_report['totalSum'])
       project_details['total_hours'] = convert_hours_to_days(total_hours)
       project_details['allocated_hours'] = get_allocated_hours(project, from_date, to_date)
-      project_details['leaves'] = get_leaves(project, from_date, to_date)
+      project_details['leaves'] = get_leaves(project, from_date, to_date, 'project')
       projects_report_in_json << project_details
       project_details = {}
     end
@@ -362,7 +362,7 @@ class TimeSheet
       end
       user_projects = user.get_user_projects_from_user(project.id, params[:from_date].to_date, params[:to_date].to_date)
       allocated_hours = total_allocated_hours(user_projects, params[:from_date].to_date, params[:to_date].to_date)
-      leaves_count = total_leaves_count(user, user_projects, params[:from_date].to_date, params[:to_date].to_date)
+      leaves_count = total_leaves_count(user, user_projects, params[:from_date].to_date, params[:to_date].to_date, 'project')
       report_details['total_work'] = convert_hours_to_days(total_worked_in_hours(total_minutes.to_i))
       report_details['allocated_hours'] = convert_hours_to_days(allocated_hours)
       report_details['leaves'] = leaves_count
@@ -382,12 +382,12 @@ class TimeSheet
         total_minutes = 0
         project.get_user_projects_from_project(from_date, to_date).includes(:time_sheets).each do |user|
           time_sheet_log = []
-          minutes, users_without_timesheet = get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
+          user_projects = user.get_user_projects_from_user(project.id, from_date.to_date, to_date.to_date)
+          leaves_count = total_leaves_count(user, user_projects, from_date, to_date, 'weekly_report')
+          minutes, users_without_timesheet = get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date, leaves_count)
           total_minutes += minutes
           unfilled_time_sheet_report << users_without_timesheet if users_without_timesheet.present?
-          user_projects = user.get_user_projects_from_user(project.id, from_date.to_date, to_date.to_date)
           total_days_work = convert_hours_to_days(total_worked_in_hours(total_minutes.to_i))
-          leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
           holidays_count = get_holiday_count(from_date, to_date)
           if total_minutes != 0
             time_sheet_log.push(user.name, project.name, total_days_work, leaves_count, holidays_count) 
@@ -400,21 +400,31 @@ class TimeSheet
     end
   end
 
-  def self.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
-    users_without_timesheet = []
+  def self.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date, leaves_count)
     total_minutes = 0
     user_projects = user.get_user_projects_from_user(project.id, from_date.to_date, to_date.to_date)
-    leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
     time_sheets = get_time_sheet_between_range(user, project.id, from_date, to_date)
-    if !time_sheets.present? && !project.timesheet_mandatory == false && 
-       (user.role == ROLE[:employee] || user.role == ROLE[:intern])
-         users_without_timesheet.push(user.name, project.name, leaves_count)
-    end
+    users_without_timesheet = 
+      is_hoiliday_or_user_on_leave?(user, project, time_sheets, from_date, to_date, leaves_count) unless time_sheets.present?
     time_sheets.each do |time_sheet|
       working_minutes = calculate_working_minutes(time_sheet)
       total_minutes += working_minutes
     end
     return total_minutes, users_without_timesheet
+  end
+
+  def self.is_hoiliday_or_user_on_leave?(user, project, time_sheets, from_date, to_date, leaves_count)
+    users_without_timesheet = []
+    while(from_date <= to_date)
+      next from_date += 1 if HolidayList.is_holiday?(from_date) || user_on_leave?(user, from_date)
+      if !time_sheets.present? && !project.timesheet_mandatory == false && 
+         (user.role == ROLE[:employee] || user.role == ROLE[:intern])
+           users_without_timesheet.push(user.name, project.name, leaves_count)
+           break
+      end
+      from_date += 1
+    end
+    users_without_timesheet
   end
 
   def self.create_time_sheet_record(time_sheet, from_time, to_time, total_worked)
@@ -461,7 +471,7 @@ class TimeSheet
     project_report = {}
     total_hours_worked_on_project = convert_hours_to_days(total_worked_in_hours(total_minutes_worked_on_projects.to_i))
     total_allocated_hours_on_projects = get_allocated_hours(project, params[:from_date].to_date, params[:to_date].to_date)
-    total_leaves = get_leaves(project, params[:from_date].to_date, params[:to_date].to_date)
+    total_leaves = get_leaves(project, params[:from_date].to_date, params[:to_date].to_date, 'project')
     project_report['total_worked_hours'] = total_hours_worked_on_project
     project_report['total_allocated_hourse'] = total_allocated_hours_on_projects
     project_report['total_leaves'] = total_leaves
@@ -501,11 +511,11 @@ class TimeSheet
     working_days -= no_of_holiday
   end
 
-  def self.get_leaves(project, from_date, to_date)
+  def self.get_leaves(project, from_date, to_date, report_type)
     total_leaves_count = 0
     project.get_user_projects_from_project(from_date, to_date).each do |user|
       user_projects = user.get_user_projects_from_user(project.id, from_date, to_date)
-      leaves_count = total_leaves_count(user, user_projects, from_date, to_date)
+      leaves_count = total_leaves_count(user, user_projects, from_date, to_date, report_type)
       total_leaves_count += leaves_count
     end
     total_leaves_count
@@ -534,21 +544,29 @@ class TimeSheet
     total_allocated_hours
   end
   
-  def self.total_leaves_count(user, user_projects, from_date, to_date)
+  def self.total_leaves_count(user, user_projects, from_date, to_date, report_type)
     total_leaves_count = 0
     user_projects.each do |user_project|
       leaves_count =
         if user_project.end_date.present?
           if from_date <= user_project.start_date
-            approved_leaves_count(user, user_project.start_date, user_project.end_date)
+            report_type == 'project' ?
+            approved_leaves_count(user, user_project.start_date, user_project.end_date):
+            approved_leaves_count_for_weekly_report(user, user_project.start_date, user_project.end_date)
           elsif from_date > user_project.start_date
-            approved_leaves_count(user, from_date, user_project.end_date)
+            report_type == 'project' ?
+            approved_leaves_count(user, from_date, user_project.end_date):
+            approved_leaves_count_for_weekly_report(user, from_date, user_project.end_date)
           end
         else
           if from_date <= user_project.start_date
-            approved_leaves_count(user, user_project.start_date, to_date)
+            report_type == 'project' ?
+            approved_leaves_count(user, user_project.start_date, to_date):
+            approved_leaves_count_for_weekly_report(user, user_project.start_date, to_date)
           elsif from_date > user_project.start_date
-            approved_leaves_count(user, from_date, to_date)
+            report_type == 'project' ?
+            approved_leaves_count(user, from_date, to_date):
+            approved_leaves_count_for_weekly_report(user, from_date, to_date)
           end
         end
       total_leaves_count += leaves_count
@@ -665,6 +683,17 @@ class TimeSheet
       return false
     end
     return true
+  end
+
+  def self.approved_leaves_count_for_weekly_report(user, from_date, to_date)
+    leaves_count = 0
+    while(from_date <= to_date)
+      next from_date += 1 if HolidayList.is_holiday?(from_date)
+      return_value = user_on_leave?(user, from_date)
+      leaves_count += 1 if return_value
+      from_date += 1
+    end
+    leaves_count
   end
 
   def self.user_on_leave?(user, date)
