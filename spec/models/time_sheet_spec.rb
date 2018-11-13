@@ -173,12 +173,12 @@ RSpec.describe TimeSheet, type: :model do
       end
 
       it 'Should return true because user is on leave' do
-        FactoryGirl.create(:leave_application, user_id: user.id)
+        FactoryGirl.create(:leave_application, user_id: user.id, leave_status: LEAVE_STATUS[1])
         expect(TimeSheet.user_on_leave?(user, Date.today + 2)).to eq(true)
       end
 
       it 'Should return false because user is not on leave' do
-        FactoryGirl.create(:leave_application, user_id: user.id)
+        FactoryGirl.create(:leave_application, user_id: user.id, leave_status: LEAVE_STATUS[1])
         expect(TimeSheet.user_on_leave?(user, Date.today + 4)).to eq(false)
       end
     end
