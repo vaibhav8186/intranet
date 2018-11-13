@@ -669,8 +669,7 @@ class TimeSheet
 
   def self.user_on_leave?(user, date)
     return false unless user.leave_applications.present?
-    leave_applications = user.leave_applications.order("end_at asc").where(:end_at.gte => date,
-                         leave_status: LEAVE_STATUS[1])
+    leave_applications = user.leave_applications.where(:start_at.gte => date)
     leave_applications.each do |leave_application|
       return true if date.between?(leave_application.start_at, leave_application.end_at)
     end
