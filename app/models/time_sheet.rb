@@ -266,7 +266,7 @@ class TimeSheet
     return time_sheet_log, time_sheet_message
   end
 
-  def self.generete_employee_timesheet_report(timesheets, from_date, to_date)
+  def self.generete_employee_timesheet_report(timesheets, from_date, to_date, current_user)
     timesheet_reports = []
     timesheets.each do |timesheet|
       user = load_user_with_id(timesheet['_id'])
@@ -289,7 +289,8 @@ class TimeSheet
       users_timesheet_data['leaves'] = approved_leaves_count(user, from_date, to_date)
       timesheet_reports << users_timesheet_data
     end
-    sort_on_user_name_and_project_name(timesheet_reports)
+    users_without_timesheet = get_users_without_timesheet(from_date, to_date, current_user)
+    return sort_on_user_name_and_project_name(timesheet_reports), users_without_timesheet
   end
 
   def self.create_projects_report_in_json_format(projects_report, from_date, to_date)
@@ -299,7 +300,6 @@ class TimeSheet
     projects_report.each do |project_report|
       project_details = {}
       project = load_project_with_id(project_report['_id']['project_id'])
-      user_ids << project_report['_id']['user_id'].to_s
       project_names << project.name
       project_details['project_id'] = project.id
       project_details['project_name'] = project.name
@@ -313,8 +313,7 @@ class TimeSheet
     end
     projects_report_in_json.sort!{|previous_record, next_record| previous_record['project_name'] <=> next_record['project_name']}
     project_without_timesheet = get_project_without_timesheet(project_names, from_date, to_date) if project_names.present?
-    users_without_timesheet = get_users_without_timesheet(user_ids) if user_ids.present?
-    return projects_report_in_json, project_without_timesheet, users_without_timesheet
+    return projects_report_in_json, project_without_timesheet
   end
 
   def self.generate_individual_timesheet_report(user, params)
@@ -643,8 +642,10 @@ class TimeSheet
     end
     unfilled_timesheet_projects.sort{|previous_record, next_record| previous_record['project_name'] <=> next_record['project_name']}
   end
-  
-  def self.get_users_without_timesheet(user_ids)
+
+  def self.get_users_without_timesheet(from_date, to_date, current_user)
+    return if current_user.role == ROLE[:employee] || current_user.role == ROLE[:intern]
+    user_ids = TimeSheet.where(date: {"$gte" => from_date, "$lte" => to_date}).distinct(:user_id)
     users = User.not_in(id: user_ids)
     users.where(status: STATUS[2], "$or" => [{role: ROLE[:employee]}, {role: ROLE[:intern]}]).order("public_profile.first_name" => :asc)
   end

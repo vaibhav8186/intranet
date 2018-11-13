@@ -29,9 +29,3 @@
     - @project_without_timesheet.each do |project|
       %li 
         = link_to  project['project_name'], individual_project_report_time_sheet_path(project['project_id'], from_date: @from_date, to_date: @to_date)
-  %br
-  - if @users_without_timesheet.present?
-    %h4 Users Without Timesheet
-    - @users_without_timesheet.each do |user|
-      %li
-        = user.name

@@ -23,3 +23,10 @@
             %tr
               %td= "#{project_detail['project_name']}"
               %td= "#{project_detail['worked_hours']}"
+  - unless current_user.role == ROLE[:employee] || current_user.role == ROLE[:intern] 
+    %br
+    - if @users_without_timesheet.present?
+      %h4 Users Without Timesheet
+      - @users_without_timesheet.each do |user|
+        %li
+          = user.name
