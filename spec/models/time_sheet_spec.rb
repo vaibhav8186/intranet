@@ -497,50 +497,70 @@ RSpec.describe TimeSheet, type: :model do
   end
 
   context 'get leaves count' do
-    let!(:user) { FactoryGirl.create(:user) }
+    let!(:user) { FactoryGirl.create(:user, status: STATUS[2]) }
     let!(:project) { FactoryGirl.create(:project, name: 'test') }
 
     it 'Should calculate leaves between from date and to date' do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
       FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
       from_date = '01/09/2018'.to_date
       to_date = '20/09/2018'.to_date
-      leave_count = TimeSheet.get_leaves(project, from_date, to_date)
+      leave_count = TimeSheet.get_leaves(project, from_date, to_date, 'project')
       expect(leave_count).to eq(1)
     end
 
     it "Should calculate leaves from user's project start date and end date" do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: '05/09/2018'.to_date, end_date: '15/09/2018'.to_date)
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
       FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
       FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
       from_date = '01/09/2018'.to_date
       to_date = '20/09/2018'.to_date
-      leave_count = TimeSheet.get_leaves(project, from_date, to_date)
+      leave_count = TimeSheet.get_leaves(project, from_date, to_date, 'project')
       expect(leave_count).to eq(2)
     end
 
     it "Should calculate leaves from user's project start date and searching to date" do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: '06/09/2018'.to_date, end_date: nil)
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: '12/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
       from_date = '01/09/2018'.to_date
       to_date = '20/09/2018'.to_date
       FactoryGirl.create(:leave_application, user_id: user.id, start_at: '14/09/2018', end_at: '14/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
       FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
-      leave_count = TimeSheet.get_leaves(project, from_date, to_date)
+      leave_count = TimeSheet.get_leaves(project, from_date, to_date, 'project')
       expect(leave_count).to eq(2)
     end
 
     it "Should calculate leaves from searching start date and user's project end date" do
       UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: '06/09/2018')
-      TimeSheet.create(user_id: user.id, project_id: project.id, date: '04/09/2018'.to_date, from_time: '9:00', to_time: '10:00', description: 'Discuss new story')
       from_date = '01/09/2018'.to_date
       to_date = '20/09/2018'.to_date
       FactoryGirl.create(:leave_application, user_id: user.id, start_at: '03/09/2018', end_at: '03/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
       FactoryGirl.create(:leave_application, user_id: user.id, start_at: '13/09/2018', end_at: '13/09/2018', number_of_days: 1, leave_status: LEAVE_STATUS[1])
-      leave_count = TimeSheet.get_leaves(project, from_date, to_date)
+      leave_count = TimeSheet.get_leaves(project, from_date, to_date, 'project')
       expect(leave_count).to eq(1)
+    end
+  end
+
+  context 'approved leaves count for weekly report' do
+    let!(:user) { FactoryGirl.create(:user, status: STATUS[2]) }
+    let!(:project) { FactoryGirl.create(:project, name: 'test') }
+
+    it 'Should give approved leaves count' do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '12/11/2018', end_at: '15/11/2018', number_of_days: 4, leave_status: LEAVE_STATUS[1])
+      from_date = '12/11/2018'.to_date
+      to_date = '18/11/2018'.to_date
+      leaves_count = TimeSheet.approved_leaves_count_for_weekly_report(user, from_date, to_date)
+      expect(leaves_count).to eq(4)
+    end
+
+    it "Should give approved leaves and doesn't consider holiday in it" do
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: '01/08/2018'.to_date, end_date: nil)
+      FactoryGirl.create(:leave_application, user_id: user.id, start_at: '12/11/2018', end_at: '15/11/2018', number_of_days: 4, leave_status: LEAVE_STATUS[1])
+      HolidayList.create(holiday_date: '14/11/2018', reason: 'test')
+      from_date = '12/11/2018'.to_date
+      to_date = '18/11/2018'.to_date
+      leaves_count = TimeSheet.approved_leaves_count_for_weekly_report(user, from_date, to_date)
+      expect(leaves_count).to eq(3)
     end
   end
 
@@ -683,17 +703,18 @@ RSpec.describe TimeSheet, type: :model do
 
       from_date = Date.today - 3
       to_date = Date.today + 3
-      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date, 0)
       expect(total_minutes).to eq(180.0)
     end
 
     it 'Should give the users without timesheet because user role is employee' do
       project = FactoryGirl.create(:project)
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      leave_application = 
       user.leave_applications.create(start_at: Date.today - 1, end_at: Date.today- 1, contact_number: '1234567890', number_of_days: 1, reason: 'test', leave_status: LEAVE_STATUS[1])
       from_date = Date.today - 3
       to_date = Date.today + 3
-      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date)
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project, from_date, to_date, leave_application.number_of_days)
       expect(total_minutes).to eq(0)
       expect(users_without_timesheet).to eq(["fname lname", "The pediatric network", 1])
     end
@@ -704,7 +725,7 @@ RSpec.describe TimeSheet, type: :model do
       UserProject.create(user_id: user_two.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       from_date = Date.today - 3
       to_date = Date.today + 3
-      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date)
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date, 0)
       expect(total_minutes).to eq(0)
       expect(users_without_timesheet).to eq(["fname lname", "The pediatric network", 0])
     end
@@ -715,7 +736,7 @@ RSpec.describe TimeSheet, type: :model do
       UserProject.create(user_id: user_two.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       from_date = Date.today - 3
       to_date = Date.today + 3
-      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date)
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date, 0)
       expect(users_without_timesheet.present?).to eq(false)
     end
 
@@ -725,7 +746,7 @@ RSpec.describe TimeSheet, type: :model do
       UserProject.create(user_id: user_two.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
       from_date = Date.today - 3
       to_date = Date.today + 3
-      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date)
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user_two, project, from_date, to_date, 0)
     end
 
     it "Should consider project for calculating total minutes if project's timesheet mandatory field set to false" do
@@ -734,7 +755,7 @@ RSpec.describe TimeSheet, type: :model do
       TimeSheet.create!(user_id: user.id, project_id: project_other.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 8"), to_time: Time.parse("#{Date.today} 9"), description: 'test')
       from_date = Date.today - 3
       to_date = Date.today + 3
-      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project_other, from_date, to_date)
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project_other, from_date, to_date, 0)
       expect(total_minutes).to eq(60.0)
     end
 
@@ -744,7 +765,7 @@ RSpec.describe TimeSheet, type: :model do
       TimeSheet.create!(user_id: user.id, project_id: project_other.id, date: DateTime.now, from_time: Time.parse("#{Date.today} 8"), to_time: Time.parse("#{Date.today} 9"), description: 'test')
       from_date = Date.today - 3
       to_date = Date.today + 3
-      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project_other, from_date, to_date)
+      total_minutes, users_without_timesheet = TimeSheet.get_time_sheet_and_calculate_total_minutes(user, project_other, from_date, to_date, 0)
       expect(users_without_timesheet.present?).to eq(false)
     end
   end
