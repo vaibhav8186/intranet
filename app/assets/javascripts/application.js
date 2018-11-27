@@ -40,6 +40,14 @@ $('.datepicker').datepicker({
 })
 })
 
+$(document).ready(function(){
+  $("body").on("nested:fieldAdded", function() {
+    $('.fields .datepicker').datepicker({
+      format: "dd-mm-yyyy"
+    })
+  })
+})
+
 var readURL;
 readURL = function(input, src_id) {
   var reader;

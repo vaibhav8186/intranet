@@ -8,7 +8,7 @@ RSpec.describe TimeSheet, type: :model do
 
     before do
       user.public_profile.slack_handle = USER_ID
-      UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 2, end_date: nil)
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: DateTime.now - 10, end_date: nil)
       user.save
       stub_request(:post, "https://slack.com/api/chat.postMessage")
     end
@@ -97,6 +97,23 @@ RSpec.describe TimeSheet, type: :model do
         expect(time_sheet.save).to eq(false)
         expect(time_sheet.errors[:from_time]).to eq(["Error :: Can't fill the timesheet for future time."])
       end
+
+      it 'Should not update record because date is less than 2 days' do
+        time_sheet = FactoryGirl.create(:time_sheet, user_id: user.id, project_id: project.id,
+                                        date: Date.today - 3, from_time: "#{Date.today - 3} 6:00",
+                                        to_time: "#{Date.today - 3} 7:00", description: 'test')
+        time_sheet.update_attributes(description: 'call')
+        expect(time_sheet.errors.full_messages).to eq(["Date Error :: Not allowed to edit timesheet for this date. You can edit timesheet for past 2 days."])
+      end
+
+      it 'Should update Timesheet' do
+        time_sheet = FactoryGirl.create(:time_sheet, user_id: user.id, project_id: project.id,
+                                        date: Date.today - 2, from_time: "#{Date.today - 2} 6:00",
+                                        to_time: "#{Date.today - 2} 7:00", description: 'test')
+        time_sheet.update_attributes(description: 'call')
+        expect(time_sheet.errors.full_messages).to eq([])
+        expect(time_sheet.reload.description).to eq('call')
+      end
     end
 
     context 'Validation - Time' do
@@ -122,6 +139,45 @@ RSpec.describe TimeSheet, type: :model do
         time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id, date: DateTime.now - 1, from_time: '08:00', to_time: '07:00')
         expect(time_sheet.save).to eq(false)
         expect(time_sheet.errors[:from_time]).to eq(["`Error :: From time must be less than to time`"])
+      end
+    end
+
+    context 'Validation - timesheet overlapping' do
+      before do
+        FactoryGirl.create(:time_sheet, user_id: user.id, project_id: project.id,
+        date: Date.today - 1, from_time: "#{Date.today - 1} 7", to_time: "#{Date.today - 1} 10", description: "test")
+      end
+
+      it 'Should fail because to time overlapping to already entered time duration' do
+        time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id,
+        date: Date.today - 1, from_time: "#{Date.today - 1} 6", to_time: "#{Date.today - 1} 8", description: "test")
+        time_sheet.save
+        expect(time_sheet.errors[:from_time]).to eq(["Time duration is overlapping with already entered time duration for the day"])
+        expect(time_sheet.errors[:to_time]).to eq(["Time duration is overlapping with already entered time duration for the day"])
+      end
+
+      it 'Should fail because from time overlapping to already entered time duration' do
+        time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id,
+        date: Date.today - 1, from_time: "#{Date.today - 1} 9", to_time: "#{Date.today - 1} 11", description: "test")
+        time_sheet.save
+        expect(time_sheet.errors[:from_time]).to eq(["Time duration is overlapping with already entered time duration for the day"])
+        expect(time_sheet.errors[:to_time]).to eq(["Time duration is overlapping with already entered time duration for the day"])
+      end
+
+      it 'Should fail because from time and to time is between already entered time duration' do
+        time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id,
+        date: Date.today - 1, from_time: "#{Date.today - 1} 8:30", to_time: "#{Date.today - 1} 9:30", description: "test")
+        time_sheet.save
+        expect(time_sheet.errors[:from_time]).to eq(["Time duration is overlapping with already entered time duration for the day"])
+        expect(time_sheet.errors[:to_time]).to eq(["Time duration is overlapping with already entered time duration for the day"])
+      end
+
+      it 'Should fail because from time and to time overlapping to already entered time duration' do
+        time_sheet = FactoryGirl.build(:time_sheet, user_id: user.id, project_id: project.id,
+        date: Date.today - 1, from_time: "#{Date.today - 1} 6", to_time: "#{Date.today - 1} 12", description: "test")
+        time_sheet.save
+        expect(time_sheet.errors[:from_time]).to eq(["Time duration is overlapping with already entered time duration for the day"])
+        expect(time_sheet.errors[:to_time]).to eq(["Time duration is overlapping with already entered time duration for the day"])
       end
     end
   end

@@ -13,15 +13,24 @@ class TimeSheet
   belongs_to :user
   belongs_to :project
 
-  validates :from_time, :to_time, uniqueness: { scope: [:user_id, :date], message: "\`Error :: Record already present\`" }
-  validates :project_id, :date, :from_time, :to_time, :description, presence: true
+  validates :from_time, :to_time, uniqueness: { scope: [:user_id, :date], message: "Record already present" }
+  validates :project_id, :date, :description, presence: true
 
-  before_validation :check_vadation_while_creating_or_updateing_timesheet
+  validates :date, presence: true, if: :is_future_date?
+  validates :from_time, presence: true, if: :from_time_is_future_time?
+  validates :to_time, presence: true, if: :to_time_is_future_time?
+
+  after_validation :check_vadation_while_creating_or_updateing_timesheet
+  before_validation :valid_date_for_update?, on: :update
+  before_validation :valid_date_for_create?, on: :create
+  validate :time_sheet_overlapping?
 
   MAX_TIMESHEET_COMMAND_LENGTH = 5
   DATE_FORMAT_LENGTH = 3
   MAX_DAILY_STATUS_COMMAND_LENGTH = 2
   ALLOCATED_HOURS = 8
+  DAYS_FOR_UPDATE = 2
+  DAYS_FOR_CREATE = 7
 
   def parse_timesheet_data(params)
     split_text = params['text'].split
@@ -71,20 +80,21 @@ class TimeSheet
       SlackApiService.new.post_message_to_slack(params['channel_id'], "\`Error :: Invalid date\`")
       return false
     end
-
     return true if params['command'] == '/daily_status'
     return true
   end
   
   def check_vadation_while_creating_or_updateing_timesheet
-    return false unless check_date_range
-    return false unless from_time_greater_than_to_time?(from_time, to_time)
-    return false unless timesheet_greater_than_current_time?
+    if timesheet_date_greater_than_assign_project_date
+      text = "Not allowed to fill timesheet for this date. As you were not assigned on project for this date"
+      errors.add(:date, text)
+      return false
+    end
     return true
   end
 
   def timesheet_date_greater_than_assign_project_date
-    user = User.find(user_id)
+    user = User.find(self.user_id)
     user_project = UserProject.find_by(user_id: user.id, project_id: project_id, end_date: nil)
       if date < user_project.start_date
         return true
@@ -92,41 +102,58 @@ class TimeSheet
     return false
   end
 
-  def check_date_range
-    if date < 7.days.ago
-      text = 'Error :: Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager.'
+  def valid_date_for_update?
+    if date < Date.today - DAYS_FOR_UPDATE
+      text = "Not allowed to edit timesheet for this date. You can edit timesheet for past #{DAYS_FOR_UPDATE} days."
       errors.add(:date, text)
       return false
-    elsif date > Date.today 
-      text = "Error :: Can't fill the timesheet for future date."
-      errors.add(:date, text)
-      return false
-    elsif timesheet_date_greater_than_assign_project_date
-      text = "Error :: Not allowed to fill timesheet for this date. As you were not assigned on project for this date"
-      errors.add(:date, text)
     end
     return true
   end
 
-  def timesheet_greater_than_current_time?
-    text = "Error :: Can't fill the timesheet for future time."
+  def valid_date_for_create?
+    return false if errors.full_messages.present?
+    if date.blank?
+      errors.add(:date, 'Invalid time')
+      return false 
+    end 
+    if date < Date.today - DAYS_FOR_CREATE
+      text = "Not allowed to fill timesheet for this date. If you want to fill the timesheet, meet your manager."
+      errors.add(:date, text)
+      return false
+    end
+    return true
+  end
+
+  def from_time_is_future_time?
     if from_time >= Time.now
+      text = "Can't fill the timesheet for future time."
       errors.add(:from_time, text)
       return false
-    elsif to_time > Time.now
+    elsif from_time >= to_time
+       text = "From time must be less than to time"
+       errors.add(:from_time, text)
+       return false
+    end
+    return true
+  end
+
+  def to_time_is_future_time?
+    if to_time > Time.now
+      text = "Can't fill the timesheet for future time."
       errors.add(:to_time, text)
       return false      
     end
-    return true
+    return false
   end
 
-  def from_time_greater_than_to_time?(from_time, to_time)
-    if from_time >= to_time
-       text = "\`Error :: From time must be less than to time\`"
-       errors.add(:from_time, text)
-       return false
-     end
-     return true
+  def is_future_date?
+    if date > Date.today
+      text = "Can't fill the timesheet for future date."
+      errors.add(:date, text)
+      return false
+    end
+    return true
   end
 
   def time_validation(date, from_time, to_time, params)
@@ -134,26 +161,25 @@ class TimeSheet
     return false unless from_time
     to_time = valid_time?(date, to_time, params, :to_time)
     return false unless to_time
-
     return true
   end
   
   def valid_time?(date, time, params, attribute)
     time_format = check_time_format(time)
-
     if time_format
       return_value = Time.parse(date + ' ' + time_format) rescue nil
     end
 
     unless return_value
       text = "\`Error :: Invalid time format. Format should be HH:MM\`"
-      errors.add(attribute, text) if params == 'from_ui'
+      text_for_ui = "Invalid time format. Format should be HH:MM"
+      errors.add(attribute, text_for_ui) if params == 'from_ui'
       SlackApiService.new.post_message_to_slack(params['channel_id'], text) unless params == 'from_ui'
       return false
     end
     return_value
   end
-  
+
   def check_time_format(time)
     return false if time.to_s.include?('.')
     return time + (':00') unless time.to_s.include?(':')
@@ -166,6 +192,22 @@ class TimeSheet
       description = description + string + ' '
     end
     description
+  end
+
+  def time_sheet_overlapping?
+    return_value = true
+    TimeSheet.where(date: date, user_id: user_id).order("from_time ASC").each do |time_sheet|
+      if time_sheet.from_time < from_time && time_sheet.to_time > to_time ||
+       time_sheet.from_time > from_time && time_sheet.to_time < to_time ||
+       time_sheet.from_time > from_time && time_sheet.to_time > to_time && time_sheet.from_time < to_time ||
+       time_sheet.from_time < from_time && time_sheet.to_time < to_time && time_sheet.to_time > from_time
+        errors.add(:from_time, "Time duration is overlapping with already entered time duration for the day")
+        errors.add(:to_time, "Time duration is overlapping with already entered time duration for the day")
+        return_value = false
+        break
+      end
+    end
+    return_value
   end
 
   def time_sheets(split_text, params)
@@ -697,26 +739,49 @@ class TimeSheet
     return false
   end
 
-  def self.update_time_sheet(params)
-    return_value = ''
+  def self.update_time_sheet(time_sheets, params)
+    return_value = []
+    updated_time_sheets = []
     params['time_sheets_attributes'].each do |key, value|
-      time_sheet = TimeSheet.find(value[:id])
+      time_sheet = time_sheets.find(value[:id])
       value['from_time'] = value['date'] + ' ' + value['from_time']
       value['to_time'] = value['date'] + ' ' + value['to_time'] 
-      time_sheet.time_validation(value['date'], value['from_time'], value['to_time'], 'from_ui')
-      return time_sheet.errors.full_messages.join(', ') if time_sheet.errors.full_messages.present?
+      updated_time_sheets << time_sheet
+      unless time_sheet.time_validation(value['date'], value['from_time'], value['to_time'], 'from_ui')
+        return_value << false
+        next
+      end
       if time_sheet.update_attributes(value)
-        return_value =  true
+        return_value << true
       else
-        if time_sheet.errors[:from_time].present? || time_sheet.errors[:from_time].present?
-          return time_sheet.errors[:from_time].join(', ') if time_sheet.errors[:from_time].present?
-          return time_sheet.errors[:to_time].join(', ') if time_sheet.errors[:to_time].present?
-        else
-          return time_sheet.errors.full_messages.join(', ')
-        end
+        return_value << false
       end
     end
-    return_value
+    return return_value, updated_time_sheets
+  end
+
+  def self.create_time_sheet(user_id, params)
+    time_sheets = []
+    return_value = []
+    params['time_sheets_attributes'].each do |key, value|
+      value['user_id'] = user_id
+      value['from_time'] = value['date'] + ' ' + value['from_time']
+      value['to_time'] = value['date'] + ' ' + value['to_time']
+      time_sheet = TimeSheet.new
+      time_sheet.attributes = value
+      unless time_sheet.time_validation(value['date'], value['from_time'], value['to_time'], 'from_ui')
+        return_value << false
+        time_sheets << time_sheet
+        next
+      end
+      if time_sheet.save
+        return_value << true
+      else
+        time_sheets << time_sheet
+        return_value << false
+      end
+    end
+    return return_value, time_sheets
   end
 
   def self.get_errors_message(user, time_sheet_date)
@@ -741,17 +806,24 @@ class TimeSheet
   end
 
   def self.create_error_message_for_slack(errors)
-    errors.map do |error|
-      index = error.index(/Error/)
-      index = error.index(/Record/) if index.nil?
-      error[index..-1].prepend("`").concat("`")
+    errors.map! do |error|
+      error.prepend("\`Error :: ").concat("\`")
     end
+    errors
   end
 
-  def self.create_error_message(error)
+  def self.create_error_message_while_updating_time_sheet(error)
     index = error.remove!("`").index(/Error/)
     error = error[index..-1] unless index.nil?
     error
+  end
+
+  def self.create_error_message_while_creating_time_sheet(errors)
+    errors.map! do |error|
+      index = error.remove!("`").index(/Error/)
+      error[index..-1] unless index.nil?
+    end
+    errors
   end
 
   def self.load_user(user_id)
@@ -914,3 +986,4 @@ class TimeSheet
     ])
   end
 end
+
