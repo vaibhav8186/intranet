@@ -7,6 +7,6 @@ class TimesheetRemainderMailer < ActionMailer::Base
     @user = user
     @text = text
     managers_emails = @user.get_managers_emails
-    mail(subject: 'Timesheet Reminder', to: user.email, cc: managers_emails)
+    mail(subject: 'Timesheet Reminder', to: user.email, cc: managers_emails + DEFAULT_TIMESHEET_MANAGERS)
   end
 end

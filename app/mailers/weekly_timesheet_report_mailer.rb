@@ -5,6 +5,6 @@ class WeeklyTimesheetReportMailer < ActionMailer::Base
   def send_weekly_timesheet_report(csv, email, unfilled_time_sheet_report)
     @unfilled_time_sheet_report = unfilled_time_sheet_report
     attachments["weekly_timesheet_report_#{Date.today}.csv"] = csv
-    mail(subject: 'Weekly timesheet report', to: email)
+    mail(subject: 'Weekly timesheet report', to: email + DEFAULT_TIMESHEET_MANAGERS)
   end
 end
