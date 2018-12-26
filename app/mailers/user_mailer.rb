@@ -53,9 +53,9 @@ class UserMailer < ActionMailer::Base
   end
 
   def leaves_reminder(leaves)
-    hr = User.approved.where(role: 'HR').first
+    hr_emails = User.approved.where(role: 'HR').collect(&:email)
     admin_emails = User.approved.where(role: 'Admin').all.map(&:email)
-    @receiver_emails = [admin_emails, hr.try(:email)].flatten.join(',')
+    @receiver_emails = [admin_emails, hr_emails].flatten.join(',')
     @leaves = leaves
     mail(to: @receiver_emails, subject: "Employees on leave tomorrow.") if @leaves.present?
   end
