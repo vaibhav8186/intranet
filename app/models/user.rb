@@ -130,7 +130,7 @@ class User
   def add_projects(project_ids)
     return_value = true
     project_ids.each do |project_id|
-      return_value = UserProject.create!(user_id: id, project_id: project_id, start_date: DateTime.now, end_date: nil) rescue false
+      return_value = UserProject.create!(user_id: id, project_id: project_id, start_date: DateTime.now - 7.days, end_date: nil) rescue false
       if return_value == false
         break
       end
