@@ -263,6 +263,7 @@ class TimeSheet
 
   def self.search_user_and_send_reminder(users)
     users.each do |user|
+      next if user.projects.where(timesheet_mandatory: true).count.eql?(0)
       last_filled_time_sheet_date = user.time_sheets.order(date: :asc).last.date + 1 if time_sheet_present_for_reminder?(user)
       next if last_filled_time_sheet_date.nil?
       date_difference = calculate_date_difference(last_filled_time_sheet_date)
