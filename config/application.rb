@@ -12,7 +12,7 @@ require "sprockets/railtie"
 Bundler.require(:default, Rails.env)
 Date::DATE_FORMATS[:default] = '%d/%m/%Y'
 Time::DATE_FORMATS[:default] = '%d/%m/%Y - %H:%M %p'
-
+require File.expand_path('app/middlewares/event_service_proxy')
 module Intranet
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
@@ -26,9 +26,11 @@ module Intranet
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     config.autoload_paths += Dir["#{config.root}/lib", "#{config.root}/lib/**/"]
+    config.autoload_paths += %W(#{config.root}/app/middlewares/*)
+    config.middleware.insert_after(Warden::Manager, EventServiceProxy)
     config.before_configuration do
       env_file = File.join(Rails.root, 'config', 'environment.yml')
-      
+
       environment_yml = YAML.load(File.open(env_file)).detect do |key, value| 
         Rails.env == key.to_s
       end if File.exist?(env_file)

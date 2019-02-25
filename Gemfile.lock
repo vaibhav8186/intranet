@@ -997,6 +997,8 @@ GEM
     rack (1.6.8)
     rack-protection (1.5.3)
       rack
+    rack-proxy (0.6.5)
+      rack
     rack-test (0.6.3)
       rack (>= 1.0)
     rails (4.2.5.2)
@@ -1250,6 +1252,7 @@ DEPENDENCIES
   mongoid_slug
   nested_form
   omniauth-google-oauth2
+  rack-proxy (~> 0.6.4)
   rails (= 4.2.5.2)
   recaptcha (~> 3.3.0)
   redactor-rails (= 0.4.5)

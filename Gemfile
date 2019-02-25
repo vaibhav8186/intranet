@@ -126,3 +126,4 @@ gem "rest-client"
 gem 'time_difference'
 gem 'slack-ruby-bot'
 gem 'business_time'
+gem 'rack-proxy', '~> 0.6.4'
