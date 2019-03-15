@@ -15,9 +15,15 @@ class EventServiceProxy < Rack::Proxy
 
   def rewrite_env(env)
     request = Rack::Request.new(env)
-    if request.path.match('/events') && env['warden'].authenticated?
-      env["HTTP_HOST"] = "localhost:8000"
+    p  env['warden'].authenticated?
+    if request.path.match('/events')
+      if env['warden'].authenticated?
+        env["HTTP_HOST"] = "localhost:8000"
+        env['HTTP_AUTHORIZATION'] = env['rack.session']['warden.user.user.key'][0]
+      else
+        env['REQUEST_PATH'] = '/'
+      end
+      env
     end
-    env
   end
 end
