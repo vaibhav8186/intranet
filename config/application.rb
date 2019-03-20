@@ -39,6 +39,13 @@ module Intranet
         ENV[key.to_s] = value
       end if environment_yml.present?
     end
+
+    config.middleware.insert_before 0, "Rack::Cors" do
+      allow do
+        origins '*'
+        resource '*', headers: :any, methods: [:get, :post, :options]
+      end
+    end
     # config.i18n.default_locale = :de
   end
 end
