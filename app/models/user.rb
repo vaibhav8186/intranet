@@ -9,6 +9,7 @@ class User
   devise :database_authenticatable, :omniauthable,
          :recoverable, :rememberable, :trackable, :validatable, :omniauth_providers => [:google_oauth2]
   ROLES = ['Super Admin', 'Admin', 'Manager', 'HR', 'Employee', 'Intern', 'Finance']
+  INTERN_ROLE = "Intern"
   ## Database authenticatable
   field :email,               :type => String, :default => ""
   field :encrypted_password,  :type => String, :default => ""
@@ -40,6 +41,9 @@ class User
   has_and_belongs_to_many :managed_projects, class_name: 'Project', foreign_key: 'managed_project_ids', inverse_of: :managers
 
   after_update :delete_team_cache, if: :website_fields_changed?
+  before_create :new_employee_id
+  before_update :if_change_in_role
+
 
   accepts_nested_attributes_for :attachments, reject_if: :all_blank, :allow_destroy => true
   accepts_nested_attributes_for :time_sheets, :allow_destroy => true
@@ -173,6 +177,22 @@ class User
   def projects
     project_ids = user_projects.where(end_date: nil).pluck(:project_id)
     Project.in(id: project_ids)
+  end
+
+  def new_employee_id
+    unless self.role == INTERN_ROLE
+      employee_id_array = User.distinct("employee_detail.employee_id")
+      employee_id_array.empty? ? emp_id = 0 : emp_id = employee_id_array.map{|id| id.to_i}.max
+      self.employee_detail = EmployeeDetail.new(employee_id: emp_id + 1)
+    end
+  end
+
+  def if_change_in_role
+    if changes.include?("role")
+      if changes["role"][1] != INTERN_ROLE && self.employee_detail.employee_id.nil?
+        new_employee_id
+      end
+    end
   end
   
   def get_user_projects_from_user(project_id, from_date, to_date)
