@@ -295,4 +295,26 @@ describe User do
       end
     end
   end
+  context 'Employee Auto Id generation' do
+    let!(:user) { FactoryGirl.create(:user,public_profile: FactoryGirl.build(:public_profile)) }
+    it "should generate new Employee ID if employee is new" do      
+      user = FactoryGirl.create(:user, public_profile: FactoryGirl.build(:public_profile))
+      expect(user.employee_detail.employee_id.to_i).to eq(2)
+    end
+
+    it "should not generate ID if employee is exist" do
+      user = FactoryGirl.create(:user, public_profile: FactoryGirl.build(:public_profile))
+      expect(user.new_employee_id.employee_id).to eq(user.employee_detail.employee_id)
+    end
+
+    it "should not generate ID if user role is Intern" do
+      user = FactoryGirl.create(:user, role: 'Intern', email: 'intern@company.com')
+      expect(user.employee_detail).to eq(nil)
+    end
+
+    it "should generate id when user role is changed Intern to Employee" do
+      user.update_attributes(role: "Employee")
+      expect(user.employee_detail.employee_id.to_i).to eq(1)
+    end
+  end
 end
