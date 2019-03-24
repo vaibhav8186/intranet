@@ -9,7 +9,6 @@ class User
   devise :database_authenticatable, :omniauthable,
          :recoverable, :rememberable, :trackable, :validatable, :omniauth_providers => [:google_oauth2]
   ROLES = ['Super Admin', 'Admin', 'Manager', 'HR', 'Employee', 'Intern', 'Finance']
-  INTERN_ROLE = "Intern"
   ## Database authenticatable
   field :email,               :type => String, :default => ""
   field :encrypted_password,  :type => String, :default => ""
@@ -41,8 +40,8 @@ class User
   has_and_belongs_to_many :managed_projects, class_name: 'Project', foreign_key: 'managed_project_ids', inverse_of: :managers
 
   after_update :delete_team_cache, if: :website_fields_changed?
-  before_create :new_employee_id
-  before_update :if_change_in_role
+  before_create :associate_employee_id
+  before_update :role_was
 
 
   accepts_nested_attributes_for :attachments, reject_if: :all_blank, :allow_destroy => true
@@ -179,18 +178,17 @@ class User
     Project.in(id: project_ids)
   end
 
-  def new_employee_id
-    unless self.role == INTERN_ROLE
+  def associate_employee_id
+    return if self.role.eql?(ROLES[5])
       employee_id_array = User.distinct("employee_detail.employee_id")
-      employee_id_array.empty? ? emp_id = 0 : emp_id = employee_id_array.map{|id| id.to_i}.max
-      self.employee_detail = EmployeeDetail.new(employee_id: emp_id + 1)
-    end
+      emp_id = employee_id_array.empty? ?  0 : employee_id_array.map{|id| id.to_i}.max
+      self.build_employee_detail.employee_id = emp_id + 1
   end
 
-  def if_change_in_role
-    if changes.include?("role")
-      if changes["role"][1] != INTERN_ROLE && self.employee_detail.employee_id.nil?
-        new_employee_id
+  def role_was
+    if role_changed?
+      if changes["role"][1] !=  ROLES[5] && self.employee_detail.employee_id.nil?
+        associate_employee_id
       end
     end
   end
