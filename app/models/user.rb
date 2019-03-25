@@ -8,7 +8,9 @@ class User
 
   devise :database_authenticatable, :omniauthable,
          :recoverable, :rememberable, :trackable, :validatable, :omniauth_providers => [:google_oauth2]
-  ROLES = ['Super Admin', 'Admin', 'Manager', 'HR', 'Employee', 'Intern', 'Finance']
+  INTERN_ROLE = "Intern"       
+  ROLES = ['Super Admin', 'Admin', 'Manager', 'HR', 'Employee', INTERN_ROLE, 'Finance']
+
   ## Database authenticatable
   field :email,               :type => String, :default => ""
   field :encrypted_password,  :type => String, :default => ""
@@ -41,7 +43,7 @@ class User
 
   after_update :delete_team_cache, if: :website_fields_changed?
   before_create :associate_employee_id
-  before_update :role_was
+  after_update :associate_employee_if_role_changed
 
 
   accepts_nested_attributes_for :attachments, reject_if: :all_blank, :allow_destroy => true
@@ -179,15 +181,16 @@ class User
   end
 
   def associate_employee_id
-    return if self.role.eql?(ROLES[5])
-      employee_id_array = User.distinct("employee_detail.employee_id")
-      emp_id = employee_id_array.empty? ?  0 : employee_id_array.map{|id| id.to_i}.max
-      self.build_employee_detail.employee_id = emp_id + 1
+    return if self.role.eql?(INTERN_ROLE)
+    employee_id_array = User.distinct("employee_detail.employee_id")
+    emp_id = employee_id_array.empty? ?  0 : employee_id_array.map{|id| id.to_i}.max + 1
+    byebug
+    self.employee_detail.present? ?  self.employee_detail.update_attributes(employee_id: emp_id) : EmployeeDetail.new(employee_id: emp_id)
   end
 
-  def role_was
+  def associate_employee_if_role_changed
     if role_changed?
-      if changes["role"][1] !=  ROLES[5] && self.employee_detail.employee_id.nil?
+      if role_was ==  INTERN_ROLE && self.employee_detail.employee_id.nil?
         associate_employee_id
       end
     end
