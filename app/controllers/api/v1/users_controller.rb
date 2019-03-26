@@ -3,7 +3,7 @@ class Api::V1::UsersController < ApplicationController
   skip_before_filter :verify_authenticity_token
 
   def info
-    id = current_user.present? ? current_user.id.to_s : nil
-    render json: { id: id}
+    render json: {} and return if current_user.blank?
+    render json: { id: current_user.id.to_s, email: current_user.email, name: current_user.name}
   end
 end
