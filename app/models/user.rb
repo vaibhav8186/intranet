@@ -43,7 +43,7 @@ class User
 
   after_update :delete_team_cache, if: :website_fields_changed?
   before_create :associate_employee_id
-  after_update :associate_employee_if_role_changed
+  after_update :associate_employee_id_if_role_changed
 
 
   accepts_nested_attributes_for :attachments, reject_if: :all_blank, :allow_destroy => true
@@ -184,11 +184,10 @@ class User
     return if self.role.eql?(INTERN_ROLE)
     employee_id_array = User.distinct("employee_detail.employee_id")
     emp_id = employee_id_array.empty? ?  0 : employee_id_array.map{|id| id.to_i}.max + 1
-    byebug
     self.employee_detail.present? ?  self.employee_detail.update_attributes(employee_id: emp_id) : EmployeeDetail.new(employee_id: emp_id)
   end
 
-  def associate_employee_if_role_changed
+  def associate_employee_id_if_role_changed
     if role_changed?
       if role_was ==  INTERN_ROLE && self.employee_detail.employee_id.nil?
         associate_employee_id
