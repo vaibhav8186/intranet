@@ -3,7 +3,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: "Employees") do |sheet|
   sheet.add_row %w(Sr.No Employee_id  Name Email Role Designation MobileNo)
   counter = 0
-  @users.each do |user|
+  @approved_user.each do |user|
     counter+=1
     sheet.add_row [counter, user.employee_id, user.name, user.email, user.role, user.designation, user.mobile_number]
   end
