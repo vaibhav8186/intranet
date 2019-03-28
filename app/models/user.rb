@@ -183,8 +183,8 @@ class User
   def associate_employee_id
     return if self.role.eql?(INTERN_ROLE)
     employee_id_array = User.distinct("employee_detail.employee_id")
-    emp_id = employee_id_array.empty? ?  0 : employee_id_array.map{|id| id.to_i}.max + 1
-    self.employee_detail.present? ?  self.employee_detail.update_attributes(employee_id: emp_id) : EmployeeDetail.new(employee_id: emp_id)
+    emp_id = employee_id_array.empty? ?  0 : employee_id_array.map{|id| id.to_i}.max 
+    self.employee_detail.present? ?  self.employee_detail.update_attributes(employee_id: emp_id + 1) : EmployeeDetail.new(employee_id: emp_id + 1)
   end
 
   def associate_employee_id_if_role_changed
