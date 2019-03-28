@@ -305,7 +305,7 @@ describe User do
 
     it "should not generate ID if employee is exist" do
       user = FactoryGirl.create(:user, public_profile: FactoryGirl.build(:public_profile))
-      expect(user.new_employee_id.employee_id).to eq(user.employee_detail.employee_id)
+      expect(user.employee_detail.employee_id).to eq(user.employee_detail.employee_id)
     end
 
     it "should not generate ID if user role is Intern" do
@@ -315,7 +315,7 @@ describe User do
 
     it "should generate id when user role is changed Intern to Employee" do
       internuser.update_attributes(role: "Employee")
-      expect(internuser.employee_detail.employee_id.to_i).to eq(1)
+      expect(internuser.employee_detail.employee_id.to_i).to eq(2)
     end
 
     it "should not override other details when user role is changed intern to employee" do
@@ -326,7 +326,9 @@ describe User do
       expect(internuser.doj_month).to eq(internuser.doj_month)
       expect(internuser.email).to eq(internuser.email)
       expect(internuser.status).to eq(internuser.status)
-      expect(internuser.employee_detail.employee_id.to_i).to eq(1)
+      expect(internuser.employee_detail.employee_id.to_i).to eq(2)
+      expect(internuser.employee_detail.date_of_relieving).to eq(internuser.employee_detail.date_of_relieving)
+      expect(internuser.employee_detail.available_leaves).to eq(internuser.employee_detail.available_leaves)
     end
   end
 end
