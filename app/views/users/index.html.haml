@@ -1,11 +1,14 @@
 .form-heading
   %h2 Employees
   - if can? :edit, User
-    %h5.btn{id: 'show'} Show All
-    = link_to "Download Employee List", users_path(format: "xlsx")
-    %h5{id: 'show_text'} Showing approved users only.
+    .align.align-right
+      %h5.btn{id: 'show'} Show All
+      %h5.btn{id:'downloadbton'}Download
+      %h5{id: 'show_text'} Showing approved users only.
+  %br
+  %br 
 .form-horizontal
-  %table.table.table-hover
+  %table#user_stream_table.table.table-hover
     %thead
       %tr
         %th Id
@@ -17,36 +20,79 @@
           %th Role
           %th Status
     %tbody
-      - @users.each_with_index do |user, index|
-        %tr{hidden: (true if user.status != STATUS[2])}
+      %script#template{type: "text/html"}
+        %tr
+          {{#record}}
           - if can? :edit, User
-            %td= user.employee_detail.try(:employee_id) if user.employee_detail
-            %td= image_tag(user.public_profile.image.thumb.url, class: 'img-polaroid') if user.public_profile
-            %td= link_to user.name, user_path(user) if user.public_profile
-            %td= user.email
-            %td= user.public_profile.try(:mobile_number)
-            %td= user.role
+            %td {{id}}
             %td
-              - status_class = (user.status == 'approved') ? 'label-success' : 'label-warning'
-              .label{class: status_class} 
-                = user.status
-            %td= link_to '', public_profile_user_path(user), class: 'icon-edit', data: {'no-turbolink' =>  true}
-          - elsif user.allow_in_listing?
-            %td= user.employee_detail.try(:employee_id) if user.employee_detail
-            %td= image_tag(user.public_profile.image.thumb.url, class: 'img-polaroid') if user.public_profile
-            %td= link_to user.name, user_path(user)
-            %td #{user.email}
-            %td= user.public_profile.try(:mobile_number)
+              =image_tag "{{image}}", :class => 'img-polaroid' 
+            %td
+              %a{href: "/users/{{record._slugs}}"}
+                {{name}}
+            %td {{email}}
+            %td {{mobile_number}}
+            %td {{role}}
+            {{#is_approved}}
+            %td
+              .label{class: 'label-success'} {{status}}
+            {{/is_approved}}
+            {{^is_approved}}
+            %td
+              .label{class: 'label-warning'} {{status}}
+            {{/is_approved}}
+            {{#is_slug}}  
+            %td 
+              %a{href: "/users/{{record._slugs}}/public_profile", class: "icon-edit", data: {'no-turbolink' =>  true}}
+            {{/is_slug}}
+            {{^is_slug}}
+            %td
+              %a{href: "/users/{{record._id.$oid}}/public_profile", class: "icon-edit", data: {'no-turbolink' =>  true}}
+            {{/is_slug}}
+          - else  
+            %td {{id}}
+            %td
+              =image_tag "{{image}}", :class => 'img-polaroid' 
+            %td
+              %a{href: "/users/{{record._slugs}}"}
+                {{name}}
+            %td {{email}}
+            %td {{mobile_number}}
+          {{/record}}
+        
+
 :css
   .table td{ vertical-align: middle; }
+
 :coffeescript
+  @data = #{@users.to_json}
   $('tr[hidden]').attr("hide", "true")
+
+  @approved = data.filter((d) ->
+    d.status == "approved"
+  )
   $('#show').click ->
     if $(this).text() == 'Show All'
       $(this).text('Show Approved')
       $('tr[hide]').removeAttr('hidden')
       $('#show_text').text('Showing all users.')
+      st = $("#user_stream_table").data('st')
+      st.data = []
+      st.addData(data);
     else
       $(this).text('Show All')
       $('tr[hide]').attr('hidden', 'true')
       $('#show_text').text('Showing approved users only.')
+      st = $("#user_stream_table").data('st')
+      st.data = []
+      st.addData(approved)
+
+  $('#downloadbton').click (event) ->
+    if $('#show').text() == 'Show All'
+      window.location.href = '/users.xlsx' 
+    else
+      window.location.href = '/users.xlsx'+'?'+ 'status=all'
+    return
+
+
+  
