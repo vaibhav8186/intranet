@@ -53,6 +53,10 @@ class User
   scope :get_approved_users_to_send_reminder, ->{where('$and' => ['$or' => [{ role: 'Intern' }, { role: 'Employee' }], status: STATUS[2]])}
   #Public profile will be nil when admin invite user for sign in with only email address 
   delegate :name, to: :public_profile, :allow_nil => true
+  delegate :designation, to: :employee_detail, :allow_nil => true
+  delegate :mobile_number, to: :public_profile, :allow_nil => true
+  delegate :employee_id, to: :employee_detail, :allow_nil => true
+  
 
   before_create do
     self.website_sequence_number = (User.max(:website_sequence_number) || 0) + 1

@@ -2,6 +2,7 @@
   %h2 Employees
   - if can? :edit, User
     %h5.btn{id: 'show'} Show All
+    = link_to "Download Employee List", users_path(format: "xlsx")
     %h5{id: 'show_text'} Showing approved users only.
 .form-horizontal
   %table.table.table-hover

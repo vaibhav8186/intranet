@@ -39,6 +39,11 @@ gem 'jquery-timepicker-rails'
 #sinatra 
 gem 'sinatra'
 
+#for exporting excel sheet
+gem 'rubyzip', '= 1.0.0'
+gem 'axlsx', '= 2.0.1'
+gem 'axlsx_rails'
+
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby
 
