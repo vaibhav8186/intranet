@@ -295,4 +295,40 @@ describe User do
       end
     end
   end
+  context 'Employee Auto Id generation' do
+    let!(:user) { FactoryGirl.create(:user,public_profile: FactoryGirl.build(:public_profile)) }
+    let(:internuser) { FactoryGirl.create(:user, role: 'Intern', email: 'intern@joshsoftware.com',employee_detail: FactoryGirl.build(:employee_detail))}
+    it "should generate new Employee ID if employee is new" do      
+      user = FactoryGirl.create(:user, public_profile: FactoryGirl.build(:public_profile))
+      expect(user.employee_detail.employee_id.to_i).to eq(2)
+    end
+
+    it "should not generate ID if employee is exist" do
+      user = FactoryGirl.create(:user, public_profile: FactoryGirl.build(:public_profile))
+      expect(user.employee_detail.employee_id).to eq(user.employee_detail.employee_id)
+    end
+
+    it "should not generate ID if user role is Intern" do
+      user = FactoryGirl.create(:user, role: 'Intern', email: 'intern@joshsoftware.com')
+      expect(user.employee_detail).to eq(nil)
+    end
+
+    it "should generate id when user role is changed Intern to Employee" do
+      internuser.update_attributes(role: "Employee")
+      expect(internuser.employee_detail.employee_id.to_i).to eq(2)
+    end
+
+    it "should not override other details when user role is changed intern to employee" do
+      internuser.update_attributes(role: "Employee")
+      expect(internuser.dob_day).to eq(internuser.dob_day)
+      expect(internuser.dob_month).to eq(internuser.dob_month)
+      expect(internuser.doj_day).to eq(internuser.doj_day)
+      expect(internuser.doj_month).to eq(internuser.doj_month)
+      expect(internuser.email).to eq(internuser.email)
+      expect(internuser.status).to eq(internuser.status)
+      expect(internuser.employee_detail.employee_id.to_i).to eq(2)
+      expect(internuser.employee_detail.date_of_relieving).to eq(internuser.employee_detail.date_of_relieving)
+      expect(internuser.employee_detail.available_leaves).to eq(internuser.employee_detail.available_leaves)
+    end
+  end
 end
