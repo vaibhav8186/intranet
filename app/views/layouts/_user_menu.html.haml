@@ -16,7 +16,8 @@
     = link_to "Profile", main_app.public_profile_user_path(current_user), data: {'no-turbolink' =>  true}
   %li 
     = link_to "Documents", main_app.attachments_path, data: {'no-turbolink' =>  true}
-
+  %li 
+    = link_to "Events", "https://intranet.joshsoftware.com/functions", 'target' => '_blank'
   - if ["HR", "Admin", "Super Admin"].include?(current_user.role)
     %li
       = link_to "Newsletter", main_app.light_path
