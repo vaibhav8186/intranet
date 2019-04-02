@@ -18,6 +18,8 @@ class EventServiceProxy < Rack::Proxy
     p  env['warden'].authenticated?
     if request.path.match('/events')
       if env['warden'].authenticated?
+        @backend = URI('http://localhost:8000')
+        env['rack.backend'] = @backend
         env["HTTP_HOST"] = "localhost:8000"
         env['HTTP_AUTHORIZATION'] = env['rack.session']['warden.user.user.key'][0]
       else
