@@ -134,6 +134,42 @@ describe UsersController do
       xhr :get, :get_feed, params
       expect(assigns(:blog_entries).count).to eq 10
     end
+  end
+  context 'download excel sheet of Employee' do
+    before(:each) do
+      @user = FactoryGirl.create(:user, role: 'HR', email: 'vaibhav@joshsoftware.com',
+              public_profile: FactoryGirl.build(:public_profile), private_profile: FactoryGirl.build(:private_profile))
+      sign_in @user
+    end
+    let!(:userlist) { FactoryGirl.create_list(:user,status:'approved',4) }
+    let!(:user) { FactoryGirl.create(:user) }
+    it 'should download only status approved users' do
+      params = {"status" => "approved"}
+      get :index, params
+      json = JSON.parse(response.body)
+      expect(json['data'].length).to eq(4)
+    end
 
+    it 'should download all users' do
+      params = {"status" => "all"}
+      get :index, params
+      json = JSON.parse(response.body)
+      expect(json['data'].length).to eq(5)
+    end
+  end
+
+  context 'searching and pagination' do
+    before(:each) do
+      @user = FactoryGirl.create(:user, role: 'Employee', email: 'vaibhav@joshsoftware.com',
+              public_profile: FactoryGirl.build(:public_profile), private_profile: FactoryGirl.build(:private_profile))
+      sign_in @user
+    end
+    let!(:userlist) { FactoryGirl.create_list(:user,5) }
+    it 'should return expected users' do
+      params = {"offset" => "4", "limit" => "1"}
+      get :index, params
+      json = JSON.parse(response.body)
+      expect(json['data'].length).to eq(1)
+    end
   end
 end

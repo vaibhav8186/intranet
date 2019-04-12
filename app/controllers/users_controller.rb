@@ -8,16 +8,19 @@ class UsersController < ApplicationController
   after_action :notify_document_download, only: :download_document
 
   def index
-    if params[:query]
-      @users = User.any_of(:email=>Regexp.new(".*" +params[:query] +".*")).to_a
+    page_no = params[:offset].to_i
+    limit = params[:page_no].to_i
+    limit = 100 if limit.zero?
+    @users = User.employees.skip(page_no * limit).limit(limit)
+    if params[:status] == "all"
+      @usersxls = User.sort_by_id
     else
-      @users = User.all
+      @usersxls = User.approved.sort_by_id
     end
-    @users = @users.sort{|u1, u2| u1.name.to_s <=> u2.name.to_s}
     respond_to do |format|
       format.html # index.html.erb
-      format.json { render json: @users }
       format.xlsx
+      format.json { render json: @users.to_json }
     end
   end
 

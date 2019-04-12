@@ -34,6 +34,8 @@ class User
   field :visible_on_website, :type => Boolean, :default => false
   field :website_sequence_number, :type => Integer
 
+
+
   has_many :leave_applications
   has_many :attachments
   has_many :time_sheets
@@ -52,7 +54,8 @@ class User
   validates :role, :email, presence: true
   validates_associated :employee_detail
   scope :employees, ->{all.asc("public_profile.first_name")}
-  scope :approved, ->{where(status: 'approved')}  
+  scope :approved, ->{where(status: 'approved')} 
+  scope :sort_by_id, ->{all.asc{"employee_detail.employee_id"}} 
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :interviewers, ->{where(:role.ne => 'Intern')}
   scope :get_approved_users_to_send_reminder, ->{where('$and' => ['$or' => [{ role: 'Intern' }, { role: 'Employee' }], status: STATUS[2]])}
@@ -61,7 +64,11 @@ class User
   delegate :designation, to: :employee_detail, :allow_nil => true
   delegate :mobile_number, to: :public_profile, :allow_nil => true
   delegate :employee_id, to: :employee_detail, :allow_nil => true
+  delegate :date_of_joining, to: :private_profile, :allow_nil => true
+  delegate :date_of_birth, to: :public_profile, :allow_nil => true
+  delegate :date_of_relieving, to: :employee_detail, :allow_nil =>true
   
+
 
   before_create do
     self.website_sequence_number = (User.max(:website_sequence_number) || 0) + 1
