@@ -8,10 +8,10 @@ class UsersController < ApplicationController
   after_action :notify_document_download, only: :download_document
 
   def index
-    @page_no = params[:offset].to_i
-    @limit = params[:page_no].to_i
-    @limit = 100 if @limit.zero?
-    @users = User.employees.skip(@page_no * @limit).limit(@limit)
+    page_no = params[:offset].to_i
+    limit = params[:page_no].to_i
+    limit = 100 if limit.zero?
+    @users = User.employees.skip(page_no * limit).limit(limit)
     if params[:status] == "all"
       @usersxls = User.sort_by_id
     else
