@@ -18,14 +18,19 @@ $(document).ready ->
     record.is_slug = record._slugs
     record.is_approved = record.status == "approved"
     return template({record: record, index: index});
+    
 
   options = {
     view: view                  
     data_url: '/users.json'
     stream_after: 2           
-    fetch_data_limit: 100
-    fields: ['email','name']
-   
+    fetch_data_limit: 500
+    fields: (record) -> 
+      [
+        record.email,
+        record.public_profile.first_name,
+        record.public_profile.last_name
+      ].join('')
   }
   if($('#user_stream_table').length)
     $("#user_stream_table").stream_table(options, approved) if typeof approved isnt "undefined"
