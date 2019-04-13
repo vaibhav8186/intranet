@@ -19,9 +19,7 @@ class TimeSheet
   validates :date, presence: true, if: :is_future_date?
   validates :from_time, presence: true, if: :from_time_is_future_time?
   validates :to_time, presence: true, if: :to_time_is_future_time?
-
   after_validation :check_vadation_while_creating_or_updateing_timesheet
-  before_validation :valid_date_for_update?, on: :update
   before_validation :valid_date_for_create?, on: :create
   validate :time_sheet_overlapping?
 
@@ -103,12 +101,7 @@ class TimeSheet
   end
 
   def valid_date_for_update?
-    if date < Date.today - DAYS_FOR_UPDATE
-      text = "Not allowed to edit timesheet for this date. You can edit timesheet for past #{DAYS_FOR_UPDATE} days."
-      errors.add(:date, text)
-      return false
-    end
-    return true
+    date > Date.today - DAYS_FOR_UPDATE
   end
 
   def valid_date_for_create?

@@ -300,7 +300,8 @@ RSpec.describe TimeSheetsController, type: :controller do
   context 'Update timesheet' do
     let!(:user) { FactoryGirl.create(:user, email: 'abc@joshsoftware.com', role: 'Admin') }
     let!(:project) { FactoryGirl.create(:project, name: 'test') }
-    
+    let!(:employee) { FactoryGirl.create(:user) }
+
     it 'Should update timesheet' do
       sign_in user
       UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
@@ -349,6 +350,36 @@ RSpec.describe TimeSheetsController, type: :controller do
       params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 11:00 AM", "to_time"=>"#{Date.today - 1} - 10:00 AM", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
       post :update_timesheet, user_id: user.id, user: params, time_sheet_date: Date.today - 1
       expect(flash[:error]).to be_present
+      should render_template(:edit_timesheet)
+    end
+
+    it 'Should update Timesheet because timesheet date is not less than 2 days in case of Employee' do
+      sign_in employee
+      UserProject.create(user_id: employee.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: employee.id, project_id: project.id, date: Date.today - 1, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 11:00 AM", "to_time"=>"#{Date.today - 1} - 10:00 AM", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>employee.id}
+      post :update_timesheet, user_id: employee.id, user: params, time_sheet_date: Date.today - 1
+      expect(flash[:error]).not_to be_present
+      should render_template(:edit_timesheet)
+    end
+
+    it 'Should not update Timesheet because timesheet date is less than 2 days in case of Employee' do
+      sign_in employee
+      UserProject.create(user_id: employee.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: employee.id, project_id: project.id, date: Date.today - 3, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 11:00 AM", "to_time"=>"#{Date.today - 1} - 10:00 AM", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>employee.id}
+      post :update_timesheet, user_id: employee.id, user: params, time_sheet_date: Date.today - 3
+      expect(flash[:error]).to eql("Not allowed to edit timesheet for this date. You can edit timesheet for past #{TimeSheet::DAYS_FOR_UPDATE} days.")
+      should render_template(:edit_timesheet)
+    end
+
+    it 'Should update Timesheet even if timesheet date is less than 2 days in case of Admin' do
+      sign_in user
+      UserProject.create(user_id: user.id, project_id: project.id, start_date: Date.today - 10, end_date: nil)
+      time_sheet = TimeSheet.create(user_id: user.id, project_id: project.id, date: Date.today - 3, from_time: Time.parse("#{Date.today - 1} 10"), to_time: Time.parse("#{Date.today - 1} 11:30"), description: 'Woked on test cases')
+      params = {"time_sheets_attributes"=>{"0"=>{"project_id"=>"#{project.id}", "date"=>"#{Date.today - 1}", "from_time"=>"#{Date.today - 1} - 11:00 AM", "to_time"=>"#{Date.today - 1} - 10:00 AM", "description"=>"testing API and call with client", "id"=>"#{time_sheet.id}"}}, "id"=>user.id}
+      post :update_timesheet, user_id: user.id, user: params, time_sheet_date: Date.today - 3
+      expect(flash[:error]).not_to be_present
       should render_template(:edit_timesheet)
     end
   end
