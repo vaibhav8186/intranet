@@ -11,11 +11,12 @@ class UsersController < ApplicationController
     limit = params[:limit].to_i
     offset = params[:offset].to_i
     limit = 50 if limit.zero?
-    @users = User.employees.skip(offset).limit(limit)
     if params[:status] == "all"
       @usersxls = User.sort_by_id
+      @users = User.employees.skip(offset).limit(limit)
     else
       @usersxls = User.approved.sort_by_id
+      @users = User.approved.skip(offset).limit(limit)
     end
     respond_to do |format|
       format.html # index.html.erb
