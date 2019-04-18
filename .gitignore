@@ -42,3 +42,4 @@
 /log/*
 /doc/
 /public/newsletter/
+.byebug_history

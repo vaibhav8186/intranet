@@ -55,17 +55,23 @@ class TimeSheetsController < ApplicationController
       flash[:error] = "Invalid access"
       redirect_to edit_time_sheets_path and return
     end
-
     @from_date = Date.today.beginning_of_month.to_s
     @to_date = Date.today.to_s
     @user = User.find_by(id: params['user_id'])
     @time_sheet_date = params[:time_sheet_date]
     @time_sheets = @user.time_sheets.where(date: params[:time_sheet_date].to_date)
-    return_value, @time_sheets = TimeSheet.update_time_sheet(@time_sheets, timesheet_params)
-    unless return_value.include?(false)
-      flash[:notice] = 'Timesheet Updated Succesfully'
-      redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
+    if(current_user.is_employee_or_intern? && @time_sheets.last.valid_date_for_update?) ||
+      current_user.is_admin_or_hr?
+      return_value, @time_sheets = TimeSheet.update_time_sheet(@time_sheets, timesheet_params)
+      unless return_value.include?(false)
+        flash[:notice] = 'Timesheet Updated Succesfully'
+        redirect_to users_time_sheets_path(@user.id, from_date: @from_date, to_date: @to_date)
+      else  
+        render 'edit_timesheet'
+      end
     else
+      text = "Not allowed to edit timesheet for this date. You can edit timesheet for past #{TimeSheet::DAYS_FOR_UPDATE} days."
+      flash[:error] = text
       render 'edit_timesheet'
     end
   end

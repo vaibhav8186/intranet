@@ -107,6 +107,14 @@ class User
     return false
   end
 
+  def is_employee_or_intern?
+    [ROLE[:intern], ROLE[:employee]].include?(role)
+  end
+
+  def is_admin_or_hr?
+    [ROLE[:HR], ROLE[:admin]].include?(role)
+  end  
+
   def allow_in_listing?
     return true if self.status == 'approved'
     return false
