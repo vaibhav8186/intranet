@@ -8,16 +8,10 @@ class UsersController < ApplicationController
   after_action :notify_document_download, only: :download_document
 
   def index
-    limit = params[:limit].to_i
-    offset = params[:offset].to_i
-    limit = 50 if limit.zero?
-    if params[:status] == "all"
-      @usersxls = User.sort_by_id
-      @users = User.employees.skip(offset).limit(limit)
-    else
-      @usersxls = User.approved.sort_by_id
-      @users = User.approved.skip(offset).limit(limit)
-    end
+    offset = params[:offset] || 0
+    limit = params[:limit] || 50
+    @users = current_user.is_admin_or_hr? ? User.employees.offset(offset).limit(limit) : User.employees.approved.offset(offset).limit(limit)
+    @usersxls = params[:status] == "all" ? User.employees : User.employees.approved
     respond_to do |format|
       format.html # index.html.erb
       format.xlsx

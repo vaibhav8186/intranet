@@ -55,7 +55,6 @@ class User
   validates_associated :employee_detail
   scope :employees, ->{all.asc("public_profile.first_name")}
   scope :approved, ->{where(status: 'approved')} 
-  scope :sort_by_id, ->{all.asc{"employee_detail.employee_id"}} 
   scope :visible_on_website, -> {where(visible_on_website: true)}
   scope :interviewers, ->{where(:role.ne => 'Intern')}
   scope :get_approved_users_to_send_reminder, ->{where('$and' => ['$or' => [{ role: 'Intern' }, { role: 'Employee' }], status: STATUS[2]])}

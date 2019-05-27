@@ -2,11 +2,11 @@
   %h2 Employees
   - if can? :edit, User
     .align.align-right
-      %h5.btn{id: 'show'} Show All
-      %h5.btn{id:'downloadbton'}Download
-      %h5{id: 'show_text'} Showing approved users only.
+      %h5.btn{id: 'show'} Show Approved
+      %h5.btn{id:'download_btn'}Download
+      %h5{id: 'user_note_text'} Showing all users.
   %br
-  %br 
+  %br
 .form-horizontal
   %table#user_stream_table.table.table-hover
     %thead
@@ -66,33 +66,3 @@
 
 :coffeescript
   @data = #{@users.to_json}
-  $('tr[hidden]').attr("hide", "true")
-
-  @approved = data.filter((d) ->
-    d.status == "approved"
-  )
-  $('#show').click ->
-    if $(this).text() == 'Show All'
-      $(this).text('Show Approved')
-      $('tr[hide]').removeAttr('hidden')
-      $('#show_text').text('Showing all users.')
-      st = $("#user_stream_table").data('st')
-      st.data = []
-      st.addData(data);
-    else
-      $(this).text('Show All')
-      $('tr[hide]').attr('hidden', 'true')
-      $('#show_text').text('Showing approved users only.')
-      st = $("#user_stream_table").data('st')
-      st.data = []
-      st.addData(approved)
-
-  $('#downloadbton').click (event) ->
-    if $('#show').text() == 'Show All'
-      window.location.href = '/users.xlsx' 
-    else
-      window.location.href = '/users.xlsx'+'?'+ 'status=all'
-    return
-
-
-  
